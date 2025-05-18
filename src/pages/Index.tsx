@@ -1,12 +1,32 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useEffect } from 'react';
+import { motion } from 'framer-motion';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import PriceTable from '@/components/PriceTable';
 
 const Index = () => {
+  useEffect(() => {
+    // Cambiar el título del documento
+    document.title = "Hierros Tascione - Lista de Precios";
+  }, []);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="flex flex-col min-h-screen bg-background">
+      <Header />
+      
+      <motion.main 
+        className="flex-grow py-12"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="container-custom">
+          <PriceTable />
+        </div>
+      </motion.main>
+      
+      <Footer />
     </div>
   );
 };
