@@ -1,11 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Square, Hammer, Cable, Plug, Anchor, Settings } from 'lucide-react';
+import { Square, Hammer, Cable, Plug, Anchor } from 'lucide-react';
 import { fetchProducts } from '@/services/api';
 import { Product } from '@/types/products';
 import { useToast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
 
 interface HeaderProps {
   onSelectProduct?: (product: Product) => void;
@@ -82,12 +81,7 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
         <div className="flex flex-col items-center space-y-4">
           <div className="flex justify-between w-full items-center">
             <div className="flex-1">
-              <Link to="/admin/productos">
-                <Button variant="ghost" size="sm" className="float-left">
-                  <Settings className="h-4 w-4 mr-1" />
-                  Admin
-                </Button>
-              </Link>
+              {/* Admin button removed from here */}
             </div>
             <div className="flex justify-center flex-1">
               <img 

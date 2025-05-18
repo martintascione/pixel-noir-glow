@@ -1,12 +1,20 @@
 
 import { Product, ApiResponse } from "@/types/products";
 
-const API_URL = import.meta.env.VITE_API_URL || "https://tu-dominio-hostinger.com/api";
+// Usamos una variable de entorno para la URL de la API, con un valor de respaldo
+const API_URL = import.meta.env.VITE_API_URL || "/api";
 
 export const fetchProducts = async (): Promise<ApiResponse<Product[]>> => {
   try {
+    // En producción, esta sería una llamada real a la base de datos
     const response = await fetch(`${API_URL}/products`);
+    
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    
     const data = await response.json();
+    console.log("Productos cargados:", data);
     return { data };
   } catch (error) {
     console.error("Error fetching products:", error);
@@ -29,6 +37,11 @@ export const fetchProductById = async (
     const url = `${API_URL}/products/${id}${queryString ? `?${queryString}` : ''}`;
     
     const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    
     const data = await response.json();
     return { data };
   } catch (error) {
@@ -42,6 +55,11 @@ export const fetchLastUpdateDate = async (): Promise<ApiResponse<{ updateDate: D
     // En producción, esto sería una llamada real a la API para obtener la fecha de última actualización
     // de la tabla price_updates
     const response = await fetch(`${API_URL}/price-update`);
+    
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    
     const data = await response.json();
     return { data };
   } catch (error) {
@@ -57,49 +75,79 @@ export const fetchLastUpdateDate = async (): Promise<ApiResponse<{ updateDate: D
 // Esta función se usaría desde un panel de administración
 export const createProduct = async (product: Omit<Product, "id">): Promise<ApiResponse<Product>> => {
   try {
+    console.log("Creando producto:", product);
+    
     const response = await fetch(`${API_URL}/products`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(product),
+      credentials: 'include', // Para enviar cookies si es necesario para autenticación
     });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error ${response.status}: ${errorText}`);
+    }
+    
     const data = await response.json();
+    console.log("Producto creado:", data);
     return { data };
   } catch (error) {
     console.error("Error creating product:", error);
-    return { data: {} as Product, error: "No se pudo crear el producto" };
+    return { data: {} as Product, error: "No se pudo crear el producto. Verifique la conexión a la base de datos." };
   }
 };
 
 // Esta función se usaría desde un panel de administración
 export const updateProduct = async (id: string, product: Partial<Product>): Promise<ApiResponse<Product>> => {
   try {
+    console.log(`Actualizando producto ${id}:`, product);
+    
     const response = await fetch(`${API_URL}/products/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(product),
+      credentials: 'include',
     });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error ${response.status}: ${errorText}`);
+    }
+    
     const data = await response.json();
+    console.log("Producto actualizado:", data);
     return { data };
   } catch (error) {
     console.error(`Error updating product ${id}:`, error);
-    return { data: {} as Product, error: "No se pudo actualizar el producto" };
+    return { data: {} as Product, error: "No se pudo actualizar el producto. Verifique la conexión a la base de datos." };
   }
 };
 
 // Esta función se usaría desde un panel de administración
 export const deleteProduct = async (id: string): Promise<ApiResponse<{ success: boolean }>> => {
   try {
+    console.log(`Eliminando producto ${id}`);
+    
     const response = await fetch(`${API_URL}/products/${id}`, {
       method: "DELETE",
+      credentials: 'include',
     });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error ${response.status}: ${errorText}`);
+    }
+    
     const data = await response.json();
+    console.log("Producto eliminado:", data);
     return { data };
   } catch (error) {
     console.error(`Error deleting product ${id}:`, error);
-    return { data: { success: false }, error: "No se pudo eliminar el producto" };
+    return { data: { success: false }, error: "No se pudo eliminar el producto. Verifique la conexión a la base de datos." };
   }
 };

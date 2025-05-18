@@ -5,8 +5,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   ArrowLeft, 
   Plus, 
-  Pencil, 
-  Trash2, 
   ChevronDown, 
   ChevronUp 
 } from 'lucide-react';
@@ -44,9 +42,10 @@ const AdminProducts = () => {
       setIsFormOpen(false);
     },
     onError: (error) => {
+      console.error("Error al crear producto:", error);
       toast({
         title: "Error",
-        description: "No se pudo crear el producto",
+        description: "No se pudo crear el producto. Verifica la conexión a la base de datos.",
         variant: "destructive",
       });
     }
@@ -65,9 +64,10 @@ const AdminProducts = () => {
       setIsFormOpen(false);
     },
     onError: (error) => {
+      console.error("Error al actualizar producto:", error);
       toast({
         title: "Error",
-        description: "No se pudo actualizar el producto",
+        description: "No se pudo actualizar el producto. Verifica la conexión a la base de datos.",
         variant: "destructive",
       });
     }
@@ -83,9 +83,10 @@ const AdminProducts = () => {
       });
     },
     onError: (error) => {
+      console.error("Error al eliminar producto:", error);
       toast({
         title: "Error",
-        description: "No se pudo eliminar el producto",
+        description: "No se pudo eliminar el producto. Verifica la conexión a la base de datos.",
         variant: "destructive",
       });
     }
@@ -103,6 +104,8 @@ const AdminProducts = () => {
   };
 
   const handleSubmitProduct = (product: Omit<Product, "id"> | Product) => {
+    console.log("Enviando producto:", product);
+    
     if ("id" in product && editingProduct) {
       updateMutation.mutate({ 
         id: product.id, 
@@ -175,6 +178,9 @@ const AdminProducts = () => {
       ) : error ? (
         <div className="text-center p-8 text-red-500">
           Error al cargar los productos. Intente nuevamente.
+          <div className="mt-2 text-sm">
+            {error instanceof Error ? error.message : "Error desconocido"}
+          </div>
         </div>
       ) : (
         <ProductList 
@@ -183,6 +189,11 @@ const AdminProducts = () => {
           onDelete={handleDeleteProduct} 
         />
       )}
+      
+      <div className="mt-8 text-sm text-center text-muted-foreground">
+        <p>Los datos de los productos se almacenan en la base de datos SQL.</p>
+        <p>La última actualización de precios se realiza automáticamente cuando se modifican los productos.</p>
+      </div>
     </div>
   );
 };
