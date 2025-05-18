@@ -19,15 +19,10 @@ const PromotionalBanner = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <BadgePercent size={24} className="text-white" />
-          <div>
-            <h3 className="font-bold text-lg">¡OFERTA ESPECIAL!</h3>
-            <p className="text-white/90">En todos nuestros productos</p>
+          <div className="text-right">
+            <Badge className="bg-white text-green-600 font-bold mb-1 px-2 py-1">5% OFF</Badge>
+            <p className="text-sm">Pago en efectivo contra entrega</p>
           </div>
-        </div>
-        
-        <div className="text-right">
-          <Badge className="bg-white text-green-600 font-bold mb-1 px-2 py-1">5% OFF</Badge>
-          <p className="text-sm">Pago en efectivo contra entrega</p>
         </div>
       </div>
     </motion.div>
