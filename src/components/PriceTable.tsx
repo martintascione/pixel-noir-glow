@@ -1,7 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, Variants } from 'framer-motion';
 import { useToast } from "@/hooks/use-toast";
+import { WhatsApp, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 // Tipos para los datos de la tabla
 interface PriceItem {
@@ -23,12 +30,19 @@ const PriceTable = () => {
     { size: "20x30", price: 195 },
     { size: "30x30", price: 210 },
   ]);
+  
+  const [openSpecial, setOpenSpecial] = useState(false);
+  const [openDelivery, setOpenDelivery] = useState(false);
+  const [openPayment, setOpenPayment] = useState(false);
+  const [openBilling, setOpenBilling] = useState(false);
 
   const handleContactClick = () => {
     toast({
       title: "Contacto iniciado",
       description: "Redirigiendo a WhatsApp...",
     });
+    // En un caso real, aquí se redigiría a WhatsApp
+    window.open("https://wa.me/+5491112345678", "_blank");
   };
 
   const handleQuoteClick = () => {
@@ -36,6 +50,8 @@ const PriceTable = () => {
       title: "Solicitud de presupuesto",
       description: "Procesando su solicitud...",
     });
+    // En un caso real, aquí se redigiría a WhatsApp u otro método de contacto
+    window.open("https://wa.me/+5491112345678?text=Hola,%20quiero%20un%20presupuesto%20personalizado", "_blank");
   };
 
   const handleAvailabilityClick = () => {
@@ -43,6 +59,8 @@ const PriceTable = () => {
       title: "Consultando disponibilidad",
       description: "Verificando stock...",
     });
+    // En un caso real, aquí se redigiría a WhatsApp u otro método de contacto
+    window.open("https://wa.me/+5491112345678?text=Hola,%20quiero%20consultar%20la%20disponibilidad%20de%20estribos", "_blank");
   };
 
   const diameterOptions: DiameterOption[] = [
@@ -50,7 +68,7 @@ const PriceTable = () => {
     { value: "6", label: "6 mm" },
   ];
 
-  const container = {
+  const container: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
@@ -60,7 +78,7 @@ const PriceTable = () => {
     }
   };
 
-  const item = {
+  const item: Variants = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0 }
   };
@@ -80,28 +98,25 @@ const PriceTable = () => {
         </label>
         <div className="grid grid-cols-2 gap-3">
           {diameterOptions.map((option) => (
-            <button
+            <Button
               key={option.value}
               onClick={() => setSelectedDiameter(option.value)}
-              className={`py-3 px-4 rounded-md transition-all duration-200 ${
-                selectedDiameter === option.value
-                  ? "bg-accent text-foreground border-primary border"
-                  : "bg-secondary text-secondary-foreground hover:bg-accent/60"
-              }`}
+              variant={selectedDiameter === option.value ? "default" : "outline"}
+              className="py-6 rounded-xl"
             >
               {option.label}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
 
       <motion.div 
-        className="overflow-hidden rounded-lg border border-border"
+        className="overflow-hidden rounded-xl border border-border bg-white"
         variants={container}
         initial="hidden"
         animate="show"
       >
-        <div className="bg-card px-6 py-4 border-b border-border">
+        <div className="px-6 py-4 border-b border-border bg-white">
           <div className="grid grid-cols-2">
             <div className="font-medium">Medida (cm)</div>
             <div className="font-medium">Precio Unitario</div>
@@ -112,7 +127,7 @@ const PriceTable = () => {
           {priceData.map((item, index) => (
             <motion.div 
               key={index}
-              className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200"
+              className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
               variants={item}
             >
               <div>{item.size}</div>
@@ -123,60 +138,117 @@ const PriceTable = () => {
       </motion.div>
 
       <div className="mt-8 flex justify-center">
-        <button 
+        <Button 
           onClick={handleContactClick}
-          className="btn-primary"
+          className="rounded-xl py-6 px-6 bg-green-500 hover:bg-green-600 flex gap-2 items-center"
         >
+          <WhatsApp size={24} />
           Consultar o hacer pedido por WhatsApp
-        </button>
+        </Button>
       </div>
 
       <div className="mt-16">
-        <h3 className="text-xl font-bold mb-4">Medidas Especiales / Personalizadas</h3>
-        <p className="mb-4 text-muted-foreground">
-          Fabricamos estribos a medida según tus necesidades. Tiempo estimado de producción: 24 a 48 hs. 
-          Consultanos por WhatsApp para obtener tu presupuesto personalizado.
-        </p>
-        <div className="flex justify-center mt-6">
-          <button 
-            onClick={handleQuoteClick}
-            className="btn-outline"
-          >
-            Solicitar presupuesto personalizado
-          </button>
-        </div>
+        <Collapsible
+          open={openSpecial}
+          onOpenChange={setOpenSpecial}
+          className="w-full"
+        >
+          <CollapsibleTrigger className="w-full">
+            <div className="flex justify-between items-center border border-border rounded-xl p-4 bg-white hover:bg-muted/30 transition-all">
+              <h3 className="text-xl font-bold">Medidas Especiales / Personalizadas</h3>
+              <ChevronDown className={`transition-transform duration-200 ${openSpecial ? 'rotate-180' : ''}`} />
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="border-x border-b border-border rounded-b-xl p-6 bg-white animate-slide-down">
+            <p className="mb-4 text-muted-foreground">
+              Fabricamos estribos a medida según tus necesidades. Tiempo estimado de producción: 24 a 48 hs. 
+              Consultanos por WhatsApp para obtener tu presupuesto personalizado.
+            </p>
+            <div className="flex justify-center mt-6">
+              <Button 
+                onClick={handleQuoteClick}
+                variant="outline"
+                className="rounded-xl bg-white flex gap-2 items-center"
+              >
+                <WhatsApp className="text-green-500" />
+                Solicitar presupuesto personalizado
+              </Button>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
 
-      <div className="mt-16">
-        <h3 className="text-xl font-bold mb-4">Condiciones de Entrega y Retiro</h3>
-        <p className="mb-4 text-muted-foreground">
-          Podés retirar sin costo en nuestro depósito o coordinar envío. Los plazos de entrega varían según la medida y
-          cantidad. Consultanos por disponibilidad.
-        </p>
-        <div className="flex justify-center mt-6">
-          <button 
-            onClick={handleAvailabilityClick}
-            className="btn-outline"
-          >
-            Consultar disponibilidad
-          </button>
-        </div>
+      <div className="mt-8">
+        <Collapsible
+          open={openDelivery}
+          onOpenChange={setOpenDelivery}
+          className="w-full"
+        >
+          <CollapsibleTrigger className="w-full">
+            <div className="flex justify-between items-center border border-border rounded-xl p-4 bg-white hover:bg-muted/30 transition-all">
+              <h3 className="text-xl font-bold">Condiciones de Entrega y Retiro</h3>
+              <ChevronDown className={`transition-transform duration-200 ${openDelivery ? 'rotate-180' : ''}`} />
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="border-x border-b border-border rounded-b-xl p-6 bg-white animate-slide-down">
+            <p className="mb-4 text-muted-foreground">
+              Podés retirar sin costo en nuestro depósito o coordinar envío. Los plazos de entrega varían según la medida y
+              cantidad. Consultanos por disponibilidad.
+            </p>
+            <div className="flex justify-center mt-6">
+              <Button 
+                onClick={handleAvailabilityClick}
+                variant="outline"
+                className="rounded-xl bg-white flex gap-2 items-center"
+              >
+                <WhatsApp className="text-green-500" />
+                Consultar disponibilidad
+              </Button>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
 
-      <div className="mt-16">
-        <h3 className="text-xl font-bold mb-4">Condiciones de Pago</h3>
-        <p className="mb-4 text-muted-foreground">
-          Los pagos pueden realizarse en efectivo, transferencia bancaria o con cheque a 15 días. 
-          Para pagos con otros medios, consultar condiciones.
-        </p>
+      <div className="mt-8">
+        <Collapsible
+          open={openPayment}
+          onOpenChange={setOpenPayment}
+          className="w-full"
+        >
+          <CollapsibleTrigger className="w-full">
+            <div className="flex justify-between items-center border border-border rounded-xl p-4 bg-white hover:bg-muted/30 transition-all">
+              <h3 className="text-xl font-bold">Condiciones de Pago</h3>
+              <ChevronDown className={`transition-transform duration-200 ${openPayment ? 'rotate-180' : ''}`} />
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="border-x border-b border-border rounded-b-xl p-6 bg-white animate-slide-down">
+            <p className="mb-4 text-muted-foreground">
+              Los pagos pueden realizarse en efectivo, transferencia bancaria o con cheque a 15 días. 
+              Para pagos con otros medios, consultar condiciones.
+            </p>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
 
-      <div className="mt-16">
-        <h3 className="text-xl font-bold mb-4">Condiciones de Facturación</h3>
-        <p className="mb-4 text-muted-foreground">
-          Todos los precios incluyen IVA. Se emiten facturas A o B según corresponda. 
-          En caso de requerir factura A, se solicitará el CUIT correspondiente.
-        </p>
+      <div className="mt-8">
+        <Collapsible
+          open={openBilling}
+          onOpenChange={setOpenBilling}
+          className="w-full"
+        >
+          <CollapsibleTrigger className="w-full">
+            <div className="flex justify-between items-center border border-border rounded-xl p-4 bg-white hover:bg-muted/30 transition-all">
+              <h3 className="text-xl font-bold">Condiciones de Facturación</h3>
+              <ChevronDown className={`transition-transform duration-200 ${openBilling ? 'rotate-180' : ''}`} />
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="border-x border-b border-border rounded-b-xl p-6 bg-white animate-slide-down">
+            <p className="mb-4 text-muted-foreground">
+              Todos los precios incluyen IVA. Se emiten facturas A o B según corresponda. 
+              En caso de requerir factura A, se solicitará el CUIT correspondiente.
+            </p>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
     </div>
   );
