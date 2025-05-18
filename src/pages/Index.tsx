@@ -9,8 +9,8 @@ import { Product } from '@/types/products';
 import { fetchProductById } from '@/services/api';
 
 const Index = () => {
-  const [selectedProduct, setSelectedProduct] = useState('Hierros');
-  const [selectedProductId, setSelectedProductId] = useState('4'); // Asumimos 4 para Etribos inicialmente
+  const [selectedProduct, setSelectedProduct] = useState('Estribos');
+  const [selectedProductId, setSelectedProductId] = useState('1'); // Cambiado a 1 para Estribos inicialmente
   
   useEffect(() => {
     // Cambiar el título del documento

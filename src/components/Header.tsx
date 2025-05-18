@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Anchor, Package, Cable, Square } from 'lucide-react';
+import { Anchor, Package, Cable, Nail } from 'lucide-react';
 import { fetchProducts } from '@/services/api';
 import { Product } from '@/types/products';
 import { useToast } from '@/hooks/use-toast';
@@ -28,30 +27,26 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
         });
         // Carga productos de respaldo en caso de error
         setProducts([
-          { id: '1', name: 'Hierros', icon: <Square className="mr-1" />, type: 'square', sizes: [] },
-          { id: '2', name: 'Claves', icon: <Package className="mr-1" />, type: 'square', sizes: [] },
+          { id: '1', name: 'Estribos', icon: <Anchor className="mr-1" />, type: 'square', sizes: [] },
+          { id: '2', name: 'Clavos', icon: <Nail className="mr-1" />, type: 'square', sizes: [] },
           { id: '3', name: 'Alambre Fardo', icon: <Cable className="mr-1" />, type: 'square', sizes: [] },
-          { id: '4', name: 'Etribos', icon: <Anchor className="mr-1" />, type: 'square', sizes: [] },
         ]);
       } else {
         // Asignar iconos según el tipo de producto
         const productsWithIcons = data.map(product => {
           let icon;
           switch (product.name.toLowerCase()) {
-            case 'hierros':
-              icon = <Square className="mr-1" />;
+            case 'estribos':
+              icon = <Anchor className="mr-1" />;
               break;
-            case 'claves':
-              icon = <Package className="mr-1" />;
+            case 'clavos':
+              icon = <Nail className="mr-1" />;
               break;
             case 'alambre fardo':
               icon = <Cable className="mr-1" />;
               break;
-            case 'etribos':
-              icon = <Anchor className="mr-1" />;
-              break;
             default:
-              icon = <Square className="mr-1" />;
+              icon = <Package className="mr-1" />;
           }
           return { ...product, icon };
         });
