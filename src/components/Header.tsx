@@ -22,6 +22,10 @@ const Header = () => {
             CUIT: 20-21856308-3
           </p>
           
+          <p className="text-md md:text-lg font-medium text-primary-foreground bg-primary px-4 py-1 rounded-md animate-slide-in">
+            AHORRA TIEMPO, SUMA PRODUCTIVIDAD
+          </p>
+          
           <div className="flex flex-wrap justify-center gap-2 pt-2 w-full animate-slide-in">
             {products.map((product) => (
               <Button 
