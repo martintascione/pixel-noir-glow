@@ -22,7 +22,7 @@ const Header = () => {
             CUIT: 20-21856308-3
           </p>
           
-          <p className="text-md md:text-lg font-medium text-primary-foreground bg-primary px-4 py-1 rounded-md animate-slide-in">
+          <p className="text-md md:text-lg font-medium text-neutral-700 tracking-wide py-2 max-w-lg text-center animate-slide-in">
             AHORRA TIEMPO, SUMA PRODUCTIVIDAD
           </p>
           
