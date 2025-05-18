@@ -9,11 +9,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Separator } from "@/components/ui/separator";
 
 // Tipos para los datos de la tabla
 interface PriceItem {
   size: string;
   price: number;
+  type: 'square' | 'rectangular';
 }
 
 interface DiameterOption {
@@ -25,10 +27,12 @@ const PriceTable = () => {
   const { toast } = useToast();
   const [selectedDiameter, setSelectedDiameter] = useState<string>("4.2");
   const [priceData, setPriceData] = useState<PriceItem[]>([
-    { size: "10x10", price: 150 },
-    { size: "15x15", price: 170 },
-    { size: "20x30", price: 195 },
-    { size: "30x30", price: 210 },
+    { size: "10x10", price: 150, type: 'square' },
+    { size: "15x15", price: 170, type: 'square' },
+    { size: "20x20", price: 190, type: 'square' },
+    { size: "10x20", price: 180, type: 'rectangular' },
+    { size: "20x30", price: 195, type: 'rectangular' },
+    { size: "30x30", price: 210, type: 'square' },
   ]);
   
   const [openSpecial, setOpenSpecial] = useState(false);
@@ -83,6 +87,9 @@ const PriceTable = () => {
     show: { opacity: 1, y: 0 }
   };
 
+  const squareMeasurements = priceData.filter(item => item.type === 'square');
+  const rectangularMeasurements = priceData.filter(item => item.type === 'rectangular');
+
   return (
     <div className="w-full max-w-3xl mx-auto">
       <div className="mb-8">
@@ -110,32 +117,67 @@ const PriceTable = () => {
         </div>
       </div>
 
-      <motion.div 
-        className="overflow-hidden rounded-xl border border-border bg-white"
-        variants={containerVariants}
-        initial="hidden"
-        animate="show"
-      >
-        <div className="px-6 py-4 border-b border-border bg-white">
-          <div className="grid grid-cols-2">
-            <div className="font-medium">Medida (cm)</div>
-            <div className="font-medium">Precio Unitario</div>
+      {/* Medidas Cuadradas */}
+      <div className="mb-6">
+        <h3 className="text-lg font-bold mb-3">Medidas Cuadradas</h3>
+        <motion.div 
+          className="overflow-hidden rounded-xl border border-border bg-white mb-8"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+        >
+          <div className="px-6 py-4 border-b border-border bg-white">
+            <div className="grid grid-cols-2">
+              <div className="font-medium">Medida (cm)</div>
+              <div className="font-medium">Precio Unitario</div>
+            </div>
           </div>
-        </div>
-        
-        <div className="divide-y divide-border">
-          {priceData.map((item, index) => (
-            <motion.div 
-              key={index}
-              className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
-              variants={itemVariants}
-            >
-              <div>{item.size}</div>
-              <div>${item.price}</div>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
+          
+          <div className="divide-y divide-border">
+            {squareMeasurements.map((item, index) => (
+              <motion.div 
+                key={index}
+                className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
+                variants={itemVariants}
+              >
+                <div>{item.size}</div>
+                <div>${item.price}</div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Medidas Rectangulares */}
+      <div className="mb-6">
+        <h3 className="text-lg font-bold mb-3">Medidas Rectangulares</h3>
+        <motion.div 
+          className="overflow-hidden rounded-xl border border-border bg-white"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+        >
+          <div className="px-6 py-4 border-b border-border bg-white">
+            <div className="grid grid-cols-2">
+              <div className="font-medium">Medida (cm)</div>
+              <div className="font-medium">Precio Unitario</div>
+            </div>
+          </div>
+          
+          <div className="divide-y divide-border">
+            {rectangularMeasurements.map((item, index) => (
+              <motion.div 
+                key={index}
+                className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
+                variants={itemVariants}
+              >
+                <div>{item.size}</div>
+                <div>${item.price}</div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
 
       <div className="mt-8 flex justify-center">
         <Button 
