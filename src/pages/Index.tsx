@@ -33,10 +33,8 @@ const Index = () => {
         transition={{ duration: 0.5 }}
       >
         <div className="container-custom">
-          <div className="flex flex-col items-start">
-            <PromotionalBanner />
-            <PriceTable productId={selectedProductId} />
-          </div>
+          <PromotionalBanner />
+          <PriceTable productId={selectedProductId} />
         </div>
       </motion.main>
       
