@@ -1,10 +1,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Square, Hammer, Cable, Anchor, Plug } from 'lucide-react';
+import { Square, Hammer, Cable, Plug, Anchor, Settings } from 'lucide-react';
 import { fetchProducts } from '@/services/api';
 import { Product } from '@/types/products';
 import { useToast } from '@/hooks/use-toast';
+import { Link } from 'react-router-dom';
 
 interface HeaderProps {
   onSelectProduct?: (product: Product) => void;
@@ -79,12 +80,23 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
     <header className="py-6 border-b border-border bg-white">
       <div className="container-custom">
         <div className="flex flex-col items-center space-y-4">
-          <div className="flex justify-center">
-            <img 
-              src="/lovable-uploads/1faa8215-e986-441a-be71-2444d2af5c02.png" 
-              alt="Hierros Tascione Logo" 
-              className="h-14 md:h-16 animate-fade-in"
-            />
+          <div className="flex justify-between w-full items-center">
+            <div className="flex-1">
+              <Link to="/admin/productos">
+                <Button variant="ghost" size="sm" className="float-left">
+                  <Settings className="h-4 w-4 mr-1" />
+                  Admin
+                </Button>
+              </Link>
+            </div>
+            <div className="flex justify-center flex-1">
+              <img 
+                src="/lovable-uploads/1faa8215-e986-441a-be71-2444d2af5c02.png" 
+                alt="Hierros Tascione Logo" 
+                className="h-14 md:h-16 animate-fade-in"
+              />
+            </div>
+            <div className="flex-1"></div>
           </div>
           <div className="text-sm text-muted-foreground animate-fade-in text-center">
             <p>CUIT: 20-21856308-3</p>
