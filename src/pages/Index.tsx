@@ -1,15 +1,17 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import PriceTable from '@/components/PriceTable';
 
 const Index = () => {
+  const [selectedProduct, setSelectedProduct] = useState('Hierros');
+  
   useEffect(() => {
     // Cambiar el título del documento
-    document.title = "Hierros Tascione - Lista de Precios";
-  }, []);
+    document.title = `Hierros Tascione - ${selectedProduct}`;
+  }, [selectedProduct]);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
