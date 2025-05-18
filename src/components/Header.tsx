@@ -77,7 +77,7 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
         <div className="flex flex-col items-center space-y-4">
           <div className="flex justify-center">
             <img 
-              src="/lovable-uploads/72fc17e3-953e-46e2-b477-3ec26b5308aa.png" 
+              src="/lovable-uploads/1faa8215-e986-441a-be71-2444d2af5c02.png" 
               alt="Hierros Tascione Logo" 
               className="h-20 md:h-24 animate-fade-in"
             />
