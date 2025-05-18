@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Anchor, Package, Cable, Hammer } from 'lucide-react';
+import { Square, Hammer, Cable, Anchor, Plug } from 'lucide-react';
 import { fetchProducts } from '@/services/api';
 import { Product } from '@/types/products';
 import { useToast } from '@/hooks/use-toast';
@@ -28,9 +28,11 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
         });
         // Carga productos de respaldo en caso de error
         setProducts([
-          { id: '1', name: 'Estribos', icon: <Anchor className="mr-1" />, type: 'square', sizes: [] },
-          { id: '2', name: 'Clavos', icon: <Hammer className="mr-1" />, type: 'square', sizes: [] },
-          { id: '3', name: 'Alambre Fardo', icon: <Cable className="mr-1" />, type: 'square', sizes: [] },
+          { id: '1', name: 'Estribos', icon: <Square className="mr-1" />, type: 'construction', sizes: [] },
+          { id: '2', name: 'Clavos', icon: <Hammer className="mr-1" />, type: 'hardware', sizes: [] },
+          { id: '3', name: 'Alambres', icon: <Cable className="mr-1" />, type: 'construction', sizes: [] },
+          { id: '4', name: 'Torniquetes', icon: <Plug className="mr-1" />, type: 'fencing', sizes: [] },
+          { id: '5', name: 'Tranquerones', icon: <Anchor className="mr-1" />, type: 'fencing', sizes: [] },
         ]);
       } else {
         // Asignar iconos según el tipo de producto
@@ -38,16 +40,22 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
           let icon;
           switch (product.name.toLowerCase()) {
             case 'estribos':
-              icon = <Anchor className="mr-1" />;
+              icon = <Square className="mr-1" />;
               break;
             case 'clavos':
               icon = <Hammer className="mr-1" />;
               break;
-            case 'alambre fardo':
+            case 'alambres':
               icon = <Cable className="mr-1" />;
               break;
+            case 'torniquetes':
+              icon = <Plug className="mr-1" />;
+              break;
+            case 'tranquerones':
+              icon = <Anchor className="mr-1" />;
+              break;
             default:
-              icon = <Package className="mr-1" />;
+              icon = <Square className="mr-1" />;
           }
           return { ...product, icon };
         });
@@ -75,12 +83,13 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
             <img 
               src="/lovable-uploads/1faa8215-e986-441a-be71-2444d2af5c02.png" 
               alt="Hierros Tascione Logo" 
-              className="h-14 md:h-16 animate-fade-in" // Reduced by approximately 30% from h-20 md:h-24
+              className="h-14 md:h-16 animate-fade-in"
             />
           </div>
           <div className="text-sm text-muted-foreground animate-fade-in text-center">
             <p>CUIT: 20-21856308-3</p>
             <p>LUIS MARIA TASCIONE</p>
+            <p className="font-medium">30 DE AGOSTO BS.AS</p>
           </div>
           
           <div className="w-full max-w-lg mx-auto my-4">

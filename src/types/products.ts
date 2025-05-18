@@ -3,15 +3,19 @@ export interface Product {
   id: string;
   name: string;
   icon?: React.ReactNode;
-  type: 'square' | 'rectangular' | string;
+  type: 'square' | 'rectangular' | 'triangular' | 'construction' | 'hardware' | 'fencing' | string;
   sizes: ProductSize[];
-  availableDiameters?: string[]; // Diámetros disponibles para este producto
+  availableDiameters?: string[]; 
+  availableShapes?: string[];
+  availableNailTypes?: string[];
 }
 
 export interface ProductSize {
   size: string;
   price: number;
-  diameter?: string; // Diámetro al que corresponde este precio/tamaño
+  diameter?: string;
+  shape?: string;
+  nailType?: string;
 }
 
 export interface ApiResponse<T> {

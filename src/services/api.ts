@@ -1,3 +1,4 @@
+
 import { Product, ApiResponse } from "@/types/products";
 
 const API_URL = import.meta.env.VITE_API_URL || "https://tu-dominio-hostinger.com/api";
@@ -13,12 +14,19 @@ export const fetchProducts = async (): Promise<ApiResponse<Product[]>> => {
   }
 };
 
-export const fetchProductById = async (id: string, diameter?: string): Promise<ApiResponse<Product>> => {
+export const fetchProductById = async (
+  id: string, 
+  params: Record<string, string> = {}
+): Promise<ApiResponse<Product>> => {
   try {
-    // Si hay un diámetro seleccionado, lo agregamos como parámetro de consulta
-    const url = diameter 
-      ? `${API_URL}/products/${id}?diameter=${diameter}` 
-      : `${API_URL}/products/${id}`;
+    // Construir URL con parámetros de consulta
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      queryParams.append(key, value);
+    });
+    
+    const queryString = queryParams.toString();
+    const url = `${API_URL}/products/${id}${queryString ? `?${queryString}` : ''}`;
     
     const response = await fetch(url);
     const data = await response.json();
