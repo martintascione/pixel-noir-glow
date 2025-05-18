@@ -272,7 +272,7 @@ const PriceTable = ({ productId = '4' }: PriceTableProps) => {
           </CollapsibleTrigger>
           <CollapsibleContent className="border-x border-b border-border rounded-b-xl p-6 bg-white animate-slide-down">
             <p className="mb-4 text-muted-foreground">
-              Podés retirar sin costo en nuestro depósito o coordinar envío. Los plazos de entrega varían según la medida y
+              Podés retirar por 30 de Agosto o coordinar envío. Los plazos de entrega varían según la medida y
               cantidad. Consultanos por disponibilidad.
             </p>
             <div className="flex justify-center mt-6">
@@ -303,8 +303,7 @@ const PriceTable = ({ productId = '4' }: PriceTableProps) => {
           </CollapsibleTrigger>
           <CollapsibleContent className="border-x border-b border-border rounded-b-xl p-6 bg-white animate-slide-down">
             <p className="mb-4 text-muted-foreground">
-              Los pagos pueden realizarse en efectivo, transferencia bancaria o con cheque a 15 días. 
-              Para pagos con otros medios, consultar condiciones.
+              Los pagos se realizan al entregar el producto, pueden realizarse por transferencia bancaria, efectivo o con cheque a 15 días como maximo.
             </p>
           </CollapsibleContent>
         </Collapsible>
@@ -324,8 +323,7 @@ const PriceTable = ({ productId = '4' }: PriceTableProps) => {
           </CollapsibleTrigger>
           <CollapsibleContent className="border-x border-b border-border rounded-b-xl p-6 bg-white animate-slide-down">
             <p className="mb-4 text-muted-foreground">
-              Todos los precios incluyen IVA. Se emiten facturas A o B según corresponda. 
-              En caso de requerir factura A, se solicitará el CUIT correspondiente.
+              Todos los precios incluyen IVA. Se emiten facturas A. En caso de requerir factura A, se solicitará el CUIT correspondiente.
             </p>
           </CollapsibleContent>
         </Collapsible>
