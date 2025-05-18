@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { Product, ProductSize } from '@/types/products';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Trash2 } from 'lucide-react';
 import {
   Form,
   FormControl,
