@@ -18,7 +18,7 @@ const Footer = () => {
           <div className="mt-6">
             <Link to="/admin/productos">
               <Button variant="outline" size="sm" className="flex items-center gap-1">
-                <Settings className="h-4 w-4" />
+                <Settings className="h-4 w-4 min-w-4" />
                 Admin
               </Button>
             </Link>
