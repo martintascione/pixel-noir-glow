@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, Variants } from 'framer-motion';
 import { useToast } from "@/hooks/use-toast";
@@ -10,7 +9,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { fetchProductById } from '@/services/api';
+import { fetchProductById, fetchLastUpdateDate } from '@/services/api';
 import { ProductSize } from '@/types/products';
 
 interface DiameterOption {
@@ -28,6 +27,7 @@ const PriceTable = ({ productId = '4', productName = 'Estribos' }: PriceTablePro
   const [selectedDiameter, setSelectedDiameter] = useState<string>("4.2");
   const [priceData, setPriceData] = useState<ProductSize[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [lastUpdateDate, setLastUpdateDate] = useState<Date>(new Date());
   
   const [openSpecial, setOpenSpecial] = useState(false);
   const [openDelivery, setOpenDelivery] = useState(false);
@@ -38,6 +38,22 @@ const PriceTable = ({ productId = '4', productName = 'Estribos' }: PriceTablePro
     { value: "4.2", label: "4.2 mm" },
     { value: "6", label: "6 mm" },
   ];
+
+  // Cargar la fecha de última actualización
+  useEffect(() => {
+    const loadLastUpdateDate = async () => {
+      try {
+        const { data, error } = await fetchLastUpdateDate();
+        if (!error && data.updateDate) {
+          setLastUpdateDate(new Date(data.updateDate));
+        }
+      } catch (error) {
+        console.error("Error loading last update date:", error);
+      }
+    };
+    
+    loadLastUpdateDate();
+  }, []);
 
   // Función para cargar datos desde la API según el diámetro seleccionado
   const loadProductDataByDiameter = async (diameter: string) => {
@@ -146,13 +162,20 @@ const PriceTable = ({ productId = '4', productName = 'Estribos' }: PriceTablePro
     item.size.split('x')[0] !== item.size.split('x')[1]
   );
 
+  // Formatear fecha de última actualización
+  const formattedUpdateDate = lastUpdateDate.toLocaleDateString('es-AR', {
+    day: 'numeric', 
+    month: 'long', 
+    year: 'numeric'
+  });
+
   return (
     <div className="w-full max-w-3xl mx-auto">
       <div className="mb-8 text-center">
         <h2 className="text-2xl font-bold mb-2">Lista de Precios - {productName}</h2>
         <div className="inline-block bg-gray-800 text-white px-3 py-1 rounded-lg">
           <p className="text-sm">
-            Precios actualizados al {new Date().toLocaleDateString('es-AR', {day: 'numeric', month: 'long', year: 'numeric'})}
+            Precios actualizados al {formattedUpdateDate}
           </p>
         </div>
       </div>

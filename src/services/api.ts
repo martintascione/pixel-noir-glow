@@ -1,4 +1,3 @@
-
 import { Product, ApiResponse } from "@/types/products";
 
 const API_URL = import.meta.env.VITE_API_URL || "https://tu-dominio-hostinger.com/api";
@@ -27,6 +26,23 @@ export const fetchProductById = async (id: string, diameter?: string): Promise<A
   } catch (error) {
     console.error(`Error fetching product ${id}:`, error);
     return { data: {} as Product, error: "No se pudo cargar el producto" };
+  }
+};
+
+export const fetchLastUpdateDate = async (): Promise<ApiResponse<{ updateDate: Date }>> => {
+  try {
+    // En producción, esto sería una llamada real a la API para obtener la fecha de última actualización
+    // de la tabla price_updates
+    const response = await fetch(`${API_URL}/price-update`);
+    const data = await response.json();
+    return { data };
+  } catch (error) {
+    console.error("Error fetching update date:", error);
+    // Devolver la fecha actual como respaldo
+    return { 
+      data: { updateDate: new Date() },
+      error: "No se pudo cargar la fecha de actualización" 
+    };
   }
 };
 
