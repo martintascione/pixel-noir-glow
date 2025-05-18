@@ -8,6 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { fetchProductById } from '@/services/api';
 import { ProductSize } from '@/types/products';
 
@@ -151,6 +152,24 @@ const PriceTable = ({ productId = '4' }: PriceTableProps) => {
           <p className="text-sm">
             Precios actualizados al {new Date().toLocaleDateString('es-AR', {day: 'numeric', month: 'long', year: 'numeric'})}
           </p>
+        </div>
+      </div>
+      
+      {/* Diámetro selector */}
+      <div className="mb-6 flex justify-center">
+        <div className="bg-white rounded-lg p-2 border border-border shadow-sm">
+          <ToggleGroup type="single" value={selectedDiameter} onValueChange={(value) => value && handleDiameterSelect(value)}>
+            {diameterOptions.map((option) => (
+              <ToggleGroupItem 
+                key={option.value} 
+                value={option.value}
+                variant="outline"
+                className="px-4"
+              >
+                {option.label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
         </div>
       </div>
 
