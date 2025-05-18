@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import PriceTable from '@/components/PriceTable';
+import PromotionalBanner from '@/components/PromotionalBanner';
 import { Product } from '@/types/products';
 import { fetchProductById } from '@/services/api';
 
@@ -32,6 +33,7 @@ const Index = () => {
         transition={{ duration: 0.5 }}
       >
         <div className="container-custom">
+          <PromotionalBanner />
           <PriceTable productId={selectedProductId} />
         </div>
       </motion.main>
