@@ -75,9 +75,13 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
     <header className="py-6 border-b border-border bg-white">
       <div className="container-custom">
         <div className="flex flex-col items-center space-y-4">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight animate-fade-in">
-            HIERROS TASCIONE
-          </h1>
+          <div className="flex justify-center">
+            <img 
+              src="/lovable-uploads/72fc17e3-953e-46e2-b477-3ec26b5308aa.png" 
+              alt="Hierros Tascione Logo" 
+              className="h-20 md:h-24 animate-fade-in"
+            />
+          </div>
           <p className="text-sm text-muted-foreground animate-fade-in">
             CUIT: 20-21856308-3
           </p>
