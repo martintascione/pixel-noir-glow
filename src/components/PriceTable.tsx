@@ -146,28 +146,10 @@ const PriceTable = ({ productId = '4' }: PriceTableProps) => {
   return (
     <div className="w-full max-w-3xl mx-auto">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-2">Lista de Precios - Estribos de Hierro</h2>
+        <h2 className="text-2xl font-bold mb-2">Lista de Precios - Estribos</h2>
         <p className="text-muted-foreground text-sm">
           Precios actualizados al {new Date().toLocaleDateString('es-AR', {day: 'numeric', month: 'long', year: 'numeric'})}
         </p>
-      </div>
-
-      <div className="mb-8">
-        <label className="block mb-2 font-medium">
-          Seleccioná el diámetro:
-        </label>
-        <div className="grid grid-cols-2 gap-3">
-          {diameterOptions.map((option) => (
-            <Button
-              key={option.value}
-              onClick={() => handleDiameterSelect(option.value)}
-              variant={selectedDiameter === option.value ? "default" : "outline"}
-              className="py-6 rounded-xl"
-            >
-              {option.label}
-            </Button>
-          ))}
-        </div>
       </div>
 
       {/* Tabla unificada con separación visual */}
