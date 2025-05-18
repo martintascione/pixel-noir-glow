@@ -34,7 +34,7 @@ const Index = () => {
       >
         <div className="container-custom">
           <PromotionalBanner />
-          <PriceTable productId={selectedProductId} />
+          <PriceTable productId={selectedProductId} productName={selectedProduct} />
         </div>
       </motion.main>
       

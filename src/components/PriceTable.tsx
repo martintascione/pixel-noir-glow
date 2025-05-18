@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, Variants } from 'framer-motion';
 import { useToast } from "@/hooks/use-toast";
@@ -19,9 +20,10 @@ interface DiameterOption {
 
 interface PriceTableProps {
   productId?: string;
+  productName?: string;
 }
 
-const PriceTable = ({ productId = '4' }: PriceTableProps) => {
+const PriceTable = ({ productId = '4', productName = 'Estribos' }: PriceTableProps) => {
   const { toast } = useToast();
   const [selectedDiameter, setSelectedDiameter] = useState<string>("4.2");
   const [priceData, setPriceData] = useState<ProductSize[]>([]);
@@ -147,7 +149,7 @@ const PriceTable = ({ productId = '4' }: PriceTableProps) => {
   return (
     <div className="w-full max-w-3xl mx-auto">
       <div className="mb-8 text-center">
-        <h2 className="text-2xl font-bold mb-2">Lista de Precios - Estribos</h2>
+        <h2 className="text-2xl font-bold mb-2">Lista de Precios - {productName}</h2>
         <div className="inline-block bg-gray-800 text-white px-3 py-1 rounded-lg">
           <p className="text-sm">
             Precios actualizados al {new Date().toLocaleDateString('es-AR', {day: 'numeric', month: 'long', year: 'numeric'})}
