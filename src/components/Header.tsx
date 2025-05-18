@@ -22,9 +22,14 @@ const Header = () => {
             CUIT: 20-21856308-3
           </p>
           
-          <p className="text-md md:text-lg font-medium text-neutral-700 tracking-wide py-2 max-w-lg text-center animate-slide-in">
-            AHORRA TIEMPO, SUMA PRODUCTIVIDAD
-          </p>
+          <div className="w-full max-w-lg mx-auto my-4">
+            <p className="relative text-md md:text-lg font-medium tracking-wider text-center py-3 animate-fade-in">
+              <span className="inline-block px-2 relative z-10 uppercase bg-white">
+                AHORRA TIEMPO, SUMA PRODUCTIVIDAD
+              </span>
+              <span className="absolute h-[1px] bg-neutral-300 w-full left-0 top-1/2 -z-0"></span>
+            </p>
+          </div>
           
           <div className="flex flex-wrap justify-center gap-2 pt-2 w-full animate-slide-in">
             {products.map((product) => (
