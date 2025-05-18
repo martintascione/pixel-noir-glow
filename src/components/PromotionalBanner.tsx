@@ -17,11 +17,11 @@ const PromotionalBanner = () => {
       </div>
       
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center space-x-3">
           <BadgePercent size={24} className="text-white" />
-          <div className="text-right">
-            <Badge className="bg-white text-green-600 font-bold mb-1 px-2 py-1">5% OFF</Badge>
-            <p className="text-sm">Pago en efectivo contra entrega</p>
+          <div className="flex items-center space-x-3">
+            <Badge className="bg-white text-green-600 font-bold px-2 py-1">5% OFF</Badge>
+            <p className="text-sm">Pago contra entrega</p>
           </div>
         </div>
       </div>
