@@ -1,13 +1,13 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Anchor, Package, Wireframe, Square } from 'lucide-react';
+import { Anchor, Package, Cable, Square } from 'lucide-react';
 
 const Header = () => {
   const products = [
     { name: 'Hierros', icon: <Square className="mr-1" /> },
     { name: 'Claves', icon: <Package className="mr-1" /> },
-    { name: 'Alambre Fardo', icon: <Wireframe className="mr-1" /> },
+    { name: 'Alambre Fardo', icon: <Cable className="mr-1" /> },
     { name: 'Etribos', icon: <Anchor className="mr-1" /> },
   ];
 
