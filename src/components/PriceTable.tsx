@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { motion, Variants } from 'framer-motion';
 import { useToast } from "@/hooks/use-toast";
 import { MessageSquare, ChevronDown, Square, RectangleHorizontal } from "lucide-react";
@@ -8,14 +9,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Separator } from "@/components/ui/separator";
-
-// Tipos para los datos de la tabla
-interface PriceItem {
-  size: string;
-  price: number;
-  type: 'square' | 'rectangular';
-}
+import { fetchProductById } from '@/services/api';
+import { ProductSize } from '@/types/products';
 
 interface DiameterOption {
   value: string;
@@ -25,19 +20,44 @@ interface DiameterOption {
 const PriceTable = () => {
   const { toast } = useToast();
   const [selectedDiameter, setSelectedDiameter] = useState<string>("4.2");
-  const [priceData, setPriceData] = useState<PriceItem[]>([
-    { size: "10x10", price: 150, type: 'square' },
-    { size: "15x15", price: 170, type: 'square' },
-    { size: "20x20", price: 190, type: 'square' },
-    { size: "10x20", price: 180, type: 'rectangular' },
-    { size: "20x30", price: 195, type: 'rectangular' },
-    { size: "30x30", price: 210, type: 'square' },
-  ]);
+  const [priceData, setPriceData] = useState<ProductSize[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   
   const [openSpecial, setOpenSpecial] = useState(false);
   const [openDelivery, setOpenDelivery] = useState(false);
   const [openPayment, setOpenPayment] = useState(false);
   const [openBilling, setOpenBilling] = useState(false);
+
+  useEffect(() => {
+    const loadProductData = async () => {
+      setLoading(true);
+      // Suponiendo que el ID '4' corresponde a "Etribos" en la base de datos
+      const { data, error } = await fetchProductById('4');
+      
+      if (error) {
+        toast({
+          title: "Error al cargar datos",
+          description: error,
+          variant: "destructive",
+        });
+        // Datos de respaldo en caso de error
+        setPriceData([
+          { size: "10x10", price: 150 },
+          { size: "15x15", price: 170 },
+          { size: "20x20", price: 190 },
+          { size: "10x20", price: 180 },
+          { size: "20x30", price: 195 },
+          { size: "30x30", price: 210 },
+        ]);
+      } else if (data.sizes && data.sizes.length > 0) {
+        setPriceData(data.sizes);
+      }
+      
+      setLoading(false);
+    };
+    
+    loadProductData();
+  }, [toast]);
 
   const handleContactClick = () => {
     toast({
@@ -86,8 +106,13 @@ const PriceTable = () => {
     show: { opacity: 1, y: 0 }
   };
 
-  const squareMeasurements = priceData.filter(item => item.type === 'square');
-  const rectangularMeasurements = priceData.filter(item => item.type === 'rectangular');
+  const squareMeasurements = priceData.filter(item => 
+    item.size.split('x')[0] === item.size.split('x')[1]
+  );
+  
+  const rectangularMeasurements = priceData.filter(item => 
+    item.size.split('x')[0] !== item.size.split('x')[1]
+  );
 
   return (
     <div className="w-full max-w-3xl mx-auto">
@@ -130,42 +155,54 @@ const PriceTable = () => {
           </div>
         </div>
         
-        <div className="divide-y divide-border">
-          {/* Sección de Medidas Cuadradas */}
-          <div className="bg-white px-6 py-3 flex items-center gap-2 border-b border-border">
-            <Square size={16} className="text-primary" />
-            <h3 className="font-medium">Medidas Cuadradas</h3>
-          </div>
-          
-          {squareMeasurements.map((item, index) => (
-            <motion.div 
-              key={`square-${index}`}
-              className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
-              variants={itemVariants}
-            >
-              <div>{item.size}</div>
-              <div>${item.price}</div>
-            </motion.div>
-          ))}
+        {loading ? (
+          <div className="py-8 text-center text-muted-foreground">Cargando precios...</div>
+        ) : (
+          <div className="divide-y divide-border">
+            {/* Sección de Medidas Cuadradas */}
+            <div className="bg-white px-6 py-3 flex items-center gap-2 border-b border-border">
+              <Square size={16} className="text-primary" />
+              <h3 className="font-medium">Medidas Cuadradas</h3>
+            </div>
+            
+            {squareMeasurements.length > 0 ? (
+              squareMeasurements.map((item, index) => (
+                <motion.div 
+                  key={`square-${index}`}
+                  className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
+                  variants={itemVariants}
+                >
+                  <div>{item.size}</div>
+                  <div>${item.price}</div>
+                </motion.div>
+              ))
+            ) : (
+              <div className="px-6 py-4 text-muted-foreground">No hay medidas cuadradas disponibles</div>
+            )}
 
-          {/* Separador */}
-          <div className="bg-white px-6 py-3 flex items-center gap-2 border-b border-border">
-            <RectangleHorizontal size={16} className="text-primary" />
-            <h3 className="font-medium">Medidas Rectangulares</h3>
+            {/* Separador */}
+            <div className="bg-white px-6 py-3 flex items-center gap-2 border-b border-border">
+              <RectangleHorizontal size={16} className="text-primary" />
+              <h3 className="font-medium">Medidas Rectangulares</h3>
+            </div>
+            
+            {/* Sección de Medidas Rectangulares */}
+            {rectangularMeasurements.length > 0 ? (
+              rectangularMeasurements.map((item, index) => (
+                <motion.div 
+                  key={`rectangular-${index}`}
+                  className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
+                  variants={itemVariants}
+                >
+                  <div>{item.size}</div>
+                  <div>${item.price}</div>
+                </motion.div>
+              ))
+            ) : (
+              <div className="px-6 py-4 text-muted-foreground">No hay medidas rectangulares disponibles</div>
+            )}
           </div>
-          
-          {/* Sección de Medidas Rectangulares */}
-          {rectangularMeasurements.map((item, index) => (
-            <motion.div 
-              key={`rectangular-${index}`}
-              className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
-              variants={itemVariants}
-            >
-              <div>{item.size}</div>
-              <div>${item.price}</div>
-            </motion.div>
-          ))}
-        </div>
+        )}
       </motion.div>
 
       <div className="mt-8 flex justify-center">
