@@ -184,7 +184,7 @@ const PriceTable = ({ productId = '4' }: PriceTableProps) => {
         <div className="px-6 py-4 border-b border-border bg-white">
           <div className="grid grid-cols-2">
             <div className="font-medium">Medida (cm)</div>
-            <div className="font-medium">Precio Unitario</div>
+            <div className="font-medium text-right">Precio Unitario</div>
           </div>
         </div>
         
@@ -206,7 +206,7 @@ const PriceTable = ({ productId = '4' }: PriceTableProps) => {
                   variants={itemVariants}
                 >
                   <div>{item.size}</div>
-                  <div>${item.price}</div>
+                  <div className="text-right">${item.price}</div>
                 </motion.div>
               ))
             ) : (
@@ -228,7 +228,7 @@ const PriceTable = ({ productId = '4' }: PriceTableProps) => {
                   variants={itemVariants}
                 >
                   <div>{item.size}</div>
-                  <div>${item.price}</div>
+                  <div className="text-right">${item.price}</div>
                 </motion.div>
               ))
             ) : (
