@@ -31,11 +31,19 @@ const PriceTable = ({ productId = '4' }: PriceTableProps) => {
   const [openPayment, setOpenPayment] = useState(false);
   const [openBilling, setOpenBilling] = useState(false);
 
-  useEffect(() => {
-    const loadProductData = async () => {
-      setLoading(true);
-      // Use the productId prop instead of hardcoded ID
-      const { data, error } = await fetchProductById(productId);
+  const diameterOptions: DiameterOption[] = [
+    { value: "4.2", label: "4.2 mm" },
+    { value: "6", label: "6 mm" },
+  ];
+
+  // Función para cargar datos desde la API según el diámetro seleccionado
+  const loadProductDataByDiameter = async (diameter: string) => {
+    setLoading(true);
+    
+    try {
+      // Aquí pasamos tanto el ID del producto como el diámetro seleccionado
+      // Nuestra API debería filtrar los resultados según el diámetro
+      const { data, error } = await fetchProductById(productId, diameter);
       
       if (error) {
         toast({
@@ -43,24 +51,47 @@ const PriceTable = ({ productId = '4' }: PriceTableProps) => {
           description: error,
           variant: "destructive",
         });
-        // Datos de respaldo en caso de error
-        setPriceData([
-          { size: "10x10", price: 150 },
-          { size: "15x15", price: 170 },
-          { size: "20x20", price: 190 },
-          { size: "10x20", price: 180 },
-          { size: "20x30", price: 195 },
-          { size: "30x30", price: 210 },
-        ]);
+        // Datos de respaldo en caso de error, adaptados según el diámetro
+        if (diameter === "4.2") {
+          setPriceData([
+            { size: "10x10", price: 150 },
+            { size: "15x15", price: 170 },
+            { size: "20x20", price: 190 },
+            { size: "10x20", price: 180 },
+          ]);
+        } else {
+          setPriceData([
+            { size: "10x10", price: 180 },
+            { size: "15x15", price: 200 },
+            { size: "20x20", price: 220 },
+            { size: "20x30", price: 230 },
+            { size: "30x30", price: 240 },
+          ]);
+        }
       } else if (data.sizes && data.sizes.length > 0) {
         setPriceData(data.sizes);
       }
-      
+    } catch (error) {
+      console.error('Error loading product data:', error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los datos del producto",
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
-    };
-    
-    loadProductData();
-  }, [toast, productId]);
+    }
+  };
+
+  // Cargar datos cuando cambia el productId o el diámetro
+  useEffect(() => {
+    loadProductDataByDiameter(selectedDiameter);
+  }, [productId, selectedDiameter, toast]);
+
+  // Manejador para cuando el usuario selecciona un diámetro diferente
+  const handleDiameterSelect = (diameter: string) => {
+    setSelectedDiameter(diameter);
+  };
 
   const handleContactClick = () => {
     toast({
@@ -88,11 +119,6 @@ const PriceTable = ({ productId = '4' }: PriceTableProps) => {
     // En un caso real, aquí se redigiría a WhatsApp u otro método de contacto
     window.open("https://wa.me/+5491112345678?text=Hola,%20quiero%20consultar%20la%20disponibilidad%20de%20estribos", "_blank");
   };
-
-  const diameterOptions: DiameterOption[] = [
-    { value: "4.2", label: "4.2 mm" },
-    { value: "6", label: "6 mm" },
-  ];
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -134,7 +160,7 @@ const PriceTable = ({ productId = '4' }: PriceTableProps) => {
           {diameterOptions.map((option) => (
             <Button
               key={option.value}
-              onClick={() => setSelectedDiameter(option.value)}
+              onClick={() => handleDiameterSelect(option.value)}
               variant={selectedDiameter === option.value ? "default" : "outline"}
               className="py-6 rounded-xl"
             >
@@ -150,6 +176,7 @@ const PriceTable = ({ productId = '4' }: PriceTableProps) => {
         variants={containerVariants}
         initial="hidden"
         animate="show"
+        key={`price-table-${selectedDiameter}`} // Add key to trigger animation on diameter change
       >
         <div className="px-6 py-4 border-b border-border bg-white">
           <div className="grid grid-cols-2">
@@ -171,7 +198,7 @@ const PriceTable = ({ productId = '4' }: PriceTableProps) => {
             {squareMeasurements.length > 0 ? (
               squareMeasurements.map((item, index) => (
                 <motion.div 
-                  key={`square-${index}`}
+                  key={`square-${index}-${selectedDiameter}`}
                   className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
                   variants={itemVariants}
                 >
@@ -193,7 +220,7 @@ const PriceTable = ({ productId = '4' }: PriceTableProps) => {
             {rectangularMeasurements.length > 0 ? (
               rectangularMeasurements.map((item, index) => (
                 <motion.div 
-                  key={`rectangular-${index}`}
+                  key={`rectangular-${index}-${selectedDiameter}`}
                   className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
                   variants={itemVariants}
                 >

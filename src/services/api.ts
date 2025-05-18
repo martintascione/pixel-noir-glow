@@ -14,9 +14,14 @@ export const fetchProducts = async (): Promise<ApiResponse<Product[]>> => {
   }
 };
 
-export const fetchProductById = async (id: string): Promise<ApiResponse<Product>> => {
+export const fetchProductById = async (id: string, diameter?: string): Promise<ApiResponse<Product>> => {
   try {
-    const response = await fetch(`${API_URL}/products/${id}`);
+    // Si hay un diámetro seleccionado, lo agregamos como parámetro de consulta
+    const url = diameter 
+      ? `${API_URL}/products/${id}?diameter=${diameter}` 
+      : `${API_URL}/products/${id}`;
+    
+    const response = await fetch(url);
     const data = await response.json();
     return { data };
   } catch (error) {
