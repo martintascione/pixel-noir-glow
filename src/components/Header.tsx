@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Anchor, Package, Cable, Tool } from 'lucide-react';
+import { Anchor, Package, Cable, Hammer } from 'lucide-react';
 import { fetchProducts } from '@/services/api';
 import { Product } from '@/types/products';
 import { useToast } from '@/hooks/use-toast';
@@ -29,7 +29,7 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
         // Carga productos de respaldo en caso de error
         setProducts([
           { id: '1', name: 'Estribos', icon: <Anchor className="mr-1" />, type: 'square', sizes: [] },
-          { id: '2', name: 'Clavos', icon: <Tool className="mr-1" />, type: 'square', sizes: [] },
+          { id: '2', name: 'Clavos', icon: <Hammer className="mr-1" />, type: 'square', sizes: [] },
           { id: '3', name: 'Alambre Fardo', icon: <Cable className="mr-1" />, type: 'square', sizes: [] },
         ]);
       } else {
@@ -41,7 +41,7 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
               icon = <Anchor className="mr-1" />;
               break;
             case 'clavos':
-              icon = <Tool className="mr-1" />;
+              icon = <Hammer className="mr-1" />;
               break;
             case 'alambre fardo':
               icon = <Cable className="mr-1" />;
