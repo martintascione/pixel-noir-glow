@@ -79,7 +79,7 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
             <img 
               src="/lovable-uploads/1faa8215-e986-441a-be71-2444d2af5c02.png" 
               alt="Hierros Tascione Logo" 
-              className="h-20 md:h-24 animate-fade-in"
+              className="h-14 md:h-16 animate-fade-in" // Reduced by approximately 30% from h-20 md:h-24
             />
           </div>
           <div className="text-sm text-muted-foreground animate-fade-in text-center">
