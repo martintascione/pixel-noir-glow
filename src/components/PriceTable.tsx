@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion, Variants } from 'framer-motion';
 import { useToast } from "@/hooks/use-toast";
-import { WhatsApp, ChevronDown } from "lucide-react";
+import { MessageSquare, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -68,7 +68,7 @@ const PriceTable = () => {
     { value: "6", label: "6 mm" },
   ];
 
-  const container: Variants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
@@ -78,7 +78,7 @@ const PriceTable = () => {
     }
   };
 
-  const item: Variants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0 }
   };
@@ -112,7 +112,7 @@ const PriceTable = () => {
 
       <motion.div 
         className="overflow-hidden rounded-xl border border-border bg-white"
-        variants={container}
+        variants={containerVariants}
         initial="hidden"
         animate="show"
       >
@@ -128,7 +128,7 @@ const PriceTable = () => {
             <motion.div 
               key={index}
               className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
-              variants={item}
+              variants={itemVariants}
             >
               <div>{item.size}</div>
               <div>${item.price}</div>
@@ -142,7 +142,7 @@ const PriceTable = () => {
           onClick={handleContactClick}
           className="rounded-xl py-6 px-6 bg-green-500 hover:bg-green-600 flex gap-2 items-center"
         >
-          <WhatsApp size={24} />
+          <MessageSquare size={24} className="text-white" />
           Consultar o hacer pedido por WhatsApp
         </Button>
       </div>
@@ -170,7 +170,7 @@ const PriceTable = () => {
                 variant="outline"
                 className="rounded-xl bg-white flex gap-2 items-center"
               >
-                <WhatsApp className="text-green-500" />
+                <MessageSquare className="text-green-500" />
                 Solicitar presupuesto personalizado
               </Button>
             </div>
@@ -201,7 +201,7 @@ const PriceTable = () => {
                 variant="outline"
                 className="rounded-xl bg-white flex gap-2 items-center"
               >
-                <WhatsApp className="text-green-500" />
+                <MessageSquare className="text-green-500" />
                 Consultar disponibilidad
               </Button>
             </div>
