@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 const PromotionalBanner = () => {
   return (
     <motion.div 
-      className="bg-green-500 text-white p-4 rounded-xl mb-6 relative overflow-hidden"
+      className="bg-green-500 text-white p-4 rounded-xl mb-6 relative overflow-hidden max-w-fit"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
