@@ -145,11 +145,13 @@ const PriceTable = ({ productId = '4' }: PriceTableProps) => {
 
   return (
     <div className="w-full max-w-3xl mx-auto">
-      <div className="mb-8">
+      <div className="mb-8 text-center">
         <h2 className="text-2xl font-bold mb-2">Lista de Precios - Estribos</h2>
-        <p className="text-muted-foreground text-sm">
-          Precios actualizados al {new Date().toLocaleDateString('es-AR', {day: 'numeric', month: 'long', year: 'numeric'})}
-        </p>
+        <div className="inline-block bg-gray-800 text-white px-3 py-1 rounded-lg">
+          <p className="text-sm">
+            Precios actualizados al {new Date().toLocaleDateString('es-AR', {day: 'numeric', month: 'long', year: 'numeric'})}
+          </p>
+        </div>
       </div>
 
       {/* Tabla unificada con separación visual */}
