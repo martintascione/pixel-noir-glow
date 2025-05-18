@@ -6,7 +6,11 @@ import { fetchProducts } from '@/services/api';
 import { Product } from '@/types/products';
 import { useToast } from '@/hooks/use-toast';
 
-const Header = () => {
+interface HeaderProps {
+  onSelectProduct?: (product: Product) => void;
+}
+
+const Header = ({ onSelectProduct }: HeaderProps) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -61,6 +65,12 @@ const Header = () => {
     loadProducts();
   }, [toast]);
 
+  const handleProductClick = (product: Product) => {
+    if (onSelectProduct) {
+      onSelectProduct(product);
+    }
+  };
+
   return (
     <header className="py-6 border-b border-border bg-white">
       <div className="container-custom">
@@ -91,6 +101,7 @@ const Header = () => {
                   variant="outline"
                   className="flex items-center gap-1 px-4"
                   size="sm"
+                  onClick={() => handleProductClick(product)}
                 >
                   {product.icon}
                   {product.name}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, Variants } from 'framer-motion';
 import { useToast } from "@/hooks/use-toast";
@@ -17,7 +16,11 @@ interface DiameterOption {
   label: string;
 }
 
-const PriceTable = () => {
+interface PriceTableProps {
+  productId?: string;
+}
+
+const PriceTable = ({ productId = '4' }: PriceTableProps) => {
   const { toast } = useToast();
   const [selectedDiameter, setSelectedDiameter] = useState<string>("4.2");
   const [priceData, setPriceData] = useState<ProductSize[]>([]);
@@ -31,8 +34,8 @@ const PriceTable = () => {
   useEffect(() => {
     const loadProductData = async () => {
       setLoading(true);
-      // Suponiendo que el ID '4' corresponde a "Etribos" en la base de datos
-      const { data, error } = await fetchProductById('4');
+      // Use the productId prop instead of hardcoded ID
+      const { data, error } = await fetchProductById(productId);
       
       if (error) {
         toast({
@@ -57,7 +60,7 @@ const PriceTable = () => {
     };
     
     loadProductData();
-  }, [toast]);
+  }, [toast, productId]);
 
   const handleContactClick = () => {
     toast({
