@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { motion, Variants } from 'framer-motion';
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, ChevronDown } from "lucide-react";
+import { MessageSquare, ChevronDown, Square, RectangleHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -117,67 +116,57 @@ const PriceTable = () => {
         </div>
       </div>
 
-      {/* Medidas Cuadradas */}
-      <div className="mb-6">
-        <h3 className="text-lg font-bold mb-3">Medidas Cuadradas</h3>
-        <motion.div 
-          className="overflow-hidden rounded-xl border border-border bg-white mb-8"
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-        >
-          <div className="px-6 py-4 border-b border-border bg-white">
-            <div className="grid grid-cols-2">
-              <div className="font-medium">Medida (cm)</div>
-              <div className="font-medium">Precio Unitario</div>
-            </div>
+      {/* Tabla unificada con separación visual */}
+      <motion.div 
+        className="overflow-hidden rounded-xl border border-border bg-white mb-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+      >
+        <div className="px-6 py-4 border-b border-border bg-white">
+          <div className="grid grid-cols-2">
+            <div className="font-medium">Medida (cm)</div>
+            <div className="font-medium">Precio Unitario</div>
+          </div>
+        </div>
+        
+        <div className="divide-y divide-border">
+          {/* Sección de Medidas Cuadradas */}
+          <div className="bg-white px-6 py-3 flex items-center gap-2 border-b border-border">
+            <Square size={16} className="text-primary" />
+            <h3 className="font-medium">Medidas Cuadradas</h3>
           </div>
           
-          <div className="divide-y divide-border">
-            {squareMeasurements.map((item, index) => (
-              <motion.div 
-                key={index}
-                className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
-                variants={itemVariants}
-              >
-                <div>{item.size}</div>
-                <div>${item.price}</div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
+          {squareMeasurements.map((item, index) => (
+            <motion.div 
+              key={`square-${index}`}
+              className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
+              variants={itemVariants}
+            >
+              <div>{item.size}</div>
+              <div>${item.price}</div>
+            </motion.div>
+          ))}
 
-      {/* Medidas Rectangulares */}
-      <div className="mb-6">
-        <h3 className="text-lg font-bold mb-3">Medidas Rectangulares</h3>
-        <motion.div 
-          className="overflow-hidden rounded-xl border border-border bg-white"
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-        >
-          <div className="px-6 py-4 border-b border-border bg-white">
-            <div className="grid grid-cols-2">
-              <div className="font-medium">Medida (cm)</div>
-              <div className="font-medium">Precio Unitario</div>
-            </div>
+          {/* Separador */}
+          <div className="bg-white px-6 py-3 flex items-center gap-2 border-b border-border">
+            <RectangleHorizontal size={16} className="text-primary" />
+            <h3 className="font-medium">Medidas Rectangulares</h3>
           </div>
           
-          <div className="divide-y divide-border">
-            {rectangularMeasurements.map((item, index) => (
-              <motion.div 
-                key={index}
-                className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
-                variants={itemVariants}
-              >
-                <div>{item.size}</div>
-                <div>${item.price}</div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
+          {/* Sección de Medidas Rectangulares */}
+          {rectangularMeasurements.map((item, index) => (
+            <motion.div 
+              key={`rectangular-${index}`}
+              className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
+              variants={itemVariants}
+            >
+              <div>{item.size}</div>
+              <div>${item.price}</div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
 
       <div className="mt-8 flex justify-center">
         <Button 
