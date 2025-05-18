@@ -82,9 +82,10 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
               className="h-20 md:h-24 animate-fade-in"
             />
           </div>
-          <p className="text-sm text-muted-foreground animate-fade-in">
-            CUIT: 20-21856308-3
-          </p>
+          <div className="text-sm text-muted-foreground animate-fade-in text-center">
+            <p>CUIT: 20-21856308-3</p>
+            <p>LUIS MARIA TASCIONE</p>
+          </div>
           
           <div className="w-full max-w-lg mx-auto my-4">
             <p className="relative text-md md:text-lg font-medium tracking-wider text-center py-3 animate-fade-in">
