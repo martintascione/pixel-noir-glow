@@ -26,10 +26,7 @@ interface ProductListProps {
 }
 
 const ProductList = ({ products, onEdit, onDelete }: ProductListProps) => {
-  // Ensure products is always an array
-  const productArray = Array.isArray(products) ? products : [];
-  
-  if (productArray.length === 0) {
+  if (products.length === 0) {
     return <p className="text-center py-8 text-muted-foreground">No hay productos registrados.</p>;
   }
 
@@ -46,7 +43,7 @@ const ProductList = ({ products, onEdit, onDelete }: ProductListProps) => {
   return (
     <div>
       <Accordion type="multiple" className="w-full">
-        {productArray.map((product) => (
+        {products.map((product) => (
           <AccordionItem key={product.id} value={product.id}>
             <div className="flex items-center justify-between">
               <AccordionTrigger className="flex-1 hover:no-underline">
