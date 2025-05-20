@@ -30,6 +30,20 @@ const ProductList = ({ products, onEdit, onDelete }: ProductListProps) => {
     return <p className="text-center py-8 text-muted-foreground">No hay productos registrados.</p>;
   }
 
+  // Asegurar que products sea un array
+  const productArray = Array.isArray(products) ? products : [];
+
+  // Deduplica productos por nombre y tipo para evitar duplicados en la UI
+  const uniqueProducts = productArray.reduce((acc: Product[], current) => {
+    const isDuplicate = acc.find(
+      item => item.name === current.name && item.type === current.type
+    );
+    if (!isDuplicate) {
+      acc.push(current);
+    }
+    return acc;
+  }, []);
+
   const getProductTypeLabel = (type: string) => {
     switch (type) {
       case 'construction': return 'Construcción';
@@ -43,7 +57,7 @@ const ProductList = ({ products, onEdit, onDelete }: ProductListProps) => {
   return (
     <div>
       <Accordion type="multiple" className="w-full">
-        {products.map((product) => (
+        {uniqueProducts.map((product) => (
           <AccordionItem key={product.id} value={product.id}>
             <div className="flex items-center justify-between">
               <AccordionTrigger className="flex-1 hover:no-underline">
