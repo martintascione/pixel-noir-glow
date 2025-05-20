@@ -109,12 +109,13 @@ const apiRequest = async <T>(
 
 // Function to check if we're in demo mode (API not available)
 let isInDemoMode = false;
+let productsCache: Product[] = [];
 
 const checkApiAvailability = async (): Promise<boolean> => {
   if (isInDemoMode) return false;
   
   try {
-    const response = await fetch(`${API_URL}/products`);
+    const response = await fetch(`${API_URL}/products/`);
     return response.ok;
   } catch (error) {
     console.log("API no disponible, usando modo de prueba con datos de ejemplo");
@@ -123,37 +124,54 @@ const checkApiAvailability = async (): Promise<boolean> => {
   }
 };
 
-// Helper to deduplicate products - IMPROVED VERSION
+// Mejorado para ser más seguro y evitar duplicados
 const deduplicateProducts = (products: Product[]): Product[] => {
-  // Create a map to store unique products
-  const uniqueMap = new Map<string, Product>();
-  
-  // First pass: Group products by name and type 
-  const productGroups: Record<string, Product[]> = {};
-  
-  products.forEach(product => {
-    const key = `${product.name}-${product.type}`;
-    if (!productGroups[key]) {
-      productGroups[key] = [];
-    }
-    productGroups[key].push(product);
-  });
-  
-  // Second pass: For each group, keep only the product with the most recent ID
-  Object.values(productGroups).forEach(group => {
-    if (group.length > 0) {
-      // Sort by ID (assuming higher ID means more recent)
-      const sortedGroup = [...group].sort((a, b) => {
-        return parseInt(b.id) - parseInt(a.id);
-      });
+  if (!Array.isArray(products) || products.length === 0) {
+    console.warn("deduplicateProducts recibió un array vacío o no válido");
+    return [];
+  }
+
+  try {
+    // Create a map to store unique products
+    const uniqueMap = new Map<string, Product>();
+    
+    // First pass: Group products by name and type 
+    const productGroups: Record<string, Product[]> = {};
+    
+    products.forEach(product => {
+      if (!product || !product.name || !product.type) {
+        console.warn("Se encontró un producto inválido:", product);
+        return;
+      }
       
-      // Keep only the most recent product
-      const mostRecent = sortedGroup[0];
-      uniqueMap.set(`${mostRecent.name}-${mostRecent.type}`, mostRecent);
-    }
-  });
-  
-  return Array.from(uniqueMap.values());
+      const key = `${product.name}-${product.type}`;
+      if (!productGroups[key]) {
+        productGroups[key] = [];
+      }
+      productGroups[key].push(product);
+    });
+    
+    // Second pass: For each group, keep only the product with the most recent ID
+    Object.values(productGroups).forEach(group => {
+      if (group.length > 0) {
+        // Sort by ID (assuming higher ID means more recent)
+        const sortedGroup = [...group].sort((a, b) => {
+          return parseInt(b.id) - parseInt(a.id);
+        });
+        
+        // Keep only the most recent product
+        const mostRecent = sortedGroup[0];
+        uniqueMap.set(`${mostRecent.name}-${mostRecent.type}`, mostRecent);
+      }
+    });
+    
+    const deduplicatedArray = Array.from(uniqueMap.values());
+    console.log(`Productos deduplicados: ${products.length} productos originales, ${deduplicatedArray.length} productos deduplicados`);
+    return deduplicatedArray;
+  } catch (error) {
+    console.error("Error en deduplicateProducts:", error);
+    return products; // En caso de error, devolver el array original
+  }
 };
 
 // API Functions for Products
@@ -162,16 +180,20 @@ export const fetchProducts = async (): Promise<ApiResponse<Product[]>> => {
     const apiAvailable = await checkApiAvailability();
     
     if (apiAvailable) {
-      const response = await apiRequest<Product[]>('/products');
+      const response = await apiRequest<Product[]>('/products/');
       console.log("Productos cargados (sin deduplicar):", response.data);
       
       if (Array.isArray(response.data) && response.data.length > 0) {
         // Deduplicar productos
         const uniqueProducts = deduplicateProducts(response.data);
         console.log("Productos deduplicados:", uniqueProducts);
+        // Actualizar el caché
+        productsCache = [...uniqueProducts];
         return { data: uniqueProducts };
+      } else {
+        console.warn("No se recibieron productos válidos de la API (array vacío o no válido)");
+        return { data: DEMO_PRODUCTS, error: "No se recibieron datos válidos de la API" };
       }
-      return response;
     } else {
       console.log("Usando productos de ejemplo en modo de prueba");
       return { data: DEMO_PRODUCTS };
@@ -190,23 +212,37 @@ export const fetchProductById = async (
     const apiAvailable = await checkApiAvailability();
     
     if (apiAvailable) {
-      const response = await apiRequest<Product>(`/products/${id}`, 'GET', undefined, params);
+      console.log(`Buscando producto con ID ${id} en la API`);
+      const response = await apiRequest<Product>(`/products/read.php?id=${id}`, 'GET', undefined, params);
+      console.log("Producto encontrado en API:", response.data);
       return response;
     } else {
+      console.log(`Buscando producto con ID ${id} en datos de ejemplo`);
       const product = DEMO_PRODUCTS.find(p => p.id === id);
       if (product) {
+        console.log("Producto encontrado en datos de ejemplo:", product);
         return { data: product };
       } else {
+        console.warn(`Producto con ID ${id} no encontrado`);
         return { data: {} as Product, error: "Producto no encontrado en modo de prueba" };
       }
     }
   } catch (error) {
-    // Buscar en los datos de ejemplo
+    // Buscar en los datos de ejemplo o en el caché
+    console.error(`Error fetching product ${id}:`, error);
+    
+    // Buscar primero en el caché
+    const cachedProduct = productsCache.find(p => p.id === id);
+    if (cachedProduct) {
+      console.log(`Producto con ID ${id} encontrado en el caché:`, cachedProduct);
+      return { data: cachedProduct, error: "Usando datos en caché (API no disponible)" };
+    }
+    
+    // Luego buscar en los datos de ejemplo
     const product = DEMO_PRODUCTS.find(p => p.id === id);
     if (product) {
       return { data: product, error: "Usando datos de ejemplo (API no disponible)" };
     } else {
-      console.error(`Error fetching product ${id}:`, error);
       return { data: {} as Product, error: "No se pudo cargar el producto" };
     }
   }
@@ -238,8 +274,29 @@ export const createProduct = async (product: Omit<Product, "id">): Promise<ApiRe
     
     if (apiAvailable) {
       console.log("Creando producto:", product);
-      const response = await apiRequest<Product>('/products', 'POST', product);
-      console.log("Producto creado:", response.data);
+      const response = await apiRequest<Product>('/products/create.php', 'POST', product);
+      
+      if (response.data && response.data.id) {
+        console.log("Producto creado exitosamente:", response.data);
+        
+        // Actualizar caché local
+        const existingProduct = productsCache.find(p => 
+          p.name === product.name && p.type === product.type
+        );
+        
+        if (existingProduct) {
+          // Actualizar el producto existente en caché
+          productsCache = productsCache.map(p => 
+            (p.name === product.name && p.type === product.type) ? response.data : p
+          );
+        } else {
+          // Agregar el nuevo producto al caché
+          productsCache.push(response.data);
+        }
+      } else {
+        console.error("Error al crear producto: La respuesta de la API no contiene un ID válido", response);
+      }
+      
       return response;
     } else {
       console.log("Creando producto en modo de prueba:", product);
@@ -263,11 +320,18 @@ export const updateProduct = async (id: string, product: Partial<Product>): Prom
     
     if (apiAvailable) {
       console.log(`Actualizando producto ${id}:`, product);
-      // Important: We're now sending the ID within the URL, not in the body
-      const response = await apiRequest<Product>(`/products/${id}`, 'PUT', product);
-      console.log("Producto actualizado:", response.data);
+      // Asegurarse de que estamos enviando el ID correctamente en la URL
+      const response = await apiRequest<Product>(`/products/update.php?id=${id}`, 'PUT', product);
       
-      // Invalidar cualquier caché local para ese producto
+      if (response.data && response.data.id) {
+        console.log("Producto actualizado exitosamente:", response.data);
+        
+        // Actualizar caché local
+        productsCache = productsCache.map(p => p.id === id ? response.data : p);
+      } else {
+        console.error("Error al actualizar producto: La respuesta de la API no contiene un ID válido", response);
+      }
+      
       return response;
     } else {
       console.log(`Actualizando producto en modo de prueba ${id}:`, product);

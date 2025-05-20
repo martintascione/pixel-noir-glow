@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -32,9 +32,14 @@ const AdminProducts = () => {
     staleTime: 0 // Siempre refrescar al volver a esta página
   });
 
+  useEffect(() => {
+    console.log("Productos cargados en AdminProducts:", data?.data);
+  }, [data]);
+
   const createMutation = useMutation({
     mutationFn: createProduct,
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Producto creado:", data);
       queryClient.invalidateQueries({ queryKey: ['products'] });
       toast({
         title: "Éxito",
@@ -55,7 +60,8 @@ const AdminProducts = () => {
   const updateMutation = useMutation({
     mutationFn: ({ id, product }: { id: string, product: Partial<Product> }) => 
       updateProduct(id, product),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Producto actualizado:", data);
       // Invalidar todas las consultas relacionadas con los productos
       queryClient.invalidateQueries({ queryKey: ['products'] });
       toast({
@@ -95,6 +101,7 @@ const AdminProducts = () => {
   });
 
   const handleEditProduct = (product: Product) => {
+    console.log("Editando producto:", product);
     setEditingProduct(product);
     setIsFormOpen(true);
   };
@@ -131,6 +138,9 @@ const AdminProducts = () => {
     setEditingProduct(null);
     setIsFormOpen(false);
   };
+
+  // Asegurarse de que tenemos productos para mostrar
+  const products = Array.isArray(data?.data) ? data.data : [];
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -193,9 +203,16 @@ const AdminProducts = () => {
             {error instanceof Error ? error.message : "Error desconocido"}
           </div>
         </div>
+      ) : products.length === 0 ? (
+        <div className="text-center p-8 text-amber-500">
+          No hay productos cargados o no se pudo conectar a la base de datos.
+          <div className="mt-2 text-sm">
+            Se utilizarán datos de ejemplo para pruebas.
+          </div>
+        </div>
       ) : (
         <ProductList 
-          products={data?.data || []} 
+          products={products} 
           onEdit={handleEditProduct} 
           onDelete={handleDeleteProduct} 
         />

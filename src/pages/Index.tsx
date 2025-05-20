@@ -27,7 +27,7 @@ const Index = () => {
     // Si los productos están cargados, buscar el producto por nombre para obtener su ID
     if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
       console.log("Buscando producto por nombre:", selectedProduct);
-      console.log("Productos disponibles:", data.data);
+      console.log("Productos disponibles en Index:", data.data);
       
       const productData = data.data.find(p => p.name === selectedProduct);
       
@@ -36,12 +36,18 @@ const Index = () => {
         setSelectedProductId(productData.id);
       } else {
         console.log("Producto no encontrado con nombre:", selectedProduct);
+        // Si no se encuentra el producto seleccionado, usar el primero disponible
+        if (data.data.length > 0) {
+          console.log("Seleccionando el primer producto disponible:", data.data[0]);
+          setSelectedProduct(data.data[0].name);
+          setSelectedProductId(data.data[0].id);
+        }
       }
     }
   }, [selectedProduct, data?.data]);
 
   const handleSelectProduct = (product: Product) => {
-    console.log("Producto seleccionado:", product);
+    console.log("Producto seleccionado en Index:", product);
     setSelectedProduct(product.name);
     setSelectedProductId(product.id);
   };
