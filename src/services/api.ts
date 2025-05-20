@@ -2,7 +2,7 @@
 import { Product, ApiResponse } from "@/types/products";
 
 // Use environment variable for API URL with a fallback
-const API_URL = import.meta.env.VITE_API_URL || "/api";
+const API_URL = import.meta.env.VITE_API_URL || "/src/backend/api";
 
 // Helper function to handle API responses
 const handleApiResponse = async <T>(response: Response): Promise<ApiResponse<T>> => {
@@ -101,7 +101,7 @@ export const fetchLastUpdateDate = async (): Promise<ApiResponse<{ updateDate: D
 export const createProduct = async (product: Omit<Product, "id">): Promise<ApiResponse<Product>> => {
   try {
     console.log("Creando producto:", product);
-    const response = await apiRequest<Product>('/products', 'POST', product);
+    const response = await apiRequest<Product>('/products/create', 'POST', product);
     console.log("Producto creado:", response.data);
     return response;
   } catch (error) {

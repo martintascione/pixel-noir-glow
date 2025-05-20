@@ -6,15 +6,34 @@ import Footer from '@/components/Footer';
 import PriceTable from '@/components/PriceTable';
 import PromotionalBanner from '@/components/PromotionalBanner';
 import { Product } from '@/types/products';
-import { fetchProductById } from '@/services/api';
+import { fetchProducts } from '@/services/api';
+import { useQuery } from '@tanstack/react-query';
 
 const Index = () => {
-  const [selectedProduct, setSelectedProduct] = useState('Estribos');
-  const [selectedProductId, setSelectedProductId] = useState('1'); // Cambiado a 1 para Estribos inicialmente
+  const [selectedProduct, setSelectedProduct] = useState('');
+  const [selectedProductId, setSelectedProductId] = useState('');
+  
+  // Obtener todos los productos
+  const { data: productsResponse, isLoading } = useQuery({
+    queryKey: ['products'],
+    queryFn: fetchProducts
+  });
+  
+  const products = productsResponse?.data || [];
+  
+  // Establecer el producto inicial cuando se cargan los datos
+  useEffect(() => {
+    if (products.length > 0 && !selectedProductId) {
+      setSelectedProduct(products[0].name);
+      setSelectedProductId(products[0].id);
+    }
+  }, [products, selectedProductId]);
   
   useEffect(() => {
     // Cambiar el título del documento
-    document.title = `Hierros Tascione - ${selectedProduct}`;
+    document.title = selectedProduct 
+      ? `Hierros Tascione - ${selectedProduct}` 
+      : 'Hierros Tascione';
   }, [selectedProduct]);
 
   const handleSelectProduct = (product: Product) => {
@@ -34,7 +53,18 @@ const Index = () => {
       >
         <div className="container-custom">
           <PromotionalBanner />
-          <PriceTable productId={selectedProductId} productName={selectedProduct} />
+          {isLoading ? (
+            <div className="text-center py-8">Cargando productos...</div>
+          ) : products.length === 0 ? (
+            <div className="text-center py-8 border rounded-lg p-6 bg-muted/20">
+              <h2 className="text-xl font-medium mb-2">No hay productos registrados</h2>
+              <p className="text-muted-foreground">
+                Aún no se han cargado productos. Por favor, acceda al panel de administración para agregar productos.
+              </p>
+            </div>
+          ) : selectedProductId ? (
+            <PriceTable productId={selectedProductId} productName={selectedProduct} />
+          ) : null}
         </div>
       </motion.main>
       
