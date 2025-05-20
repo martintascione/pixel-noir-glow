@@ -61,8 +61,10 @@ const apiRequest = async <T>(
 export const fetchProducts = async (): Promise<ApiResponse<Product[]>> => {
   try {
     const response = await apiRequest<Product[]>('/products');
-    console.log("Productos cargados:", response.data);
-    return response;
+    // Ensure we always return an array
+    const productsArray = Array.isArray(response.data) ? response.data : [];
+    console.log("Productos cargados:", productsArray);
+    return { data: productsArray };
   } catch (error) {
     console.error("Error fetching products:", error);
     return { data: [], error: "No se pudieron cargar los productos" };

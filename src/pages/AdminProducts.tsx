@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -30,6 +29,9 @@ const AdminProducts = () => {
     queryKey: ['products'],
     queryFn: fetchProducts
   });
+
+  // Ensure data.data is always an array
+  const products = data?.data ? (Array.isArray(data.data) ? data.data : []) : [];
 
   const createMutation = useMutation({
     mutationFn: createProduct,
@@ -184,7 +186,7 @@ const AdminProducts = () => {
         </div>
       ) : (
         <ProductList 
-          products={data?.data || []} 
+          products={products} 
           onEdit={handleEditProduct} 
           onDelete={handleDeleteProduct} 
         />
