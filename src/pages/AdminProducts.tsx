@@ -29,7 +29,9 @@ const AdminProducts = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['products'],
     queryFn: fetchProducts,
-    staleTime: 0 // Siempre refrescar al volver a esta página
+    staleTime: 0, // Siempre refrescar al volver a esta página
+    refetchOnMount: true, // Refrescar al montar el componente
+    refetchOnWindowFocus: true, // Refrescar al volver a la ventana
   });
 
   useEffect(() => {
@@ -58,8 +60,10 @@ const AdminProducts = () => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, product }: { id: string, product: Partial<Product> }) => 
-      updateProduct(id, product),
+    mutationFn: ({ id, product }: { id: string, product: Partial<Product> }) => {
+      console.log(`Enviando actualización para el producto ${id}:`, product);
+      return updateProduct(id, product);
+    },
     onSuccess: (data) => {
       console.log("Producto actualizado:", data);
       // Invalidar todas las consultas relacionadas con los productos
@@ -102,7 +106,8 @@ const AdminProducts = () => {
 
   const handleEditProduct = (product: Product) => {
     console.log("Editando producto:", product);
-    setEditingProduct(product);
+    // Asegurarse de que estamos trabajando con un objeto de producto completo
+    setEditingProduct({...product});
     setIsFormOpen(true);
   };
 
@@ -118,15 +123,10 @@ const AdminProducts = () => {
     if ("id" in product && editingProduct) {
       console.log("Modo edición detectado. ID del producto:", product.id);
       // Asegurar que todos los campos del producto original se mantengan
-      const updatedProduct = {
-        ...editingProduct,
-        ...product
-      };
-      
-      // Importante: Aseguramos que el ID se esté pasando correctamente
+      // y que se actualice correctamente
       updateMutation.mutate({ 
-        id: updatedProduct.id, 
-        product: updatedProduct 
+        id: product.id, 
+        product: product
       });
     } else {
       console.log("Modo creación detectado.");

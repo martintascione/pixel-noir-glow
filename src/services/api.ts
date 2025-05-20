@@ -1,3 +1,4 @@
+
 import { Product, ApiResponse } from "@/types/products";
 
 // Use environment variable for API URL with a fallback
@@ -95,7 +96,7 @@ const apiRequest = async <T>(
       options.body = JSON.stringify(body);
     }
     
-    console.log(`Making ${method} request to: ${url}`);
+    console.log(`Making ${method} request to: ${url}`, body);
     const response = await fetch(url, options);
     return await handleApiResponse<T>(response);
   } catch (error) {
@@ -181,7 +182,7 @@ export const fetchProducts = async (): Promise<ApiResponse<Product[]>> => {
     
     if (apiAvailable) {
       const response = await apiRequest<Product[]>('/products/');
-      console.log("Productos cargados (sin deduplicar):", response.data);
+      console.log("Productos cargados desde API (sin deduplicar):", response.data);
       
       if (Array.isArray(response.data) && response.data.length > 0) {
         // Deduplicar productos
@@ -192,14 +193,20 @@ export const fetchProducts = async (): Promise<ApiResponse<Product[]>> => {
         return { data: uniqueProducts };
       } else {
         console.warn("No se recibieron productos válidos de la API (array vacío o no válido)");
+        // Actualizar caché con productos de demostración
+        productsCache = [...DEMO_PRODUCTS];
         return { data: DEMO_PRODUCTS, error: "No se recibieron datos válidos de la API" };
       }
     } else {
       console.log("Usando productos de ejemplo en modo de prueba");
+      // Actualizar caché con productos de demostración
+      productsCache = [...DEMO_PRODUCTS];
       return { data: DEMO_PRODUCTS };
     }
   } catch (error) {
     console.error("Error fetching products:", error);
+    // Actualizar caché con productos de demostración en caso de error
+    productsCache = [...DEMO_PRODUCTS];
     return { data: DEMO_PRODUCTS, error: "No se pudieron cargar los productos reales, usando datos de ejemplo" };
   }
 };
@@ -213,7 +220,7 @@ export const fetchProductById = async (
     
     if (apiAvailable) {
       console.log(`Buscando producto con ID ${id} en la API`);
-      const response = await apiRequest<Product>(`/products/read.php?id=${id}`, 'GET', undefined, params);
+      const response = await apiRequest<Product>(`/products/read.php`, 'GET', undefined, { id, ...params });
       console.log("Producto encontrado en API:", response.data);
       return response;
     } else {
@@ -279,20 +286,8 @@ export const createProduct = async (product: Omit<Product, "id">): Promise<ApiRe
       if (response.data && response.data.id) {
         console.log("Producto creado exitosamente:", response.data);
         
-        // Actualizar caché local
-        const existingProduct = productsCache.find(p => 
-          p.name === product.name && p.type === product.type
-        );
-        
-        if (existingProduct) {
-          // Actualizar el producto existente en caché
-          productsCache = productsCache.map(p => 
-            (p.name === product.name && p.type === product.type) ? response.data : p
-          );
-        } else {
-          // Agregar el nuevo producto al caché
-          productsCache.push(response.data);
-        }
+        // Refrescar todo el caché de productos después de crear uno nuevo
+        await fetchProducts();
       } else {
         console.error("Error al crear producto: La respuesta de la API no contiene un ID válido", response);
       }
@@ -306,6 +301,7 @@ export const createProduct = async (product: Omit<Product, "id">): Promise<ApiRe
         id: `demo_${Math.floor(Math.random() * 1000)}`
       } as Product;
       DEMO_PRODUCTS.push(newProduct);
+      productsCache.push(newProduct);
       return { data: newProduct };
     }
   } catch (error) {
@@ -320,14 +316,18 @@ export const updateProduct = async (id: string, product: Partial<Product>): Prom
     
     if (apiAvailable) {
       console.log(`Actualizando producto ${id}:`, product);
-      // Asegurarse de que estamos enviando el ID correctamente en la URL
-      const response = await apiRequest<Product>(`/products/update.php?id=${id}`, 'PUT', product);
+      
+      // Asegurarse de que el ID esté en el cuerpo del objeto también
+      const productWithId = { ...product, id };
+      
+      // Enviar solicitud PUT al endpoint correcto con el ID como parámetro de URL
+      const response = await apiRequest<Product>(`/products/update.php`, 'PUT', productWithId, { id });
       
       if (response.data && response.data.id) {
         console.log("Producto actualizado exitosamente:", response.data);
         
-        // Actualizar caché local
-        productsCache = productsCache.map(p => p.id === id ? response.data : p);
+        // Refrescar todo el caché de productos después de actualizar
+        await fetchProducts();
       } else {
         console.error("Error al actualizar producto: La respuesta de la API no contiene un ID válido", response);
       }
@@ -339,6 +339,13 @@ export const updateProduct = async (id: string, product: Partial<Product>): Prom
       const index = DEMO_PRODUCTS.findIndex(p => p.id === id);
       if (index >= 0) {
         DEMO_PRODUCTS[index] = { ...DEMO_PRODUCTS[index], ...product } as Product;
+        
+        // Actualizar también en el caché
+        const cacheIndex = productsCache.findIndex(p => p.id === id);
+        if (cacheIndex >= 0) {
+          productsCache[cacheIndex] = { ...productsCache[cacheIndex], ...product } as Product;
+        }
+        
         return { data: DEMO_PRODUCTS[index] };
       }
       return { data: {} as Product, error: "Producto no encontrado en modo de prueba" };
@@ -355,8 +362,12 @@ export const deleteProduct = async (id: string): Promise<ApiResponse<{ success: 
     
     if (apiAvailable) {
       console.log(`Eliminando producto ${id}`);
-      const response = await apiRequest<{ success: boolean }>(`/products/${id}`, 'DELETE');
+      const response = await apiRequest<{ success: boolean }>(`/products/delete.php`, 'DELETE', undefined, { id });
       console.log("Producto eliminado:", response.data);
+      
+      // Refrescar todo el caché de productos después de eliminar
+      await fetchProducts();
+      
       return response;
     } else {
       console.log(`Eliminando producto en modo de prueba ${id}`);
@@ -364,6 +375,10 @@ export const deleteProduct = async (id: string): Promise<ApiResponse<{ success: 
       const index = DEMO_PRODUCTS.findIndex(p => p.id === id);
       if (index >= 0) {
         DEMO_PRODUCTS.splice(index, 1);
+        
+        // Eliminar también del caché
+        productsCache = productsCache.filter(p => p.id !== id);
+        
         return { data: { success: true } };
       }
       return { data: { success: false }, error: "Producto no encontrado en modo de prueba" };

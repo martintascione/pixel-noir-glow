@@ -14,11 +14,18 @@ const Index = () => {
   const [selectedProductId, setSelectedProductId] = useState('1');
   
   // Usar React Query para obtener los productos
-  const { data } = useQuery({
+  const { data, refetch } = useQuery({
     queryKey: ['products'],
     queryFn: fetchProducts,
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60, // 1 minuto
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
+  
+  // Refrescar datos cuando la página se activa
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
   
   useEffect(() => {
     // Cambiar el título del documento
@@ -64,7 +71,11 @@ const Index = () => {
       >
         <div className="container-custom">
           <PromotionalBanner />
-          <PriceTable productId={selectedProductId} productName={selectedProduct} />
+          <PriceTable 
+            productId={selectedProductId} 
+            productName={selectedProduct} 
+            key={selectedProductId} // Agregar key para forzar recreación cuando cambia el producto
+          />
         </div>
       </motion.main>
       

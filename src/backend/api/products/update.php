@@ -2,9 +2,15 @@
 <?php
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: PUT");
+header("Access-Control-Allow-Methods: PUT, OPTIONS");
 header("Access-Control-Max-Age: 3600");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+
+// Manejar solicitudes OPTIONS preflight
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
 
 include_once '../../config/database.php';
 include_once '../../utils/response.php';
@@ -25,6 +31,10 @@ $db = $database->getConnection();
 
 try {
     $db->beginTransaction();
+    
+    // Debug: Imprime los datos recibidos
+    error_log("Datos recibidos para actualizar: " . file_get_contents("php://input"));
+    error_log("ID del producto a actualizar: " . $product_id);
     
     // Verificar si el producto existe
     $checkQuery = "SELECT id FROM products WHERE id = :id";
@@ -136,6 +146,13 @@ try {
         $updateDateQuery = "UPDATE price_updates SET update_date = NOW() WHERE id = (SELECT id FROM (SELECT id FROM price_updates ORDER BY id DESC LIMIT 1) AS p)";
         $updateDateStmt = $db->prepare($updateDateQuery);
         $updateDateStmt->execute();
+        
+        // Si no hay registro de actualización, crear uno nuevo
+        if ($updateDateStmt->rowCount() == 0) {
+            $createDateQuery = "INSERT INTO price_updates (update_date) VALUES (NOW())";
+            $createDateStmt = $db->prepare($createDateQuery);
+            $createDateStmt->execute();
+        }
     }
     
     $db->commit();
@@ -196,4 +213,3 @@ try {
     }
     sendError("Error en la base de datos: " . $e->getMessage(), 500);
 }
-?>
