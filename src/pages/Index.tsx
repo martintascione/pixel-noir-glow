@@ -25,15 +25,23 @@ const Index = () => {
     document.title = `Hierros Tascione - ${selectedProduct}`;
     
     // Si los productos están cargados, buscar el producto por nombre para obtener su ID
-    if (data?.data && data.data.length > 0) {
+    if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
+      console.log("Buscando producto por nombre:", selectedProduct);
+      console.log("Productos disponibles:", data.data);
+      
       const productData = data.data.find(p => p.name === selectedProduct);
+      
       if (productData) {
+        console.log("Producto encontrado:", productData);
         setSelectedProductId(productData.id);
+      } else {
+        console.log("Producto no encontrado con nombre:", selectedProduct);
       }
     }
   }, [selectedProduct, data?.data]);
 
   const handleSelectProduct = (product: Product) => {
+    console.log("Producto seleccionado:", product);
     setSelectedProduct(product.name);
     setSelectedProductId(product.id);
   };

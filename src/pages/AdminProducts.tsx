@@ -109,17 +109,20 @@ const AdminProducts = () => {
     console.log("Enviando producto:", product);
     
     if ("id" in product && editingProduct) {
+      console.log("Modo edición detectado. ID del producto:", product.id);
       // Asegurar que todos los campos del producto original se mantengan
       const updatedProduct = {
         ...editingProduct,
         ...product
       };
       
+      // Importante: Aseguramos que el ID se esté pasando correctamente
       updateMutation.mutate({ 
         id: updatedProduct.id, 
         product: updatedProduct 
       });
     } else {
+      console.log("Modo creación detectado.");
       createMutation.mutate(product as Omit<Product, "id">);
     }
   };

@@ -1,4 +1,3 @@
-
 import { Product, ApiResponse } from "@/types/products";
 
 // Use environment variable for API URL with a fallback
@@ -124,14 +123,33 @@ const checkApiAvailability = async (): Promise<boolean> => {
   }
 };
 
-// Helper to deduplicate products 
+// Helper to deduplicate products - IMPROVED VERSION
 const deduplicateProducts = (products: Product[]): Product[] => {
+  // Create a map to store unique products
   const uniqueMap = new Map<string, Product>();
+  
+  // First pass: Group products by name and type 
+  const productGroups: Record<string, Product[]> = {};
   
   products.forEach(product => {
     const key = `${product.name}-${product.type}`;
-    if (!uniqueMap.has(key) || new Date(uniqueMap.get(key)?.id || 0) < new Date(product.id || 0)) {
-      uniqueMap.set(key, product);
+    if (!productGroups[key]) {
+      productGroups[key] = [];
+    }
+    productGroups[key].push(product);
+  });
+  
+  // Second pass: For each group, keep only the product with the most recent ID
+  Object.values(productGroups).forEach(group => {
+    if (group.length > 0) {
+      // Sort by ID (assuming higher ID means more recent)
+      const sortedGroup = [...group].sort((a, b) => {
+        return parseInt(b.id) - parseInt(a.id);
+      });
+      
+      // Keep only the most recent product
+      const mostRecent = sortedGroup[0];
+      uniqueMap.set(`${mostRecent.name}-${mostRecent.type}`, mostRecent);
     }
   });
   
@@ -145,11 +163,15 @@ export const fetchProducts = async (): Promise<ApiResponse<Product[]>> => {
     
     if (apiAvailable) {
       const response = await apiRequest<Product[]>('/products');
-      console.log("Productos cargados:", response.data);
+      console.log("Productos cargados (sin deduplicar):", response.data);
       
-      // Deduplicar productos
-      const uniqueProducts = deduplicateProducts(response.data);
-      return { data: uniqueProducts };
+      if (Array.isArray(response.data) && response.data.length > 0) {
+        // Deduplicar productos
+        const uniqueProducts = deduplicateProducts(response.data);
+        console.log("Productos deduplicados:", uniqueProducts);
+        return { data: uniqueProducts };
+      }
+      return response;
     } else {
       console.log("Usando productos de ejemplo en modo de prueba");
       return { data: DEMO_PRODUCTS };
@@ -241,6 +263,7 @@ export const updateProduct = async (id: string, product: Partial<Product>): Prom
     
     if (apiAvailable) {
       console.log(`Actualizando producto ${id}:`, product);
+      // Important: We're now sending the ID within the URL, not in the body
       const response = await apiRequest<Product>(`/products/${id}`, 'PUT', product);
       console.log("Producto actualizado:", response.data);
       
