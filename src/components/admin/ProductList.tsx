@@ -26,7 +26,7 @@ interface ProductListProps {
 }
 
 const ProductList = ({ products, onEdit, onDelete }: ProductListProps) => {
-  if (products.length === 0) {
+  if (!products || products.length === 0) {
     return <p className="text-center py-8 text-muted-foreground">No hay productos registrados.</p>;
   }
 
