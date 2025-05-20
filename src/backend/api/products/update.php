@@ -133,7 +133,7 @@ try {
         }
         
         // Actualizar la fecha de actualización
-        $updateDateQuery = "UPDATE price_updates SET update_date = NOW() WHERE id = (SELECT id FROM (SELECT id FROM price_updates ORDER BY id LIMIT 1) AS p)";
+        $updateDateQuery = "UPDATE price_updates SET update_date = NOW() WHERE id = (SELECT id FROM (SELECT id FROM price_updates ORDER BY id DESC LIMIT 1) AS p)";
         $updateDateStmt = $db->prepare($updateDateQuery);
         $updateDateStmt->execute();
     }

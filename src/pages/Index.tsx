@@ -6,16 +6,32 @@ import Footer from '@/components/Footer';
 import PriceTable from '@/components/PriceTable';
 import PromotionalBanner from '@/components/PromotionalBanner';
 import { Product } from '@/types/products';
-import { fetchProductById } from '@/services/api';
+import { fetchProducts } from '@/services/api';
+import { useQuery } from '@tanstack/react-query';
 
 const Index = () => {
   const [selectedProduct, setSelectedProduct] = useState('Estribos');
-  const [selectedProductId, setSelectedProductId] = useState('1'); // Cambiado a 1 para Estribos inicialmente
+  const [selectedProductId, setSelectedProductId] = useState('1');
+  
+  // Usar React Query para obtener los productos
+  const { data } = useQuery({
+    queryKey: ['products'],
+    queryFn: fetchProducts,
+    staleTime: 1000 * 60 * 5, // 5 minutos
+  });
   
   useEffect(() => {
     // Cambiar el título del documento
     document.title = `Hierros Tascione - ${selectedProduct}`;
-  }, [selectedProduct]);
+    
+    // Si los productos están cargados, buscar el producto por nombre para obtener su ID
+    if (data?.data && data.data.length > 0) {
+      const productData = data.data.find(p => p.name === selectedProduct);
+      if (productData) {
+        setSelectedProductId(productData.id);
+      }
+    }
+  }, [selectedProduct, data?.data]);
 
   const handleSelectProduct = (product: Product) => {
     setSelectedProduct(product.name);

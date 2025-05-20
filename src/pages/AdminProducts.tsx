@@ -28,7 +28,8 @@ const AdminProducts = () => {
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['products'],
-    queryFn: fetchProducts
+    queryFn: fetchProducts,
+    staleTime: 0 // Siempre refrescar al volver a esta página
   });
 
   const createMutation = useMutation({
@@ -55,6 +56,7 @@ const AdminProducts = () => {
     mutationFn: ({ id, product }: { id: string, product: Partial<Product> }) => 
       updateProduct(id, product),
     onSuccess: () => {
+      // Invalidar todas las consultas relacionadas con los productos
       queryClient.invalidateQueries({ queryKey: ['products'] });
       toast({
         title: "Éxito",
@@ -107,9 +109,15 @@ const AdminProducts = () => {
     console.log("Enviando producto:", product);
     
     if ("id" in product && editingProduct) {
+      // Asegurar que todos los campos del producto original se mantengan
+      const updatedProduct = {
+        ...editingProduct,
+        ...product
+      };
+      
       updateMutation.mutate({ 
-        id: product.id, 
-        product: product 
+        id: updatedProduct.id, 
+        product: updatedProduct 
       });
     } else {
       createMutation.mutate(product as Omit<Product, "id">);

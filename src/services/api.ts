@@ -2,7 +2,7 @@
 import { Product, ApiResponse } from "@/types/products";
 
 // Use environment variable for API URL with a fallback
-const API_URL = import.meta.env.VITE_API_URL || "/api";
+const API_URL = import.meta.env.VITE_API_URL || "/backend/api";
 
 // Data for demo mode (will be used when API is not available)
 const DEMO_PRODUCTS: Product[] = [
@@ -124,6 +124,20 @@ const checkApiAvailability = async (): Promise<boolean> => {
   }
 };
 
+// Helper to deduplicate products 
+const deduplicateProducts = (products: Product[]): Product[] => {
+  const uniqueMap = new Map<string, Product>();
+  
+  products.forEach(product => {
+    const key = `${product.name}-${product.type}`;
+    if (!uniqueMap.has(key) || new Date(uniqueMap.get(key)?.id || 0) < new Date(product.id || 0)) {
+      uniqueMap.set(key, product);
+    }
+  });
+  
+  return Array.from(uniqueMap.values());
+};
+
 // API Functions for Products
 export const fetchProducts = async (): Promise<ApiResponse<Product[]>> => {
   try {
@@ -132,7 +146,10 @@ export const fetchProducts = async (): Promise<ApiResponse<Product[]>> => {
     if (apiAvailable) {
       const response = await apiRequest<Product[]>('/products');
       console.log("Productos cargados:", response.data);
-      return response;
+      
+      // Deduplicar productos
+      const uniqueProducts = deduplicateProducts(response.data);
+      return { data: uniqueProducts };
     } else {
       console.log("Usando productos de ejemplo en modo de prueba");
       return { data: DEMO_PRODUCTS };
@@ -226,6 +243,8 @@ export const updateProduct = async (id: string, product: Partial<Product>): Prom
       console.log(`Actualizando producto ${id}:`, product);
       const response = await apiRequest<Product>(`/products/${id}`, 'PUT', product);
       console.log("Producto actualizado:", response.data);
+      
+      // Invalidar cualquier caché local para ese producto
       return response;
     } else {
       console.log(`Actualizando producto en modo de prueba ${id}:`, product);
