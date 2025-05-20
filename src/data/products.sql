@@ -1,45 +1,48 @@
 
 -- Tabla de productos
 CREATE TABLE IF NOT EXISTS products (
-  id SERIAL PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
   type VARCHAR(50) NOT NULL,
-  last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Tabla de diámetros disponibles
 CREATE TABLE IF NOT EXISTS diameters (
-  id SERIAL PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   value VARCHAR(10) NOT NULL,
   label VARCHAR(20) NOT NULL
 );
 
 -- Tabla de formas para estribos
 CREATE TABLE IF NOT EXISTS shapes (
-  id SERIAL PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(50) NOT NULL
 );
 
 -- Tabla de tipos de clavos
 CREATE TABLE IF NOT EXISTS nail_types (
-  id SERIAL PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(50) NOT NULL
 );
 
 -- Tabla de tamaños y precios para productos
 CREATE TABLE IF NOT EXISTS product_sizes (
-  id SERIAL PRIMARY KEY,
-  product_id INTEGER REFERENCES products(id),
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  product_id INT,
   diameter VARCHAR(10) DEFAULT NULL,
   size VARCHAR(20) NOT NULL,
   price DECIMAL(10, 2) NOT NULL,
-  shape_id INTEGER REFERENCES shapes(id) DEFAULT NULL,
-  nail_type_id INTEGER REFERENCES nail_types(id) DEFAULT NULL
+  shape_id INT DEFAULT NULL,
+  nail_type_id INT DEFAULT NULL,
+  FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+  FOREIGN KEY (shape_id) REFERENCES shapes(id) ON DELETE SET NULL,
+  FOREIGN KEY (nail_type_id) REFERENCES nail_types(id) ON DELETE SET NULL
 );
 
 -- Fecha de última actualización general (para mostrar en la interfaz)
 CREATE TABLE IF NOT EXISTS price_updates (
-  id SERIAL PRIMARY KEY,
+  id INT AUTO_INCREMENT PRIMARY KEY,
   update_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -64,11 +67,11 @@ INSERT INTO nail_types (id, name) VALUES
 
 -- Insertar productos
 INSERT INTO products (id, name, type) VALUES
-(1, 'Estribos', 'construccion'),
-(2, 'Clavos', 'ferreteria'),
-(3, 'Alambres', 'construccion'),
-(4, 'Torniquetes', 'alambrado'),
-(5, 'Tranquerones', 'alambrado');
+(1, 'Estribos', 'construction'),
+(2, 'Clavos', 'hardware'),
+(3, 'Alambres', 'wire'),
+(4, 'Torniquetes', 'fencing'),
+(5, 'Tranquerones', 'fencing');
 
 -- Insertar tamaños y precios para Estribos
 -- Estribos 4.2mm Cuadrados
@@ -146,40 +149,19 @@ INSERT INTO product_sizes (product_id, size, price) VALUES
 (5, 'Tranquerón crique 1,2 (completo)', 800),
 (5, 'Tranquerón placa 1,2', 750);
 
--- Función para actualizar la fecha en price_updates
-CREATE OR REPLACE FUNCTION update_price_date()
-RETURNS TRIGGER AS $$
+-- Crear trigger para actualizar fecha
+DELIMITER //
+CREATE TRIGGER update_price_date
+AFTER INSERT ON product_sizes
+FOR EACH ROW
 BEGIN
-  -- Actualizar la fecha en la tabla de actualizaciones
-  UPDATE price_updates SET update_date = CURRENT_TIMESTAMP;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+  UPDATE price_updates SET update_date = NOW() WHERE id = (SELECT id FROM (SELECT id FROM price_updates LIMIT 1) AS p);
+END//
 
--- Trigger para actualizar la fecha cuando se modifican los precios
-CREATE TRIGGER update_price_date_trigger
-AFTER INSERT OR UPDATE ON product_sizes
-FOR EACH STATEMENT
-EXECUTE FUNCTION update_price_date();
-
--- Para actualizar manualmente la fecha de precios:
--- UPDATE price_updates SET update_date = CURRENT_TIMESTAMP;
-
--- Consulta para obtener estribos con su forma
--- SELECT ps.id, p.name, ps.diameter, ps.size, ps.price, s.name as shape
--- FROM product_sizes ps
--- JOIN products p ON ps.product_id = p.id
--- JOIN shapes s ON ps.shape_id = s.id
--- WHERE p.id = 1
--- ORDER BY ps.diameter, s.id, ps.size;
-
--- Consulta para obtener clavos con su tipo
--- SELECT ps.id, p.name, ps.size, ps.price, nt.name as nail_type
--- FROM product_sizes ps
--- JOIN products p ON ps.product_id = p.id
--- JOIN nail_types nt ON ps.nail_type_id = nt.id
--- WHERE p.id = 2
--- ORDER BY nt.id, ps.size;
-
--- Para consultar la fecha de última actualización:
--- SELECT update_date FROM price_updates LIMIT 1;
+CREATE TRIGGER update_price_date_on_update
+AFTER UPDATE ON product_sizes
+FOR EACH ROW
+BEGIN
+  UPDATE price_updates SET update_date = NOW() WHERE id = (SELECT id FROM (SELECT id FROM price_updates LIMIT 1) AS p);
+END//
+DELIMITER ;

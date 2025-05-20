@@ -41,11 +41,31 @@ try {
                    FROM product_sizes ps 
                    LEFT JOIN shapes s ON ps.shape_id = s.id
                    LEFT JOIN nail_types nt ON ps.nail_type_id = nt.id
-                   WHERE ps.product_id = :product_id
-                   ORDER BY ps.size";
+                   WHERE ps.product_id = :product_id";
+                   
+    // Filtrar por diámetro si se proporciona
+    if (isset($_GET['diameter'])) {
+        $sizesQuery .= " AND ps.diameter = :diameter";
+    }
+    
+    // Filtrar por tipo de clavo si se proporciona
+    if (isset($_GET['nailType'])) {
+        $sizesQuery .= " AND nt.id = :nail_type_id";
+    }
+    
+    $sizesQuery .= " ORDER BY ps.size";
                    
     $sizesStmt = $db->prepare($sizesQuery);
     $sizesStmt->bindParam(':product_id', $row['id']);
+    
+    if (isset($_GET['diameter'])) {
+        $sizesStmt->bindParam(':diameter', $_GET['diameter']);
+    }
+    
+    if (isset($_GET['nailType'])) {
+        $sizesStmt->bindParam(':nail_type_id', $_GET['nailType']);
+    }
+    
     $sizesStmt->execute();
     
     while ($sizeRow = $sizesStmt->fetch(PDO::FETCH_ASSOC)) {
@@ -93,7 +113,7 @@ try {
     } 
     else if ($product['type'] === 'hardware') {
         // Obtener tipos de clavo disponibles
-        $nailTypesQuery = "SELECT name FROM nail_types ORDER BY id";
+        $nailTypesQuery = "SELECT id, name FROM nail_types ORDER BY id";
         $nailTypesStmt = $db->prepare($nailTypesQuery);
         $nailTypesStmt->execute();
         

@@ -2,9 +2,9 @@
 <?php
 class Database {
     private $host = "localhost";
-    private $db_name = "hierros_tascione";
-    private $username = "username"; // Cambiar por tu usuario real
-    private $password = "password"; // Cambiar por tu contraseña real
+    private $db_name = "u970205121_hierrotascione";
+    private $username = "u970205121_hierrotascione";
+    private $password = ".Martin2025.";
     private $conn;
 
     public function getConnection() {
@@ -12,7 +12,7 @@ class Database {
 
         try {
             $this->conn = new PDO(
-                "pgsql:host=" . $this->host . ";dbname=" . $this->db_name,
+                "mysql:host=" . $this->host . ";dbname=" . $this->db_name,
                 $this->username,
                 $this->password
             );
