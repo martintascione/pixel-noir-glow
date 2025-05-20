@@ -53,18 +53,19 @@ const Index = () => {
       >
         <div className="container-custom">
           <PromotionalBanner />
+          
           {isLoading ? (
             <div className="text-center py-8">Cargando productos...</div>
-          ) : products.length === 0 ? (
-            <div className="text-center py-8 border rounded-lg p-6 bg-muted/20">
-              <h2 className="text-xl font-medium mb-2">No hay productos registrados</h2>
-              <p className="text-muted-foreground">
-                Aún no se han cargado productos. Por favor, acceda al panel de administración para agregar productos.
-              </p>
-            </div>
           ) : selectedProductId ? (
             <PriceTable productId={selectedProductId} productName={selectedProduct} />
-          ) : null}
+          ) : (
+            <div className="text-center py-8 border rounded-lg p-6 bg-muted/20">
+              <h2 className="text-xl font-medium mb-2">No hay productos en esta categoría</h2>
+              <p className="text-muted-foreground">
+                Aún no se han cargado productos para esta categoría. Por favor, seleccione otra categoría o acceda al panel de administración para agregar productos.
+              </p>
+            </div>
+          )}
         </div>
       </motion.main>
       
