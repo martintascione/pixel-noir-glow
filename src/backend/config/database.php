@@ -1,10 +1,11 @@
 
 <?php
 class Database {
+    // Modifica estas credenciales según tu configuración local
     private $host = "localhost";
-    private $db_name = "u970205121_hierrotascione";
-    private $username = "u970205121_hierrotascione";
-    private $password = ".Martin2025.";
+    private $db_name = "hierrotascione";
+    private $username = "root"; // Cambia esto a tu usuario de MySQL local
+    private $password = ""; // Cambia esto a tu contraseña de MySQL local
     private $conn;
 
     public function getConnection() {
