@@ -10,7 +10,7 @@ $database = new Database();
 $db = $database->getConnection();
 
 try {
-    // Consulta base para obtener productos
+    // Consulta para obtener productos
     $query = "SELECT p.id, p.name, p.type FROM products p ORDER BY p.name";
     $stmt = $db->prepare($query);
     $stmt->execute();
@@ -25,14 +25,11 @@ try {
             "sizes" => []
         ];
         
-        // Consulta para obtener los tamaños de cada producto
-        $sizesQuery = "SELECT ps.id, ps.size, ps.price, ps.diameter, 
-                        s.name as shape, nt.name as nail_type
+        // Obtener tamaños/items para cada producto
+        $sizesQuery = "SELECT ps.size_or_name as size, ps.price, ps.shape
                        FROM product_sizes ps 
-                       LEFT JOIN shapes s ON ps.shape_id = s.id
-                       LEFT JOIN nail_types nt ON ps.nail_type_id = nt.id
                        WHERE ps.product_id = :product_id
-                       ORDER BY ps.size";
+                       ORDER BY ps.size_or_name";
                        
         $sizesStmt = $db->prepare($sizesQuery);
         $sizesStmt->bindParam(':product_id', $row['id']);
@@ -44,16 +41,13 @@ try {
                 "price" => (float)$sizeRow['price']
             ];
             
-            if ($sizeRow['diameter']) {
-                $size["diameter"] = $sizeRow['diameter'];
-            }
-            
             if ($sizeRow['shape']) {
                 $size["shape"] = $sizeRow['shape'];
             }
             
-            if ($sizeRow['nail_type']) {
-                $size["nailType"] = $sizeRow['nail_type'];
+            // Para alambres, también agregar el campo name
+            if ($row['type'] === 'alambre') {
+                $size["name"] = $sizeRow['size'];
             }
             
             $product["sizes"][] = $size;

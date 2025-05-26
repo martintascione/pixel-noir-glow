@@ -2,20 +2,15 @@
 export interface Product {
   id: string;
   name: string;
-  icon?: React.ReactNode;
-  type: 'construction' | 'hardware' | 'fencing' | 'wire' | string;
+  type: 'estribos' | 'clavos' | 'alambre';
   sizes: ProductSize[];
-  availableDiameters?: string[]; 
-  availableShapes?: string[];
-  availableNailTypes?: string[];
 }
 
 export interface ProductSize {
   size: string;
   price: number;
-  diameter?: string;
-  shape?: string;
-  nailType?: string;
+  shape?: string; // Para estribos: cuadrada, rectangular, triangular. Para clavos: Punta París, Clavo de Techo
+  name?: string;  // Solo para alambre
 }
 
 export interface ApiResponse<T> {

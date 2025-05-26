@@ -30,41 +30,26 @@ const ProductList = ({ products, onEdit, onDelete }: ProductListProps) => {
     return <p className="text-center py-8 text-muted-foreground">No hay productos registrados.</p>;
   }
 
-  // Asegurar que products sea un array
-  const productArray = Array.isArray(products) ? products : [];
-
-  // Deduplica productos por nombre y tipo para evitar duplicados en la UI
-  const uniqueProducts = productArray.reduce((acc: Product[], current) => {
-    const isDuplicate = acc.find(
-      item => item.name === current.name && item.type === current.type
-    );
-    if (!isDuplicate) {
-      acc.push(current);
-    }
-    return acc;
-  }, []);
-
   const getProductTypeLabel = (type: string) => {
     switch (type) {
-      case 'construction': return 'Construcción';
-      case 'hardware': return 'Ferretería';
-      case 'fencing': return 'Alambrado';
-      case 'wire': return 'Alambres';
-      default: return type.charAt(0).toUpperCase() + type.slice(1);
+      case 'estribos': return 'Estribos';
+      case 'clavos': return 'Clavos';
+      case 'alambre': return 'Alambre';
+      default: return type;
     }
   };
 
   return (
     <div>
       <Accordion type="multiple" className="w-full">
-        {uniqueProducts.map((product) => (
+        {products.map((product) => (
           <AccordionItem key={product.id} value={product.id}>
             <div className="flex items-center justify-between">
               <AccordionTrigger className="flex-1 hover:no-underline">
                 <div className="flex items-center justify-between w-full pr-4">
                   <span className="font-medium">{product.name}</span>
                   <span className="text-muted-foreground text-sm">
-                    {getProductTypeLabel(product.type)} · {product.sizes.length} tamaños
+                    {getProductTypeLabel(product.type)} · {product.sizes.length} items
                   </span>
                 </div>
               </AccordionTrigger>
@@ -93,19 +78,11 @@ const ProductList = ({ products, onEdit, onDelete }: ProductListProps) => {
             </div>
             <AccordionContent>
               <Table>
-                <TableCaption>Lista de tamaños y precios para {product.name}</TableCaption>
+                <TableCaption>Lista de {product.type === 'alambre' ? 'alambres' : 'medidas'} y precios para {product.name}</TableCaption>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Medida</TableHead>
-                    {product.type === 'construction' && (
-                      <>
-                        <TableHead>Diámetro</TableHead>
-                        <TableHead>Forma</TableHead>
-                      </>
-                    )}
-                    {product.type === 'hardware' && (
-                      <TableHead>Tipo</TableHead>
-                    )}
+                    <TableHead>{product.type === 'alambre' ? 'Nombre' : 'Medida'}</TableHead>
+                    {product.type !== 'alambre' && <TableHead>Forma</TableHead>}
                     <TableHead className="text-right">Precio</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -113,14 +90,8 @@ const ProductList = ({ products, onEdit, onDelete }: ProductListProps) => {
                   {product.sizes.map((size, index) => (
                     <TableRow key={index}>
                       <TableCell>{size.size}</TableCell>
-                      {product.type === 'construction' && (
-                        <>
-                          <TableCell>{size.diameter} mm</TableCell>
-                          <TableCell>{size.shape}</TableCell>
-                        </>
-                      )}
-                      {product.type === 'hardware' && (
-                        <TableCell>{size.nailType}</TableCell>
+                      {product.type !== 'alambre' && (
+                        <TableCell>{size.shape || '-'}</TableCell>
                       )}
                       <TableCell className="text-right">${size.price.toFixed(2)}</TableCell>
                     </TableRow>
