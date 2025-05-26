@@ -6,18 +6,18 @@ import { Pencil, Trash2 } from 'lucide-react';
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface ProductListProps {
   products: Product[];
@@ -27,110 +27,81 @@ interface ProductListProps {
 
 const ProductList = ({ products, onEdit, onDelete }: ProductListProps) => {
   if (!products || products.length === 0) {
-    return <p className="text-center py-8 text-muted-foreground">No hay productos registrados.</p>;
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>No hay productos</CardTitle>
+          <CardDescription>
+            No hay productos registrados. Crea el primer producto usando el formulario de arriba.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    );
   }
 
-  // Asegurar que products sea un array
-  const productArray = Array.isArray(products) ? products : [];
-
-  // Deduplica productos por nombre y tipo para evitar duplicados en la UI
-  const uniqueProducts = productArray.reduce((acc: Product[], current) => {
-    const isDuplicate = acc.find(
-      item => item.name === current.name && item.type === current.type
-    );
-    if (!isDuplicate) {
-      acc.push(current);
+  const getProductDescription = (product: Product) => {
+    let description = product.category;
+    if (product.subcategory) {
+      description += ` - ${product.subcategory}`;
     }
-    return acc;
-  }, []);
-
-  const getProductTypeLabel = (type: string) => {
-    switch (type) {
-      case 'construction': return 'Construcción';
-      case 'hardware': return 'Ferretería';
-      case 'fencing': return 'Alambrado';
-      case 'wire': return 'Alambres';
-      default: return type.charAt(0).toUpperCase() + type.slice(1);
+    if (product.shape) {
+      description += ` - ${product.shape}`;
     }
+    return description;
   };
 
   return (
-    <div>
-      <Accordion type="multiple" className="w-full">
-        {uniqueProducts.map((product) => (
-          <AccordionItem key={product.id} value={product.id}>
-            <div className="flex items-center justify-between">
-              <AccordionTrigger className="flex-1 hover:no-underline">
-                <div className="flex items-center justify-between w-full pr-4">
-                  <span className="font-medium">{product.name}</span>
-                  <span className="text-muted-foreground text-sm">
-                    {getProductTypeLabel(product.type)} · {product.sizes.length} tamaños
-                  </span>
-                </div>
-              </AccordionTrigger>
-              <div className="flex gap-2 pr-4">
+    <div className="space-y-4">
+      {products.map((product) => (
+        <Card key={product.id}>
+          <CardHeader>
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle className="text-lg">{product.name}</CardTitle>
+                <CardDescription>{getProductDescription(product)}</CardDescription>
+              </div>
+              <div className="flex gap-2">
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(product);
-                  }}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onEdit(product)}
                 >
-                  <Pencil className="h-4 w-4" />
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Editar
                 </Button>
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(product.id);
-                  }}
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => onDelete(product.id)}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Eliminar
                 </Button>
               </div>
             </div>
-            <AccordionContent>
-              <Table>
-                <TableCaption>Lista de tamaños y precios para {product.name}</TableCaption>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Medida</TableHead>
-                    {product.type === 'construction' && (
-                      <>
-                        <TableHead>Diámetro</TableHead>
-                        <TableHead>Forma</TableHead>
-                      </>
-                    )}
-                    {product.type === 'hardware' && (
-                      <TableHead>Tipo</TableHead>
-                    )}
-                    <TableHead className="text-right">Precio</TableHead>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Medida</TableHead>
+                  <TableHead className="text-right">Precio</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {product.sizes.map((size, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{size.size}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      ${size.price.toFixed(2)}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {product.sizes.map((size, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{size.size}</TableCell>
-                      {product.type === 'construction' && (
-                        <>
-                          <TableCell>{size.diameter} mm</TableCell>
-                          <TableCell>{size.shape}</TableCell>
-                        </>
-                      )}
-                      {product.type === 'hardware' && (
-                        <TableCell>{size.nailType}</TableCell>
-                      )}
-                      <TableCell className="text-right">${size.price.toFixed(2)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 };

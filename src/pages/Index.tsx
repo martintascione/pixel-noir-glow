@@ -1,85 +1,156 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import PriceTable from '@/components/PriceTable';
-import PromotionalBanner from '@/components/PromotionalBanner';
-import { Product } from '@/types/products';
-import { fetchProducts } from '@/services/api';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { fetchProducts } from '@/services/api';
+import { Product } from '@/types/products';
+import { Button } from '@/components/ui/button';
+import { Settings } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const Index = () => {
-  const [selectedProduct, setSelectedProduct] = useState('Estribos');
-  const [selectedProductId, setSelectedProductId] = useState('1');
-  
-  // Usar React Query para obtener los productos
-  const { data, refetch } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['products'],
     queryFn: fetchProducts,
-    staleTime: 1000 * 60, // 1 minuto
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
   });
-  
-  // Refrescar datos cuando la página se activa
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
-  
-  useEffect(() => {
-    // Cambiar el título del documento
-    document.title = `Hierros Tascione - ${selectedProduct}`;
-    
-    // Si los productos están cargados, buscar el producto por nombre para obtener su ID
-    if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
-      console.log("Buscando producto por nombre:", selectedProduct);
-      console.log("Productos disponibles en Index:", data.data);
-      
-      const productData = data.data.find(p => p.name === selectedProduct);
-      
-      if (productData) {
-        console.log("Producto encontrado:", productData);
-        setSelectedProductId(productData.id);
-      } else {
-        console.log("Producto no encontrado con nombre:", selectedProduct);
-        // Si no se encuentra el producto seleccionado, usar el primero disponible
-        if (data.data.length > 0) {
-          console.log("Seleccionando el primer producto disponible:", data.data[0]);
-          setSelectedProduct(data.data[0].name);
-          setSelectedProductId(data.data[0].id);
-        }
-      }
-    }
-  }, [selectedProduct, data?.data]);
 
-  const handleSelectProduct = (product: Product) => {
-    console.log("Producto seleccionado en Index:", product);
-    setSelectedProduct(product.name);
-    setSelectedProductId(product.id);
+  const products = Array.isArray(data?.data) ? data.data : [];
+
+  // Agrupar productos por categoría
+  const groupedProducts = products.reduce((acc: Record<string, Product[]>, product) => {
+    if (!acc[product.category]) {
+      acc[product.category] = [];
+    }
+    acc[product.category].push(product);
+    return acc;
+  }, {});
+
+  const getProductSubtitle = (product: Product) => {
+    let subtitle = '';
+    if (product.subcategory) subtitle += product.subcategory;
+    if (product.shape) subtitle += (subtitle ? ' - ' : '') + product.shape;
+    return subtitle;
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <Header onSelectProduct={handleSelectProduct} />
-      
-      <motion.main 
-        className="flex-grow py-12"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="container-custom">
-          <PromotionalBanner />
-          <PriceTable 
-            productId={selectedProductId} 
-            productName={selectedProduct} 
-            key={selectedProductId} // Agregar key para forzar recreación cuando cambia el producto
-          />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <header className="bg-white shadow-sm border-b">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Hierros Tascione
+              </h1>
+              <p className="text-gray-600 mt-1">Lista de Precios</p>
+            </div>
+            <Link to="/admin/productos">
+              <Button variant="outline">
+                <Settings className="mr-2 h-4 w-4" />
+                Administrar
+              </Button>
+            </Link>
+          </div>
         </div>
-      </motion.main>
-      
-      <Footer />
+      </header>
+
+      <main className="container mx-auto px-4 py-8">
+        {isLoading ? (
+          <div className="text-center py-12">
+            <div className="text-lg text-gray-600">Cargando productos...</div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <div className="text-lg text-red-600">
+              Error al cargar los productos
+            </div>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-lg text-gray-600 mb-4">
+              No hay productos cargados
+            </div>
+            <Link to="/admin/productos">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Agregar Primer Producto
+              </Button>
+            </Link>
+          </div>
+        ) : (
+          <motion.div 
+            className="space-y-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            {Object.entries(groupedProducts).map(([category, categoryProducts]) => (
+              <Card key={category}>
+                <CardHeader>
+                  <CardTitle className="text-2xl">{category}</CardTitle>
+                  <CardDescription>
+                    {categoryProducts.length} producto{categoryProducts.length !== 1 ? 's' : ''}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {categoryProducts.map((product) => (
+                      <div key={product.id}>
+                        <h4 className="text-lg font-semibold mb-2">
+                          {product.name}
+                          {getProductSubtitle(product) && (
+                            <span className="text-sm font-normal text-gray-600 ml-2">
+                              ({getProductSubtitle(product)})
+                            </span>
+                          )}
+                        </h4>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Medida</TableHead>
+                              <TableHead className="text-right">Precio</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {product.sizes.map((size, index) => (
+                              <TableRow key={index}>
+                                <TableCell>{size.size}</TableCell>
+                                <TableCell className="text-right font-medium">
+                                  ${size.price.toFixed(2)}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </motion.div>
+        )}
+      </main>
+
+      <footer className="bg-white border-t mt-12">
+        <div className="container mx-auto px-4 py-6 text-center text-gray-600">
+          <p>© 2024 Hierros Tascione - Lista de Precios</p>
+        </div>
+      </footer>
     </div>
   );
 };
