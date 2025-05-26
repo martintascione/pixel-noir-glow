@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Square, Hammer, Cable, Plug, Anchor } from 'lucide-react';
+import { Square, Hammer, Cable } from 'lucide-react';
 import { fetchProducts } from '@/services/api';
 import { Product } from '@/types/products';
 import { useToast } from '@/hooks/use-toast';
@@ -26,41 +26,14 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
           description: error,
           variant: "destructive",
         });
-        // Carga productos de respaldo en caso de error
+        // Productos de respaldo con tipos correctos
         setProducts([
-          { id: '1', name: 'Estribos', icon: <Square className="mr-1" />, type: 'construction', sizes: [] },
-          { id: '2', name: 'Clavos', icon: <Hammer className="mr-1" />, type: 'hardware', sizes: [] },
-          { id: '3', name: 'Alambres', icon: <Cable className="mr-1" />, type: 'construction', sizes: [] },
-          { id: '4', name: 'Torniquetes', icon: <Plug className="mr-1" />, type: 'fencing', sizes: [] },
-          { id: '5', name: 'Tranquerones', icon: <Anchor className="mr-1" />, type: 'fencing', sizes: [] },
+          { id: '1', name: 'Estribos', type: 'estribos', sizes: [] },
+          { id: '2', name: 'Clavos', type: 'clavos', sizes: [] },
+          { id: '3', name: 'Alambres', type: 'alambre', sizes: [] },
         ]);
       } else {
-        // Asignar iconos según el tipo de producto
-        const productsWithIcons = data.map(product => {
-          let icon;
-          switch (product.name.toLowerCase()) {
-            case 'estribos':
-              icon = <Square className="mr-1" />;
-              break;
-            case 'clavos':
-              icon = <Hammer className="mr-1" />;
-              break;
-            case 'alambres':
-              icon = <Cable className="mr-1" />;
-              break;
-            case 'torniquetes':
-              icon = <Plug className="mr-1" />;
-              break;
-            case 'tranquerones':
-              icon = <Anchor className="mr-1" />;
-              break;
-            default:
-              icon = <Square className="mr-1" />;
-          }
-          return { ...product, icon };
-        });
-        
-        setProducts(productsWithIcons);
+        setProducts(data);
       }
       
       setLoading(false);
@@ -72,6 +45,19 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
   const handleProductClick = (product: Product) => {
     if (onSelectProduct) {
       onSelectProduct(product);
+    }
+  };
+
+  const getProductIcon = (type: string) => {
+    switch (type) {
+      case 'estribos':
+        return <Square className="mr-1" />;
+      case 'clavos':
+        return <Hammer className="mr-1" />;
+      case 'alambre':
+        return <Cable className="mr-1" />;
+      default:
+        return <Square className="mr-1" />;
     }
   };
 
@@ -119,7 +105,7 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
                   size="sm"
                   onClick={() => handleProductClick(product)}
                 >
-                  {product.icon}
+                  {getProductIcon(product.type)}
                   {product.name}
                 </Button>
               ))

@@ -2,9 +2,6 @@
 -- Eliminar tablas existentes para empezar limpio
 DROP TABLE IF EXISTS product_sizes;
 DROP TABLE IF EXISTS price_updates;
-DROP TABLE IF EXISTS nail_types;
-DROP TABLE IF EXISTS shapes;
-DROP TABLE IF EXISTS diameters;
 DROP TABLE IF EXISTS products;
 
 -- Tabla de productos simplificada
