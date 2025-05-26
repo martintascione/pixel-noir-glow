@@ -29,7 +29,7 @@ const Index = () => {
     queryFn: fetchProducts,
   });
 
-  const products = Array.isArray(data?.data) ? data.data : [];
+  const products: Product[] = Array.isArray(data?.data) ? data.data : [];
 
   // Agrupar productos por categoría
   const groupedProducts = products.reduce((acc: Record<string, Product[]>, product) => {
