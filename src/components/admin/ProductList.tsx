@@ -2,16 +2,22 @@
 import React from 'react';
 import { Product } from '@/types/products';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface ProductListProps {
   products: Product[];
@@ -19,95 +25,112 @@ interface ProductListProps {
   onDelete: (id: string) => void;
 }
 
-const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete }) => {
-  const getProductSubtitle = (product: Product) => {
-    let subtitle = '';
-    if (product.subcategory) subtitle += product.subcategory;
-    if (product.shape) subtitle += (subtitle ? ' - ' : '') + product.shape;
-    return subtitle;
-  };
-
-  // Agrupar productos por categoría
-  const groupedProducts = products.reduce((acc: Record<string, Product[]>, product) => {
-    if (!acc[product.category]) {
-      acc[product.category] = [];
-    }
-    acc[product.category].push(product);
-    return acc;
-  }, {});
-
-  if (products.length === 0) {
-    return (
-      <Card>
-        <CardContent className="text-center py-8">
-          <p className="text-gray-500">No hay productos creados aún.</p>
-        </CardContent>
-      </Card>
-    );
+const ProductList = ({ products, onEdit, onDelete }: ProductListProps) => {
+  if (!products || products.length === 0) {
+    return <p className="text-center py-8 text-muted-foreground">No hay productos registrados.</p>;
   }
 
+  // Asegurar que products sea un array
+  const productArray = Array.isArray(products) ? products : [];
+
+  // Deduplica productos por nombre y tipo para evitar duplicados en la UI
+  const uniqueProducts = productArray.reduce((acc: Product[], current) => {
+    const isDuplicate = acc.find(
+      item => item.name === current.name && item.type === current.type
+    );
+    if (!isDuplicate) {
+      acc.push(current);
+    }
+    return acc;
+  }, []);
+
+  const getProductTypeLabel = (type: string) => {
+    switch (type) {
+      case 'construction': return 'Construcción';
+      case 'hardware': return 'Ferretería';
+      case 'fencing': return 'Alambrado';
+      case 'wire': return 'Alambres';
+      default: return type.charAt(0).toUpperCase() + type.slice(1);
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      {Object.entries(groupedProducts).map(([category, categoryProducts]) => (
-        <Card key={category}>
-          <CardHeader>
-            <CardTitle>{category}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {categoryProducts.map((product) => (
-                <div key={product.id} className="border rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h4 className="text-lg font-semibold">
-                        {product.name}
-                        {getProductSubtitle(product) && (
-                          <span className="text-sm font-normal text-gray-600 ml-2">
-                            ({getProductSubtitle(product)})
-                          </span>
-                        )}
-                      </h4>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onEdit(product)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onDelete(product.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Medida</TableHead>
-                        <TableHead className="text-right">Precio</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {product.sizes.map((size, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{size.size}</TableCell>
-                          <TableCell className="text-right">${size.price.toFixed(2)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+    <div>
+      <Accordion type="multiple" className="w-full">
+        {uniqueProducts.map((product) => (
+          <AccordionItem key={product.id} value={product.id}>
+            <div className="flex items-center justify-between">
+              <AccordionTrigger className="flex-1 hover:no-underline">
+                <div className="flex items-center justify-between w-full pr-4">
+                  <span className="font-medium">{product.name}</span>
+                  <span className="text-muted-foreground text-sm">
+                    {getProductTypeLabel(product.type)} · {product.sizes.length} tamaños
+                  </span>
                 </div>
-              ))}
+              </AccordionTrigger>
+              <div className="flex gap-2 pr-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(product);
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(product.id);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      ))}
+            <AccordionContent>
+              <Table>
+                <TableCaption>Lista de tamaños y precios para {product.name}</TableCaption>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Medida</TableHead>
+                    {product.type === 'construction' && (
+                      <>
+                        <TableHead>Diámetro</TableHead>
+                        <TableHead>Forma</TableHead>
+                      </>
+                    )}
+                    {product.type === 'hardware' && (
+                      <TableHead>Tipo</TableHead>
+                    )}
+                    <TableHead className="text-right">Precio</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {product.sizes.map((size, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{size.size}</TableCell>
+                      {product.type === 'construction' && (
+                        <>
+                          <TableCell>{size.diameter} mm</TableCell>
+                          <TableCell>{size.shape}</TableCell>
+                        </>
+                      )}
+                      {product.type === 'hardware' && (
+                        <TableCell>{size.nailType}</TableCell>
+                      )}
+                      <TableCell className="text-right">${size.price.toFixed(2)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
     </div>
   );
 };

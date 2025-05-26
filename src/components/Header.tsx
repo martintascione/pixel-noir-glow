@@ -18,31 +18,49 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
   useEffect(() => {
     const loadProducts = async () => {
       setLoading(true);
-      try {
-        const response = await fetchProducts();
-        
-        if (response.data) {
-          setProducts(response.data);
-        } else {
-          // Datos de respaldo
-          setProducts([
-            { id: '1', name: 'Estribos', category: 'Estribos', sizes: [] },
-            { id: '2', name: 'Clavos', category: 'Clavos', sizes: [] },
-            { id: '3', name: 'Alambres', category: 'Alambres', sizes: [] },
-          ]);
-        }
-      } catch (error) {
+      const { data, error } = await fetchProducts();
+      
+      if (error) {
         toast({
           title: "Error",
-          description: "Error al cargar productos",
+          description: error,
           variant: "destructive",
         });
-        // Datos de respaldo en caso de error
+        // Carga productos de respaldo en caso de error
         setProducts([
-          { id: '1', name: 'Estribos', category: 'Estribos', sizes: [] },
-          { id: '2', name: 'Clavos', category: 'Clavos', sizes: [] },
-          { id: '3', name: 'Alambres', category: 'Alambres', sizes: [] },
+          { id: '1', name: 'Estribos', icon: <Square className="mr-1" />, type: 'construction', sizes: [] },
+          { id: '2', name: 'Clavos', icon: <Hammer className="mr-1" />, type: 'hardware', sizes: [] },
+          { id: '3', name: 'Alambres', icon: <Cable className="mr-1" />, type: 'construction', sizes: [] },
+          { id: '4', name: 'Torniquetes', icon: <Plug className="mr-1" />, type: 'fencing', sizes: [] },
+          { id: '5', name: 'Tranquerones', icon: <Anchor className="mr-1" />, type: 'fencing', sizes: [] },
         ]);
+      } else {
+        // Asignar iconos según el tipo de producto
+        const productsWithIcons = data.map(product => {
+          let icon;
+          switch (product.name.toLowerCase()) {
+            case 'estribos':
+              icon = <Square className="mr-1" />;
+              break;
+            case 'clavos':
+              icon = <Hammer className="mr-1" />;
+              break;
+            case 'alambres':
+              icon = <Cable className="mr-1" />;
+              break;
+            case 'torniquetes':
+              icon = <Plug className="mr-1" />;
+              break;
+            case 'tranquerones':
+              icon = <Anchor className="mr-1" />;
+              break;
+            default:
+              icon = <Square className="mr-1" />;
+          }
+          return { ...product, icon };
+        });
+        
+        setProducts(productsWithIcons);
       }
       
       setLoading(false);
@@ -50,19 +68,6 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
     
     loadProducts();
   }, [toast]);
-
-  const getProductIcon = (productName: string) => {
-    switch (productName.toLowerCase()) {
-      case 'estribos':
-        return <Square className="mr-1" />;
-      case 'clavos':
-        return <Hammer className="mr-1" />;
-      case 'alambres':
-        return <Cable className="mr-1" />;
-      default:
-        return <Square className="mr-1" />;
-    }
-  };
 
   const handleProductClick = (product: Product) => {
     if (onSelectProduct) {
@@ -114,7 +119,7 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
                   size="sm"
                   onClick={() => handleProductClick(product)}
                 >
-                  {getProductIcon(product.name)}
+                  {product.icon}
                   {product.name}
                 </Button>
               ))

@@ -1,200 +1,347 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Product, ProductSize } from '@/types/products';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+// Esquema de validación para el formulario
+const productSchema = z.object({
+  name: z.string().min(1, 'El nombre es requerido'),
+  type: z.string().min(1, 'El tipo es requerido'),
+  sizes: z.array(
+    z.object({
+      size: z.string().min(1, 'La medida es requerida'),
+      price: z.coerce.number().min(0, 'El precio debe ser mayor o igual a 0'),
+      diameter: z.string().optional(),
+      shape: z.string().optional(),
+      nailType: z.string().optional(),
+    })
+  ).min(1, 'Debe agregar al menos un tamaño'),
+  availableDiameters: z.array(z.string()).optional(),
+  availableShapes: z.array(z.string()).optional(),
+  availableNailTypes: z.array(z.string()).optional(),
+});
+
+type ProductFormValues = z.infer<typeof productSchema>;
 
 interface ProductFormProps {
-  initialData?: Product | null;
-  onSubmit: (data: Omit<Product, 'id'>) => void;
+  initialData: Product | null;
+  onSubmit: (data: ProductFormValues) => void;
   onCancel: () => void;
 }
 
-const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, onCancel }) => {
-  const [formData, setFormData] = useState<Omit<Product, 'id'>>({
-    name: '',
-    category: 'Estribos',
-    subcategory: undefined,
-    shape: undefined,
-    sizes: [{ size: '', price: 0 }]
+const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProps) => {
+  const [productType, setProductType] = useState<string>(initialData?.type || 'construction');
+  
+  const form = useForm<ProductFormValues>({
+    resolver: zodResolver(productSchema),
+    defaultValues: initialData || {
+      name: '',
+      type: 'construction',
+      sizes: [{ size: '', price: 0 }],
+      availableDiameters: [],
+      availableShapes: [],
+      availableNailTypes: [],
+    },
   });
 
   useEffect(() => {
     if (initialData) {
-      setFormData({
-        name: initialData.name,
-        category: initialData.category,
-        subcategory: initialData.subcategory,
-        shape: initialData.shape,
-        sizes: initialData.sizes
-      });
+      form.reset(initialData);
+      setProductType(initialData.type);
     }
-  }, [initialData]);
+  }, [initialData, form]);
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+  const handleTypeChange = (type: string) => {
+    setProductType(type);
 
-  const handleSizeChange = (index: number, field: 'size' | 'price', value: string | number) => {
-    const newSizes = [...formData.sizes];
-    newSizes[index] = {
-      ...newSizes[index],
-      [field]: field === 'price' ? Number(value) : value
-    };
-    setFormData(prev => ({
-      ...prev,
-      sizes: newSizes
-    }));
+    // Reiniciar los campos específicos según el tipo de producto
+    const currentSizes = form.getValues('sizes');
+    const updatedSizes = currentSizes.map(size => {
+      const newSize = { ...size };
+      
+      // Limpiar los campos específicos que no corresponden al nuevo tipo
+      if (type !== 'construction') {
+        delete newSize.diameter;
+        delete newSize.shape;
+      }
+      
+      if (type !== 'hardware') {
+        delete newSize.nailType;
+      }
+      
+      return newSize;
+    });
+
+    form.setValue('sizes', updatedSizes);
+    
+    // Reiniciar los arrays de disponibles según el tipo
+    if (type === 'construction') {
+      form.setValue('availableDiameters', initialData?.availableDiameters || ['4.2', '6']);
+      form.setValue('availableShapes', initialData?.availableShapes || ['Cuadrado', 'Rectangular', 'Triangular']);
+      form.setValue('availableNailTypes', []);
+    } else if (type === 'hardware') {
+      form.setValue('availableDiameters', []);
+      form.setValue('availableShapes', []);
+      form.setValue('availableNailTypes', initialData?.availableNailTypes || ['Punta París', 'De Techo']);
+    } else {
+      form.setValue('availableDiameters', []);
+      form.setValue('availableShapes', []);
+      form.setValue('availableNailTypes', []);
+    }
   };
 
   const addSize = () => {
-    setFormData(prev => ({
-      ...prev,
-      sizes: [...prev.sizes, { size: '', price: 0 }]
-    }));
+    const currentSizes = form.getValues('sizes');
+    const newSize: ProductSize = { size: '', price: 0 };
+    
+    // Agregar campos específicos según el tipo
+    if (productType === 'construction') {
+      newSize.diameter = '4.2';
+      newSize.shape = 'Cuadrado';
+    } else if (productType === 'hardware') {
+      newSize.nailType = 'Punta París';
+    }
+    
+    form.setValue('sizes', [...currentSizes, newSize]);
   };
 
   const removeSize = (index: number) => {
-    if (formData.sizes.length > 1) {
-      const newSizes = formData.sizes.filter((_, i) => i !== index);
-      setFormData(prev => ({
-        ...prev,
-        sizes: newSizes
-      }));
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
+    const currentSizes = form.getValues('sizes');
+    form.setValue('sizes', currentSizes.filter((_, i) => i !== index));
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="name">Nombre del Producto</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => handleInputChange('name', e.target.value)}
-            required
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nombre del Producto</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Ej: Estribos" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo de Producto</FormLabel>
+                <Select 
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    handleTypeChange(value);
+                  }}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona el tipo de producto" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="construction">Construcción (Estribos)</SelectItem>
+                    <SelectItem value="hardware">Ferretería (Clavos)</SelectItem>
+                    <SelectItem value="fencing">Alambrado (Torniquetes/Tranquerones)</SelectItem>
+                    <SelectItem value="wire">Alambres</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  El tipo determina qué campos adicionales se mostrarán.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
 
-        <div>
-          <Label htmlFor="category">Categoría</Label>
-          <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Estribos">Estribos</SelectItem>
-              <SelectItem value="Clavos">Clavos</SelectItem>
-              <SelectItem value="Alambres">Alambres</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {formData.category === 'Estribos' && (
-          <>
-            <div>
-              <Label htmlFor="subcategory">Subcategoría</Label>
-              <Select value={formData.subcategory || ''} onValueChange={(value) => handleInputChange('subcategory', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar subcategoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="4.2mm">4.2mm</SelectItem>
-                  <SelectItem value="6mm">6mm</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="shape">Forma</Label>
-              <Select value={formData.shape || ''} onValueChange={(value) => handleInputChange('shape', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar forma" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Cuadrado">Cuadrado</SelectItem>
-                  <SelectItem value="Rectangular">Rectangular</SelectItem>
-                  <SelectItem value="Triangular">Triangular</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </>
-        )}
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            Medidas y Precios
-            <Button type="button" variant="outline" size="sm" onClick={addSize}>
-              <Plus className="h-4 w-4 mr-2" />
-              Agregar Medida
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {formData.sizes.map((size, index) => (
-              <div key={index} className="flex gap-3 items-end">
-                <div className="flex-1">
-                  <Label htmlFor={`size-${index}`}>Medida</Label>
-                  <Input
-                    id={`size-${index}`}
-                    value={size.size}
-                    onChange={(e) => handleSizeChange(index, 'size', e.target.value)}
-                    placeholder="ej: 10x10, 2 pulgadas"
-                    required
-                  />
-                </div>
-                <div className="flex-1">
-                  <Label htmlFor={`price-${index}`}>Precio</Label>
-                  <Input
-                    id={`price-${index}`}
-                    type="number"
-                    step="0.01"
-                    value={size.price}
-                    onChange={(e) => handleSizeChange(index, 'price', e.target.value)}
-                    required
-                  />
-                </div>
-                {formData.sizes.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
+        <div className="border p-4 rounded-md">
+          <h3 className="text-lg font-medium mb-4">Tamaños y Precios</h3>
+          
+          {form.watch('sizes').map((_, index) => (
+            <div key={index} className="border-t pt-4 mt-4 first:border-t-0 first:pt-0 first:mt-0">
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="font-medium">Tamaño {index + 1}</h4>
+                {form.watch('sizes').length > 1 && (
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
                     onClick={() => removeSize(index)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 )}
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
-      <div className="flex gap-3">
-        <Button type="submit" className="flex-1">
-          {initialData ? 'Actualizar Producto' : 'Crear Producto'}
-        </Button>
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancelar
-        </Button>
-      </div>
-    </form>
+              <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name={`sizes.${index}.size`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Medida</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ej: 10x10" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name={`sizes.${index}.price`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Precio</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="number" 
+                          min="0" 
+                          step="0.01"
+                          placeholder="Ej: 100.00" 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {productType === 'construction' && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name={`sizes.${index}.diameter`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Diámetro</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecciona el diámetro" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="4.2">4.2 mm</SelectItem>
+                              <SelectItem value="6">6 mm</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name={`sizes.${index}.shape`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Forma</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecciona la forma" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Cuadrado">Cuadrado</SelectItem>
+                              <SelectItem value="Rectangular">Rectangular</SelectItem>
+                              <SelectItem value="Triangular">Triangular</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+
+                {productType === 'hardware' && (
+                  <FormField
+                    control={form.control}
+                    name={`sizes.${index}.nailType`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo de Clavo</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona el tipo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Punta París">Punta París</SelectItem>
+                            <SelectItem value="De Techo">De Techo</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+            </div>
+          ))}
+
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={addSize} 
+            className="mt-4 w-full"
+          >
+            Agregar otro tamaño
+          </Button>
+        </div>
+
+        <div className="flex gap-2 justify-end">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancelar
+          </Button>
+          <Button type="submit">
+            {initialData ? 'Actualizar Producto' : 'Crear Producto'}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 };
 

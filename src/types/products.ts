@@ -2,15 +2,20 @@
 export interface Product {
   id: string;
   name: string;
-  category: 'Estribos' | 'Clavos' | 'Alambres';
-  subcategory?: '4.2mm' | '6mm'; // Solo para Estribos
-  shape?: 'Cuadrado' | 'Rectangular' | 'Triangular'; // Solo para Estribos
+  icon?: React.ReactNode;
+  type: 'construction' | 'hardware' | 'fencing' | 'wire' | string;
   sizes: ProductSize[];
+  availableDiameters?: string[]; 
+  availableShapes?: string[];
+  availableNailTypes?: string[];
 }
 
 export interface ProductSize {
   size: string;
   price: number;
+  diameter?: string;
+  shape?: string;
+  nailType?: string;
 }
 
 export interface ApiResponse<T> {
