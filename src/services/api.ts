@@ -1,5 +1,13 @@
-
 import { Product, ApiResponse } from "@/types/products";
+import {
+  getAllProducts as centralGetAllProducts,
+  getProductById as centralGetProductById,
+  createNewProduct as centralCreateProduct,
+  updateExistingProduct as centralUpdateProduct,
+  removeProduct as centralRemoveProduct,
+  getLastUpdate as centralGetLastUpdate,
+  checkDatabaseStatus
+} from "./centralApi";
 
 const API_URL = import.meta.env.VITE_API_URL || "/backend/api";
 
@@ -73,106 +81,60 @@ const DEMO_PRODUCTS: Product[] = [
   }
 ];
 
-let isInDemoMode = false;
-
-const checkApiAvailability = async (): Promise<boolean> => {
-  if (isInDemoMode) return false;
-  
-  try {
-    const response = await fetch(`${API_URL}/products/`);
-    return response.ok;
-  } catch (error) {
-    console.log("API no disponible, usando modo de prueba");
-    isInDemoMode = true;
-    return false;
-  }
-};
-
-const handleApiResponse = async <T>(response: Response): Promise<ApiResponse<T>> => {
-  if (!response.ok) {
-    throw new Error(`Error ${response.status}: ${response.statusText}`);
-  }
-  const data = await response.json();
-  return { data };
-};
-
-const apiRequest = async <T>(
-  endpoint: string, 
-  method: string = 'GET',
-  body?: object
-): Promise<ApiResponse<T>> => {
-  try {
-    const options: RequestInit = {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-    };
-    
-    if (body && (method === 'POST' || method === 'PUT')) {
-      options.body = JSON.stringify(body);
-    }
-    
-    const response = await fetch(`${API_URL}${endpoint}`, options);
-    return await handleApiResponse<T>(response);
-  } catch (error) {
-    console.error(`API Error (${endpoint}):`, error);
-    return { 
-      data: {} as T, 
-      error: error instanceof Error ? error.message : "Error de conexión" 
-    };
-  }
-};
-
 export const fetchProducts = async (): Promise<ApiResponse<Product[]>> => {
   try {
-    const apiAvailable = await checkApiAvailability();
+    console.log("Intentando conectar con la base de datos...");
+    const dbStatus = await checkDatabaseStatus();
     
-    if (apiAvailable) {
-      const response = await apiRequest<Product[]>('/products/');
-      if (Array.isArray(response.data) && response.data.length > 0) {
-        return { data: response.data };
+    if (dbStatus.isConnected) {
+      console.log("Base de datos conectada, obteniendo productos...");
+      const response = await centralGetAllProducts();
+      
+      if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+        console.log("Productos obtenidos de la base de datos:", response.data);
+        return response;
       }
     }
     
+    console.log("Usando datos de demostración");
     return { data: DEMO_PRODUCTS };
   } catch (error) {
+    console.error("Error al obtener productos:", error);
     return { data: DEMO_PRODUCTS, error: "Usando datos de ejemplo" };
   }
 };
 
 export const fetchProductById = async (id: string, params?: any): Promise<ApiResponse<Product>> => {
   try {
-    const apiAvailable = await checkApiAvailability();
+    const dbStatus = await checkDatabaseStatus();
     
-    if (apiAvailable) {
-      let url = `/products/read.php?id=${id}`;
-      if (params) {
-        const searchParams = new URLSearchParams(params);
-        url += `&${searchParams.toString()}`;
+    if (dbStatus.isConnected) {
+      const response = await centralGetProductById(id, params);
+      if (response.data && response.data.id) {
+        return response;
       }
-      const response = await apiRequest<Product>(url);
-      return response;
-    } else {
-      const product = DEMO_PRODUCTS.find(p => p.id === id);
-      if (product) {
-        // Filtrar sizes según los parámetros
-        let filteredProduct = { ...product };
-        if (params) {
-          let filteredSizes = [...product.sizes];
-          
-          if (params.diameter) {
-            filteredSizes = filteredSizes.filter(size => size.diameter === params.diameter);
-          }
-          
-          if (params.nailType) {
-            filteredSizes = filteredSizes.filter(size => size.nailType === params.nailType);
-          }
-          
-          filteredProduct.sizes = filteredSizes;
-        }
-        return { data: filteredProduct };
-      }
-      return { data: {} as Product, error: "Producto no encontrado" };
     }
+    
+    // Fallback a datos de demostración
+    const product = DEMO_PRODUCTS.find(p => p.id === id);
+    if (product) {
+      let filteredProduct = { ...product };
+      if (params) {
+        let filteredSizes = [...product.sizes];
+        
+        if (params.diameter) {
+          filteredSizes = filteredSizes.filter(size => size.diameter === params.diameter);
+        }
+        
+        if (params.nailType) {
+          filteredSizes = filteredSizes.filter(size => size.nailType === params.nailType);
+        }
+        
+        filteredProduct.sizes = filteredSizes;
+      }
+      return { data: filteredProduct };
+    }
+    return { data: {} as Product, error: "Producto no encontrado" };
   } catch (error) {
     const product = DEMO_PRODUCTS.find(p => p.id === id);
     if (product) {
@@ -183,16 +145,25 @@ export const fetchProductById = async (id: string, params?: any): Promise<ApiRes
 };
 
 export const fetchLastUpdateDate = async (): Promise<ApiResponse<{ updateDate: Date }>> => {
-  return { data: { updateDate: new Date() } };
+  try {
+    const dbStatus = await checkDatabaseStatus();
+    
+    if (dbStatus.isConnected) {
+      return await centralGetLastUpdate();
+    }
+    
+    return { data: { updateDate: new Date() } };
+  } catch (error) {
+    return { data: { updateDate: new Date() } };
+  }
 };
 
 export const createProduct = async (product: Omit<Product, "id">): Promise<ApiResponse<Product>> => {
   try {
-    const apiAvailable = await checkApiAvailability();
+    const dbStatus = await checkDatabaseStatus();
     
-    if (apiAvailable) {
-      const response = await apiRequest<Product>('/products/create.php', 'POST', product);
-      return response;
+    if (dbStatus.isConnected) {
+      return await centralCreateProduct(product);
     } else {
       const newProduct = { ...product, id: `demo_${Date.now()}` } as Product;
       DEMO_PRODUCTS.push(newProduct);
@@ -205,11 +176,10 @@ export const createProduct = async (product: Omit<Product, "id">): Promise<ApiRe
 
 export const updateProduct = async (id: string, product: Partial<Product>): Promise<ApiResponse<Product>> => {
   try {
-    const apiAvailable = await checkApiAvailability();
+    const dbStatus = await checkDatabaseStatus();
     
-    if (apiAvailable) {
-      const response = await apiRequest<Product>(`/products/update.php?id=${id}`, 'PUT', product);
-      return response;
+    if (dbStatus.isConnected) {
+      return await centralUpdateProduct(id, product);
     } else {
       const index = DEMO_PRODUCTS.findIndex(p => p.id === id);
       if (index >= 0) {
@@ -225,11 +195,10 @@ export const updateProduct = async (id: string, product: Partial<Product>): Prom
 
 export const deleteProduct = async (id: string): Promise<ApiResponse<{ success: boolean }>> => {
   try {
-    const apiAvailable = await checkApiAvailability();
+    const dbStatus = await checkDatabaseStatus();
     
-    if (apiAvailable) {
-      const response = await apiRequest<{ success: boolean }>(`/products/delete.php?id=${id}`, 'DELETE');
-      return response;
+    if (dbStatus.isConnected) {
+      return await centralRemoveProduct(id);
     } else {
       const index = DEMO_PRODUCTS.findIndex(p => p.id === id);
       if (index >= 0) {
