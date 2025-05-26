@@ -3,17 +3,28 @@ import { Product, ApiResponse } from "@/types/products";
 
 const API_URL = import.meta.env.VITE_API_URL || "/backend/api";
 
-// Datos de demostración simplificados
+// Datos de demostración que coinciden con el diseño actual
 const DEMO_PRODUCTS: Product[] = [
   {
     id: '1',
     name: 'Estribos',
     type: 'estribos',
     sizes: [
-      { size: '10x10', price: 150, shape: 'cuadrada' },
-      { size: '15x15', price: 170, shape: 'cuadrada' },
-      { size: '10x20', price: 180, shape: 'rectangular' },
-      { size: '10x10x10', price: 160, shape: 'triangular' },
+      { size: '10x10', price: 150, shape: 'Cuadrado', diameter: '4.2' },
+      { size: '15x15', price: 170, shape: 'Cuadrado', diameter: '4.2' },
+      { size: '20x20', price: 190, shape: 'Cuadrado', diameter: '4.2' },
+      { size: '10x20', price: 180, shape: 'Rectangular', diameter: '4.2' },
+      { size: '15x25', price: 200, shape: 'Rectangular', diameter: '4.2' },
+      { size: '10x10x10', price: 160, shape: 'Triangular', diameter: '4.2' },
+      { size: '15x15x15', price: 180, shape: 'Triangular', diameter: '4.2' },
+      { size: '10x10', price: 180, shape: 'Cuadrado', diameter: '6' },
+      { size: '15x15', price: 200, shape: 'Cuadrado', diameter: '6' },
+      { size: '20x20', price: 220, shape: 'Cuadrado', diameter: '6' },
+      { size: '20x30', price: 230, shape: 'Rectangular', diameter: '6' },
+      { size: '30x40', price: 250, shape: 'Rectangular', diameter: '6' },
+      { size: '10x10x10', price: 190, shape: 'Triangular', diameter: '6' },
+      { size: '15x15x15', price: 210, shape: 'Triangular', diameter: '6' },
+      { size: '20x20x20', price: 230, shape: 'Triangular', diameter: '6' },
     ]
   },
   {
@@ -21,9 +32,11 @@ const DEMO_PRODUCTS: Product[] = [
     name: 'Clavos',
     type: 'clavos',
     sizes: [
-      { size: '1.5 pulgadas', price: 80, shape: 'Punta París' },
-      { size: '2 pulgadas', price: 100, shape: 'Punta París' },
-      { size: '3 pulgadas', price: 130, shape: 'Clavo de Techo' },
+      { size: '1.5 pulgadas', price: 80, nailType: '1' },
+      { size: '2 pulgadas', price: 100, nailType: '1' },
+      { size: '2.5 pulgadas', price: 120, nailType: '1' },
+      { size: '3 pulgadas', price: 130, nailType: '2' },
+      { size: '4 pulgadas', price: 150, nailType: '2' },
     ]
   },
   {
@@ -33,6 +46,29 @@ const DEMO_PRODUCTS: Product[] = [
     sizes: [
       { size: 'Alambre 17/15 Acindar', price: 2000, name: 'Alambre 17/15 Acindar' },
       { size: 'Alambre 19/17 Corralero', price: 2200, name: 'Alambre 19/17 Corralero' },
+      { size: 'Alta resistencia Bragado', price: 2400, name: 'Alta resistencia Bragado' },
+      { size: 'Bagual clásico', price: 2300, name: 'Bagual clásico' },
+      { size: 'Bagual super', price: 2500, name: 'Bagual super' },
+    ]
+  },
+  {
+    id: '4',
+    name: 'Torniquetes',
+    type: 'alambre',
+    sizes: [
+      { size: 'Doble liviana', price: 300, name: 'Doble liviana' },
+      { size: 'Doble reforzada', price: 350, name: 'Doble reforzada' },
+      { size: 'N° 3 zincada', price: 250, name: 'N° 3 zincada' },
+    ]
+  },
+  {
+    id: '5',
+    name: 'Tranquerones',
+    type: 'alambre',
+    sizes: [
+      { size: 'Barral tranquerón (solo)', price: 400, name: 'Barral tranquerón (solo)' },
+      { size: 'Contratranquerón de 1,2 (solo)', price: 350, name: 'Contratranquerón de 1,2 (solo)' },
+      { size: 'Crique (solo)', price: 300, name: 'Crique (solo)' },
     ]
   }
 ];
@@ -103,17 +139,37 @@ export const fetchProducts = async (): Promise<ApiResponse<Product[]>> => {
   }
 };
 
-export const fetchProductById = async (id: string): Promise<ApiResponse<Product>> => {
+export const fetchProductById = async (id: string, params?: any): Promise<ApiResponse<Product>> => {
   try {
     const apiAvailable = await checkApiAvailability();
     
     if (apiAvailable) {
-      const response = await apiRequest<Product>(`/products/read.php?id=${id}`);
+      let url = `/products/read.php?id=${id}`;
+      if (params) {
+        const searchParams = new URLSearchParams(params);
+        url += `&${searchParams.toString()}`;
+      }
+      const response = await apiRequest<Product>(url);
       return response;
     } else {
       const product = DEMO_PRODUCTS.find(p => p.id === id);
       if (product) {
-        return { data: product };
+        // Filtrar sizes según los parámetros
+        let filteredProduct = { ...product };
+        if (params) {
+          let filteredSizes = [...product.sizes];
+          
+          if (params.diameter) {
+            filteredSizes = filteredSizes.filter(size => size.diameter === params.diameter);
+          }
+          
+          if (params.nailType) {
+            filteredSizes = filteredSizes.filter(size => size.nailType === params.nailType);
+          }
+          
+          filteredProduct.sizes = filteredSizes;
+        }
+        return { data: filteredProduct };
       }
       return { data: {} as Product, error: "Producto no encontrado" };
     }
