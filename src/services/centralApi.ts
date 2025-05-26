@@ -1,7 +1,6 @@
-
 import { Product, ApiResponse } from "@/types/products";
 
-const API_URL = import.meta.env.VITE_API_URL || "/backend/api";
+const API_URL = import.meta.env.VITE_API_URL || "/api";
 
 // Función para verificar conectividad con la API
 const checkApiConnection = async (): Promise<boolean> => {
