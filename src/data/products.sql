@@ -31,12 +31,11 @@ CREATE TABLE IF NOT EXISTS price_updates (
 -- Insertar fecha de actualización inicial
 INSERT INTO price_updates (update_date) VALUES (CURRENT_TIMESTAMP);
 
--- Insertar productos base incluyendo las subcategorías de alambre
+-- Insertar productos base
 INSERT INTO products (id, name, type) VALUES
 (1, 'Estribos', 'estribos'),
 (2, 'Clavos', 'clavos'),
-(3, 'Alambres 4.2mm', 'alambre'),
-(4, 'Alambres 6mm', 'alambre');
+(3, 'Alambres', 'alambre');
 
 -- Datos de ejemplo para Estribos
 INSERT INTO product_sizes (product_id, size_or_name, price, shape) VALUES
@@ -56,17 +55,13 @@ INSERT INTO product_sizes (product_id, size_or_name, price, shape) VALUES
 (2, '3 pulgadas', 130, 'Clavo de Techo'),
 (2, '4 pulgadas', 150, 'Clavo de Techo');
 
--- Datos de ejemplo para Alambres 4.2mm
+-- Datos de ejemplo para Alambres
 INSERT INTO product_sizes (product_id, size_or_name, price) VALUES
 (3, 'Alambre 17/15 Acindar', 2000),
 (3, 'Alambre 19/17 Corralero', 2200),
-(3, 'Alta resistencia Bragado', 2400);
-
--- Datos de ejemplo para Alambres 6mm
-INSERT INTO product_sizes (product_id, size_or_name, price) VALUES
-(4, 'Bagual clásico', 2300),
-(4, 'Bagual super', 2500),
-(4, 'Alambre galvanizado', 2600);
+(3, 'Alta resistencia Bragado', 2400),
+(3, 'Bagual clásico', 2300),
+(3, 'Bagual super', 2500);
 
 -- Trigger para actualizar fecha
 DELIMITER //

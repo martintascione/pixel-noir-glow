@@ -11,7 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 
 const Index = () => {
   const [selectedProduct, setSelectedProduct] = useState('Estribos');
-  const [selectedProductObject, setSelectedProductObject] = useState<Product | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState('1');
   
   // Usar React Query para obtener los productos
   const { data, refetch } = useQuery({
@@ -31,7 +31,7 @@ const Index = () => {
     // Cambiar el título del documento
     document.title = `Hierros Tascione - ${selectedProduct}`;
     
-    // Si los productos están cargados, buscar el producto por nombre
+    // Si los productos están cargados, buscar el producto por nombre para obtener su ID
     if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
       console.log("Buscando producto por nombre:", selectedProduct);
       console.log("Productos disponibles en Index:", data.data);
@@ -40,14 +40,14 @@ const Index = () => {
       
       if (productData) {
         console.log("Producto encontrado:", productData);
-        setSelectedProductObject(productData);
+        setSelectedProductId(productData.id);
       } else {
         console.log("Producto no encontrado con nombre:", selectedProduct);
         // Si no se encuentra el producto seleccionado, usar el primero disponible
         if (data.data.length > 0) {
           console.log("Seleccionando el primer producto disponible:", data.data[0]);
           setSelectedProduct(data.data[0].name);
-          setSelectedProductObject(data.data[0]);
+          setSelectedProductId(data.data[0].id);
         }
       }
     }
@@ -56,7 +56,7 @@ const Index = () => {
   const handleSelectProduct = (product: Product) => {
     console.log("Producto seleccionado en Index:", product);
     setSelectedProduct(product.name);
-    setSelectedProductObject(product);
+    setSelectedProductId(product.id);
   };
 
   return (
@@ -72,8 +72,9 @@ const Index = () => {
         <div className="container-custom">
           <PromotionalBanner />
           <PriceTable 
-            selectedProduct={selectedProductObject}
-            key={selectedProductObject?.id}
+            productId={selectedProductId} 
+            productName={selectedProduct} 
+            key={selectedProductId} // Agregar key para forzar recreación cuando cambia el producto
           />
         </div>
       </motion.main>
