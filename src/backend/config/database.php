@@ -1,10 +1,10 @@
 
 <?php
 class Database {
-    // Credenciales para tu base de datos en Hostinger
+    // Credenciales correctas para tu base de datos en Hostinger
     private $host = "localhost";
-    private $db_name = "u970205121_hierrotascione";
-    private $username = "u970205121_hierrotascione";
+    private $db_name = "u970205121_tascionead";
+    private $username = "u970205121_tascionead";
     private $password = ".Martin2025.";
     private $conn;
 
