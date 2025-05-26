@@ -1,249 +1,200 @@
 
-import React, { useEffect } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Product } from '@/types/products';
+import React, { useState, useEffect } from 'react';
+import { Product, ProductSize } from '@/types/products';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Trash2, Plus } from 'lucide-react';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-
-const productSchema = z.object({
-  name: z.string().min(1, 'El nombre es requerido'),
-  category: z.enum(['Estribos', 'Clavos', 'Alambres'], {
-    required_error: 'La categoría es requerida'
-  }),
-  subcategory: z.enum(['4.2mm', '6mm']).optional(),
-  shape: z.enum(['Cuadrado', 'Rectangular', 'Triangular']).optional(),
-  sizes: z.array(
-    z.object({
-      size: z.string().min(1, 'La medida es requerida'),
-      price: z.coerce.number().min(0, 'El precio debe ser mayor o igual a 0'),
-    })
-  ).min(1, 'Debe agregar al menos un tamaño'),
-});
-
-type ProductFormValues = z.infer<typeof productSchema>;
 
 interface ProductFormProps {
-  initialData: Product | null;
-  onSubmit: (data: ProductFormValues) => void;
+  initialData?: Product | null;
+  onSubmit: (data: Omit<Product, 'id'>) => void;
   onCancel: () => void;
 }
 
-const ProductForm = ({ initialData, onSubmit, onCancel }: ProductFormProps) => {
-  const form = useForm<ProductFormValues>({
-    resolver: zodResolver(productSchema),
-    defaultValues: {
-      name: '',
-      category: 'Estribos',
-      sizes: [{ size: '', price: 0 }],
-    },
+const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, onCancel }) => {
+  const [formData, setFormData] = useState<Omit<Product, 'id'>>({
+    name: '',
+    category: 'Estribos',
+    subcategory: undefined,
+    shape: undefined,
+    sizes: [{ size: '', price: 0 }]
   });
-
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: 'sizes',
-  });
-
-  const watchCategory = form.watch('category');
 
   useEffect(() => {
     if (initialData) {
-      form.reset(initialData);
+      setFormData({
+        name: initialData.name,
+        category: initialData.category,
+        subcategory: initialData.subcategory,
+        shape: initialData.shape,
+        sizes: initialData.sizes
+      });
     }
-  }, [initialData, form]);
+  }, [initialData]);
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSizeChange = (index: number, field: 'size' | 'price', value: string | number) => {
+    const newSizes = [...formData.sizes];
+    newSizes[index] = {
+      ...newSizes[index],
+      [field]: field === 'price' ? Number(value) : value
+    };
+    setFormData(prev => ({
+      ...prev,
+      sizes: newSizes
+    }));
+  };
 
   const addSize = () => {
-    append({ size: '', price: 0 });
+    setFormData(prev => ({
+      ...prev,
+      sizes: [...prev.sizes, { size: '', price: 0 }]
+    }));
   };
 
   const removeSize = (index: number) => {
-    if (fields.length > 1) {
-      remove(index);
+    if (formData.sizes.length > 1) {
+      const newSizes = formData.sizes.filter((_, i) => i !== index);
+      setFormData(prev => ({
+        ...prev,
+        sizes: newSizes
+      }));
     }
   };
 
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nombre del Producto</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="Ej: Estribos Cuadrados" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
 
-          <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Categoría</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona la categoría" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Estribos">Estribos</SelectItem>
-                    <SelectItem value="Clavos">Clavos</SelectItem>
-                    <SelectItem value="Alambres">Alambres</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="name">Nombre del Producto</Label>
+          <Input
+            id="name"
+            value={formData.name}
+            onChange={(e) => handleInputChange('name', e.target.value)}
+            required
           />
         </div>
 
-        {watchCategory === 'Estribos' && (
-          <div className="grid gap-4 md:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="subcategory"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Subcategoría (Diámetro)</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona el diámetro" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="4.2mm">4.2mm</SelectItem>
-                      <SelectItem value="6mm">6mm</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <div>
+          <Label htmlFor="category">Categoría</Label>
+          <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Estribos">Estribos</SelectItem>
+              <SelectItem value="Clavos">Clavos</SelectItem>
+              <SelectItem value="Alambres">Alambres</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-            <FormField
-              control={form.control}
-              name="shape"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Forma</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona la forma" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Cuadrado">Cuadrado</SelectItem>
-                      <SelectItem value="Rectangular">Rectangular</SelectItem>
-                      <SelectItem value="Triangular">Triangular</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+        {formData.category === 'Estribos' && (
+          <>
+            <div>
+              <Label htmlFor="subcategory">Subcategoría</Label>
+              <Select value={formData.subcategory || ''} onValueChange={(value) => handleInputChange('subcategory', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar subcategoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="4.2mm">4.2mm</SelectItem>
+                  <SelectItem value="6mm">6mm</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="shape">Forma</Label>
+              <Select value={formData.shape || ''} onValueChange={(value) => handleInputChange('shape', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar forma" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Cuadrado">Cuadrado</SelectItem>
+                  <SelectItem value="Rectangular">Rectangular</SelectItem>
+                  <SelectItem value="Triangular">Triangular</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </>
         )}
+      </div>
 
-        <div className="border p-4 rounded-md">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium">Tamaños y Precios</h3>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            Medidas y Precios
             <Button type="button" variant="outline" size="sm" onClick={addSize}>
               <Plus className="h-4 w-4 mr-2" />
-              Agregar Tamaño
+              Agregar Medida
             </Button>
-          </div>
-          
-          {fields.map((field, index) => (
-            <div key={field.id} className="border-t pt-4 mt-4 first:border-t-0 first:pt-0 first:mt-0">
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="font-medium">Tamaño {index + 1}</h4>
-                {fields.length > 1 && (
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="sm" 
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {formData.sizes.map((size, index) => (
+              <div key={index} className="flex gap-3 items-end">
+                <div className="flex-1">
+                  <Label htmlFor={`size-${index}`}>Medida</Label>
+                  <Input
+                    id={`size-${index}`}
+                    value={size.size}
+                    onChange={(e) => handleSizeChange(index, 'size', e.target.value)}
+                    placeholder="ej: 10x10, 2 pulgadas"
+                    required
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label htmlFor={`price-${index}`}>Precio</Label>
+                  <Input
+                    id={`price-${index}`}
+                    type="number"
+                    step="0.01"
+                    value={size.price}
+                    onChange={(e) => handleSizeChange(index, 'price', e.target.value)}
+                    required
+                  />
+                </div>
+                {formData.sizes.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
                     onClick={() => removeSize(index)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 )}
               </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name={`sizes.${index}.size`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Medida</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="Ej: 10x10" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name={`sizes.${index}.price`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Precio ($)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          {...field} 
-                          type="number" 
-                          min="0" 
-                          step="0.01"
-                          placeholder="Ej: 100.00" 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex gap-2 justify-end">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
-          </Button>
-          <Button type="submit">
-            {initialData ? 'Actualizar Producto' : 'Crear Producto'}
-          </Button>
-        </div>
-      </form>
-    </Form>
+      <div className="flex gap-3">
+        <Button type="submit" className="flex-1">
+          {initialData ? 'Actualizar Producto' : 'Crear Producto'}
+        </Button>
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancelar
+        </Button>
+      </div>
+    </form>
   );
 };
 

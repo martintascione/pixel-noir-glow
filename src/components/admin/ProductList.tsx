@@ -2,7 +2,8 @@
 import React from 'react';
 import { Product } from '@/types/products';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Edit, Trash2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -11,13 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 interface ProductListProps {
   products: Product[];
@@ -25,80 +19,92 @@ interface ProductListProps {
   onDelete: (id: string) => void;
 }
 
-const ProductList = ({ products, onEdit, onDelete }: ProductListProps) => {
-  if (!products || products.length === 0) {
+const ProductList: React.FC<ProductListProps> = ({ products, onEdit, onDelete }) => {
+  const getProductSubtitle = (product: Product) => {
+    let subtitle = '';
+    if (product.subcategory) subtitle += product.subcategory;
+    if (product.shape) subtitle += (subtitle ? ' - ' : '') + product.shape;
+    return subtitle;
+  };
+
+  // Agrupar productos por categoría
+  const groupedProducts = products.reduce((acc: Record<string, Product[]>, product) => {
+    if (!acc[product.category]) {
+      acc[product.category] = [];
+    }
+    acc[product.category].push(product);
+    return acc;
+  }, {});
+
+  if (products.length === 0) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>No hay productos</CardTitle>
-          <CardDescription>
-            No hay productos registrados. Crea el primer producto usando el formulario de arriba.
-          </CardDescription>
-        </CardHeader>
+        <CardContent className="text-center py-8">
+          <p className="text-gray-500">No hay productos creados aún.</p>
+        </CardContent>
       </Card>
     );
   }
 
-  const getProductDescription = (product: Product) => {
-    let description = product.category;
-    if (product.subcategory) {
-      description += ` - ${product.subcategory}`;
-    }
-    if (product.shape) {
-      description += ` - ${product.shape}`;
-    }
-    return description;
-  };
-
   return (
-    <div className="space-y-4">
-      {products.map((product) => (
-        <Card key={product.id}>
+    <div className="space-y-6">
+      {Object.entries(groupedProducts).map(([category, categoryProducts]) => (
+        <Card key={category}>
           <CardHeader>
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle className="text-lg">{product.name}</CardTitle>
-                <CardDescription>{getProductDescription(product)}</CardDescription>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onEdit(product)}
-                >
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Editar
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => onDelete(product.id)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Eliminar
-                </Button>
-              </div>
-            </div>
+            <CardTitle>{category}</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Medida</TableHead>
-                  <TableHead className="text-right">Precio</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {product.sizes.map((size, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{size.size}</TableCell>
-                    <TableCell className="text-right font-medium">
-                      ${size.price.toFixed(2)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="space-y-4">
+              {categoryProducts.map((product) => (
+                <div key={product.id} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h4 className="text-lg font-semibold">
+                        {product.name}
+                        {getProductSubtitle(product) && (
+                          <span className="text-sm font-normal text-gray-600 ml-2">
+                            ({getProductSubtitle(product)})
+                          </span>
+                        )}
+                      </h4>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onEdit(product)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onDelete(product.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Medida</TableHead>
+                        <TableHead className="text-right">Precio</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {product.sizes.map((size, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{size.size}</TableCell>
+                          <TableCell className="text-right">${size.price.toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       ))}

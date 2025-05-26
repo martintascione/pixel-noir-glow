@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { fetchProducts } from '@/services/api';
 import { Product } from '@/types/products';
 import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
+import { Settings, Plus } from 'lucide-react';
 import {
   Card,
   CardContent,
