@@ -130,6 +130,48 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          accepts_notifications: boolean
+          company_cuit: string
+          company_legal_name: string
+          company_name: string
+          created_at: string
+          first_name: string
+          id: string
+          last_name: string
+          requires_invoice_a: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accepts_notifications?: boolean
+          company_cuit: string
+          company_legal_name: string
+          company_name: string
+          created_at?: string
+          first_name: string
+          id?: string
+          last_name: string
+          requires_invoice_a?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accepts_notifications?: boolean
+          company_cuit?: string
+          company_legal_name?: string
+          company_name?: string
+          created_at?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          requires_invoice_a?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

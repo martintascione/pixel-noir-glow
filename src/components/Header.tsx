@@ -1,8 +1,17 @@
 
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Square, Hammer, Cable } from 'lucide-react';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Square, Hammer, Cable, User, LogOut, Settings } from 'lucide-react';
 import { getPublicData } from '@/services/supabaseService';
 import { useToast } from '@/hooks/use-toast';
 
@@ -14,6 +23,25 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión correctamente",
+      });
+      navigate('/');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Error al cerrar sesión",
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -75,12 +103,48 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
                 className="h-14 md:h-16 w-auto object-contain animate-fade-in"
               />
             </div>
-            <div className="flex-1 flex justify-end">
-              <Link to="/admin">
-                <Button variant="outline" size="sm">
-                  Dashboard Admin
-                </Button>
-              </Link>
+            <div className="flex-1 flex justify-end items-center gap-2">
+              {user ? (
+                <>
+                  <Link to="/admin">
+                    <Button variant="outline" size="sm">
+                      Dashboard Admin
+                    </Button>
+                  </Link>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                        <User size={16} />
+                        <span className="hidden md:inline">
+                          {profile?.first_name || 'Usuario'}
+                        </span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                        <div className="font-medium">{profile?.first_name} {profile?.last_name}</div>
+                        <div className="text-xs">{user.email}</div>
+                        {profile?.company_name && (
+                          <div className="text-xs mt-1">{profile.company_name}</div>
+                        )}
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleSignOut}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Cerrar Sesión
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
+              ) : (
+                <Link to="/auth">
+                  <Button variant="outline" size="sm">
+                    Iniciar Sesión
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
           <div className="text-sm text-muted-foreground animate-fade-in text-center">
