@@ -1,50 +1,49 @@
 
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Square, Hammer, Cable } from 'lucide-react';
-import { fetchProducts } from '@/services/api';
-import { Product } from '@/types/products';
+import { getPublicData } from '@/services/supabaseService';
 import { useToast } from '@/hooks/use-toast';
 
 interface HeaderProps {
-  onSelectProduct?: (product: Product) => void;
+  onSelectProduct?: (category: any) => void;
 }
 
 const Header = ({ onSelectProduct }: HeaderProps) => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    const loadProducts = async () => {
+    const loadCategories = async () => {
       setLoading(true);
-      const { data, error } = await fetchProducts();
-      
-      if (error) {
+      try {
+        const data = await getPublicData();
+        setCategories(data || []);
+      } catch (error: any) {
         toast({
           title: "Error",
-          description: error,
+          description: error.message || "Error al cargar categorías",
           variant: "destructive",
         });
-        // Productos de respaldo con tipos correctos
-        setProducts([
-          { id: '1', name: 'Estribos', type: 'estribos', sizes: [] },
-          { id: '2', name: 'Clavos', type: 'clavos', sizes: [] },
-          { id: '3', name: 'Alambres', type: 'alambre', sizes: [] },
+        // Categorías de respaldo
+        setCategories([
+          { id: '1', name: 'Estribos', type: 'estribos' },
+          { id: '2', name: 'Clavos', type: 'clavos' },
+          { id: '3', name: 'Alambres', type: 'alambre' },
         ]);
-      } else {
-        setProducts(data);
       }
       
       setLoading(false);
     };
     
-    loadProducts();
+    loadCategories();
   }, [toast]);
 
-  const handleProductClick = (product: Product) => {
+  const handleProductClick = (category: any) => {
     if (onSelectProduct) {
-      onSelectProduct(product);
+      onSelectProduct(category);
     }
   };
 
@@ -67,7 +66,7 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
         <div className="flex flex-col items-center space-y-4">
           <div className="flex justify-between w-full items-center">
             <div className="flex-1">
-              {/* Admin button removed from here */}
+              {/* Espacio para balance */}
             </div>
             <div className="flex justify-center flex-1">
               <img 
@@ -76,7 +75,13 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
                 className="h-14 md:h-16 w-auto object-contain animate-fade-in"
               />
             </div>
-            <div className="flex-1"></div>
+            <div className="flex-1 flex justify-end">
+              <Link to="/admin">
+                <Button variant="outline" size="sm">
+                  Dashboard Admin
+                </Button>
+              </Link>
+            </div>
           </div>
           <div className="text-sm text-muted-foreground animate-fade-in text-center">
             <p>CUIT: 20-21856308-3</p>
@@ -97,16 +102,16 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
             {loading ? (
               <div className="py-2 text-muted-foreground">Cargando productos...</div>
             ) : (
-              products.map((product) => (
+              categories.map((category) => (
                 <Button 
-                  key={product.id}
+                  key={category.id}
                   variant="outline"
                   className="flex items-center gap-1 px-4"
                   size="sm"
-                  onClick={() => handleProductClick(product)}
+                  onClick={() => handleProductClick(category)}
                 >
-                  {getProductIcon(product.type)}
-                  {product.name}
+                  {getProductIcon(category.type)}
+                  {category.name}
                 </Button>
               ))
             )}
