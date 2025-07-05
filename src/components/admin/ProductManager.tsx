@@ -150,9 +150,9 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <CardTitle>Gestión de Productos</CardTitle>
-          <Button onClick={() => setIsCreating(true)} disabled={isCreating}>
+          <Button onClick={() => setIsCreating(true)} disabled={isCreating} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Nuevo Producto
           </Button>
@@ -237,12 +237,12 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
                 onChange={(e) => setFormData({...formData, display_order: parseInt(e.target.value) || 0})}
               />
             </div>
-            <div className="flex gap-2 mt-4">
-              <Button onClick={handleCreate} disabled={!formData.name || !formData.category_id}>
+            <div className="flex flex-col sm:flex-row gap-2 mt-4">
+              <Button onClick={handleCreate} disabled={!formData.name || !formData.category_id} className="w-full sm:w-auto">
                 <Save className="h-4 w-4 mr-2" />
                 Crear
               </Button>
-              <Button variant="outline" onClick={cancelEdit}>
+              <Button variant="outline" onClick={cancelEdit} className="w-full sm:w-auto">
                 <X className="h-4 w-4 mr-2" />
                 Cancelar
               </Button>

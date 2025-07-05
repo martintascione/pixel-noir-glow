@@ -148,9 +148,9 @@ const ComboManager = ({ products, combos }: ComboManagerProps) => {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <CardTitle>Gestión de Combos y Cajas</CardTitle>
-          <Button onClick={() => setIsCreating(true)} disabled={isCreating}>
+          <Button onClick={() => setIsCreating(true)} disabled={isCreating} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Nuevo Combo
           </Button>
@@ -214,16 +214,16 @@ const ComboManager = ({ products, combos }: ComboManagerProps) => {
               />
             </div>
             
-            <div className="flex gap-2 mt-4">
-              <Button onClick={handleCreate} disabled={!formData.name || !formData.product_id}>
+            <div className="flex flex-col sm:flex-row gap-2 mt-4">
+              <Button onClick={handleCreate} disabled={!formData.name || !formData.product_id} className="w-full sm:w-auto">
                 <Save className="h-4 w-4 mr-2" />
                 Crear
               </Button>
-              <Button variant="outline" onClick={autoFillPrice} disabled={!formData.product_id || !formData.quantity}>
+              <Button variant="outline" onClick={autoFillPrice} disabled={!formData.product_id || !formData.quantity} className="w-full sm:w-auto">
                 <Package className="h-4 w-4 mr-2" />
                 Calcular Precio
               </Button>
-              <Button variant="outline" onClick={cancelEdit}>
+              <Button variant="outline" onClick={cancelEdit} className="w-full sm:w-auto">
                 <X className="h-4 w-4 mr-2" />
                 Cancelar
               </Button>
