@@ -36,20 +36,13 @@ const AdminDashboard = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center">
-          <Link to="/" className="mr-4">
-            <Button variant="outline" size="icon">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-          <h1 className="text-3xl font-bold">Dashboard Administrativo</h1>
-        </div>
-        <Link to="/">
-          <Button variant="ghost" size="sm">
-            Página Principal
+      <div className="mb-6 flex items-center">
+        <Link to="/" className="mr-4">
+          <Button variant="outline" size="icon">
+            <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
+        <h1 className="text-3xl font-bold">Dashboard Administrativo</h1>
       </div>
 
       {/* Estadísticas */}
