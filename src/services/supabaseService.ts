@@ -173,13 +173,10 @@ export const deleteCombo = async (id: string) => {
 // ACTUALIZACIÓN MASIVA DE PRECIOS
 export const updatePricesByCategory = async (categoryId: string, percentage: number) => {
   const { data, error } = await supabase
-    .from('products')
-    .update({
-      price: supabase.sql`price * (1 + ${percentage} / 100.0)`,
-      updated_at: new Date().toISOString()
-    })
-    .eq('category_id', categoryId)
-    .select();
+    .rpc('update_prices_by_category', {
+      p_category_id: categoryId,
+      p_percentage: percentage
+    });
   
   if (error) throw error;
   return data;

@@ -183,7 +183,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_prices_by_category: {
+        Args: { p_category_id: string; p_percentage: number }
+        Returns: {
+          id: string
+          name: string
+          old_price: number
+          new_price: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
