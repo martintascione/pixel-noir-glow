@@ -31,6 +31,7 @@ export interface ProductCombo {
   price: number;
   discount_percentage: number;
   display_order: number;
+  image_url?: string;
   created_at: string;
   updated_at: string;
   product?: Product;
@@ -60,4 +61,5 @@ export interface CreateProductCombo {
   price: number;
   discount_percentage?: number;
   display_order?: number;
+  image_url?: string;
 }

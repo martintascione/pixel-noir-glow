@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Plus, Pencil, Trash2, Save, X, Package } from 'lucide-react';
+import { Plus, Pencil, Trash2, Save, X, Package, Image, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ComboManagerProps {
   products: Product[];
@@ -18,13 +19,16 @@ interface ComboManagerProps {
 const ComboManager = ({ products, combos }: ComboManagerProps) => {
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState<CreateProductCombo>({
     product_id: '',
     name: '',
     quantity: 0,
     price: 0,
     discount_percentage: 0,
-    display_order: 0
+    display_order: 0,
+    image_url: ''
   });
   
   const { toast } = useToast();
@@ -77,19 +81,68 @@ const ComboManager = ({ products, combos }: ComboManagerProps) => {
       quantity: 0,
       price: 0,
       discount_percentage: 0,
-      display_order: 0
+      display_order: 0,
+      image_url: ''
     });
+    setSelectedImage(null);
   };
 
-  const handleCreate = () => {
-    createMutation.mutate(formData);
+  const uploadImage = async (): Promise<string | null> => {
+    if (!selectedImage) return null;
+    
+    setUploading(true);
+    try {
+      const fileExt = selectedImage.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `combo-images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('combo-images')
+        .upload(filePath, selectedImage);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('combo-images')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({ 
+        title: "Error", 
+        description: "No se pudo subir la imagen", 
+        variant: "destructive" 
+      });
+      return null;
+    } finally {
+      setUploading(false);
+    }
   };
 
-  const handleUpdate = (combo: ProductCombo) => {
+  const handleCreate = async () => {
+    let imageUrl = formData.image_url;
+    
+    if (selectedImage) {
+      imageUrl = await uploadImage();
+      if (!imageUrl) return; // Stop if image upload failed
+    }
+    
+    createMutation.mutate({ ...formData, image_url: imageUrl });
+  };
+
+  const handleUpdate = async (combo: ProductCombo) => {
     const cleanData = { ...formData };
     delete cleanData.product_id; // No cambiar producto en update
     
-    updateMutation.mutate({ id: combo.id, updates: cleanData });
+    let imageUrl = cleanData.image_url;
+    
+    if (selectedImage) {
+      imageUrl = await uploadImage();
+      if (!imageUrl) return; // Stop if image upload failed
+    }
+    
+    updateMutation.mutate({ id: combo.id, updates: { ...cleanData, image_url: imageUrl } });
   };
 
   const handleDelete = (id: string) => {
@@ -106,13 +159,15 @@ const ComboManager = ({ products, combos }: ComboManagerProps) => {
       quantity: combo.quantity,
       price: combo.price,
       discount_percentage: combo.discount_percentage,
-      display_order: combo.display_order
+      display_order: combo.display_order,
+      image_url: combo.image_url || ''
     });
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setIsCreating(false);
+    setSelectedImage(null);
     resetForm();
   };
 
@@ -214,10 +269,41 @@ const ComboManager = ({ products, combos }: ComboManagerProps) => {
               />
             </div>
             
+            {/* Campo de imagen */}
+            <div className="mt-4 space-y-2">
+              <label className="text-sm font-medium flex items-center gap-2">
+                <Image className="h-4 w-4" />
+                Imagen del combo (opcional)
+              </label>
+              <div className="flex items-center gap-4">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
+                  className="flex-1"
+                />
+                {selectedImage && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Upload className="h-4 w-4" />
+                    {selectedImage.name}
+                  </div>
+                )}
+              </div>
+              {formData.image_url && (
+                <div className="mt-2">
+                  <img 
+                    src={formData.image_url} 
+                    alt="Vista previa" 
+                    className="w-20 h-20 object-cover rounded-lg border"
+                  />
+                </div>
+              )}
+            </div>
+            
             <div className="flex flex-col sm:flex-row gap-2 mt-4">
-              <Button onClick={handleCreate} disabled={!formData.name || !formData.product_id} className="w-full sm:w-auto">
+              <Button onClick={handleCreate} disabled={!formData.name || !formData.product_id || uploading} className="w-full sm:w-auto">
                 <Save className="h-4 w-4 mr-2" />
-                Crear
+                {uploading ? 'Subiendo imagen...' : 'Crear'}
               </Button>
               <Button variant="outline" onClick={autoFillPrice} disabled={!formData.product_id || !formData.quantity} className="w-full sm:w-auto">
                 <Package className="h-4 w-4 mr-2" />
@@ -247,50 +333,93 @@ const ComboManager = ({ products, combos }: ComboManagerProps) => {
                 <div className="space-y-2">
                   {productCombos.map((combo) => (
                     <div key={combo.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      {editingId === combo.id ? (
-                        <div className="flex-1 grid gap-4 md:grid-cols-2 lg:grid-cols-4 mr-4">
-                          <Input
-                            placeholder="Nombre del combo"
-                            value={formData.name}
-                            onChange={(e) => setFormData({...formData, name: e.target.value})}
-                          />
-                          <Input
-                            type="number"
-                            placeholder="Cantidad"
-                            value={formData.quantity}
-                            onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 0})}
-                          />
-                          <Input
-                            type="number"
-                            step="0.01"
-                            placeholder="Precio total"
-                            value={formData.price}
-                            onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
-                          />
-                          <Input
-                            type="number"
-                            step="0.01"
-                            placeholder="% Descuento opcional"
-                            value={formData.discount_percentage === 0 ? '' : formData.discount_percentage}
-                            onChange={(e) => setFormData({...formData, discount_percentage: parseFloat(e.target.value) || 0})}
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex-1">
-                          <div className="font-medium">{combo.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {combo.quantity} unidades • ${combo.price}
-                            {combo.discount_percentage > 0 && ` • ${combo.discount_percentage}% desc.`}
-                          </div>
-                        </div>
-                      )}
+                       {editingId === combo.id ? (
+                         <div className="flex-1 mr-4">
+                           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-4">
+                             <Input
+                               placeholder="Nombre del combo"
+                               value={formData.name}
+                               onChange={(e) => setFormData({...formData, name: e.target.value})}
+                             />
+                             <Input
+                               type="number"
+                               placeholder="Cantidad"
+                               value={formData.quantity}
+                               onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 0})}
+                             />
+                             <Input
+                               type="number"
+                               step="0.01"
+                               placeholder="Precio total"
+                               value={formData.price}
+                               onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
+                             />
+                             <Input
+                               type="number"
+                               step="0.01"
+                               placeholder="% Descuento opcional"
+                               value={formData.discount_percentage === 0 ? '' : formData.discount_percentage}
+                               onChange={(e) => setFormData({...formData, discount_percentage: parseFloat(e.target.value) || 0})}
+                             />
+                           </div>
+                           
+                           {/* Campo de imagen en edición */}
+                           <div className="space-y-2">
+                             <label className="text-sm font-medium flex items-center gap-2">
+                               <Image className="h-4 w-4" />
+                               Cambiar imagen (opcional)
+                             </label>
+                             <div className="flex items-center gap-4">
+                               <Input
+                                 type="file"
+                                 accept="image/*"
+                                 onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
+                                 className="flex-1"
+                               />
+                               {selectedImage && (
+                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                   <Upload className="h-4 w-4" />
+                                   {selectedImage.name}
+                                 </div>
+                               )}
+                             </div>
+                             {formData.image_url && (
+                               <div className="mt-2">
+                                 <img 
+                                   src={formData.image_url} 
+                                   alt="Vista previa" 
+                                   className="w-20 h-20 object-cover rounded-lg border"
+                                 />
+                               </div>
+                             )}
+                           </div>
+                         </div>
+                       ) : (
+                         <div className="flex-1 flex items-center gap-4">
+                           {combo.image_url && (
+                             <img 
+                               src={combo.image_url} 
+                               alt={combo.name} 
+                               className="w-12 h-12 object-cover rounded-lg border"
+                             />
+                           )}
+                           <div className="flex-1">
+                             <div className="font-medium">{combo.name}</div>
+                             <div className="text-sm text-muted-foreground">
+                               {combo.quantity} unidades • ${combo.price}
+                               {combo.discount_percentage > 0 && ` • ${combo.discount_percentage}% desc.`}
+                             </div>
+                           </div>
+                         </div>
+                       )}
                       
                       <div className="flex gap-2">
                         {editingId === combo.id ? (
                           <>
-                            <Button size="sm" onClick={() => handleUpdate(combo)}>
-                              <Save className="h-4 w-4" />
-                            </Button>
+                             <Button size="sm" onClick={() => handleUpdate(combo)} disabled={uploading}>
+                               <Save className="h-4 w-4" />
+                               {uploading ? '...' : ''}
+                             </Button>
                             <Button size="sm" variant="outline" onClick={cancelEdit}>
                               <X className="h-4 w-4" />
                             </Button>

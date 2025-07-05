@@ -42,6 +42,7 @@ export type Database = {
           discount_percentage: number | null
           display_order: number | null
           id: string
+          image_url: string | null
           name: string
           price: number
           product_id: string
@@ -53,6 +54,7 @@ export type Database = {
           discount_percentage?: number | null
           display_order?: number | null
           id?: string
+          image_url?: string | null
           name: string
           price: number
           product_id: string
@@ -64,6 +66,7 @@ export type Database = {
           discount_percentage?: number | null
           display_order?: number | null
           id?: string
+          image_url?: string | null
           name?: string
           price?: number
           product_id?: string
