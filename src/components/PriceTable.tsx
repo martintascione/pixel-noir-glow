@@ -30,6 +30,7 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
   const [combos, setCombos] = useState<ProductCombo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [lastUpdateDate, setLastUpdateDate] = useState<Date>(new Date());
+  const [showAllCombos, setShowAllCombos] = useState(false);
   
   const [openSpecial, setOpenSpecial] = useState(false);
   const [openDelivery, setOpenDelivery] = useState(false);
@@ -242,6 +243,8 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
 
     if (productCombos.length === 0) return null;
 
+    const combosToShow = showAllCombos ? productCombos : productCombos.slice(0, 3);
+
     const handleBuyClick = (combo: ProductCombo) => {
       const product = filteredProducts.find(p => p.id === combo.product_id);
       const message = `Hola, quiero comprar el combo "${combo.name}" - ${product?.name} ${product?.size} - Cantidad: ${combo.quantity} unidades - Precio: $${combo.price.toLocaleString()}`;
@@ -258,7 +261,7 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
       <div className="mb-16">
         <h3 className="text-2xl font-bold mb-8 text-center">Combos y Cajas</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {productCombos.map((combo, index) => {
+          {combosToShow.map((combo, index) => {
             const product = filteredProducts.find(p => p.id === combo.product_id);
             return (
               <motion.div 
@@ -315,6 +318,19 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
             );
           })}
         </div>
+        
+        {/* Botón Ver Más */}
+        {productCombos.length > 3 && (
+          <div className="flex justify-center mt-8">
+            <Button 
+              onClick={() => setShowAllCombos(!showAllCombos)}
+              variant="outline"
+              className="px-8 py-2"
+            >
+              {showAllCombos ? 'Ver menos' : `Ver más (${productCombos.length - 3} más)`}
+            </Button>
+          </div>
+        )}
       </div>
     );
   };

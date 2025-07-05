@@ -185,31 +185,31 @@ const ComboManager = ({ products, combos }: ComboManagerProps) => {
               
               <Input
                 type="number"
-                placeholder="Cantidad"
-                value={formData.quantity}
+                placeholder="Cantidad de unidades (ej: 100)"
+                value={formData.quantity === 0 ? '' : formData.quantity}
                 onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 0})}
               />
               
               <Input
                 type="number"
                 step="0.01"
-                placeholder="Precio total"
-                value={formData.price}
+                placeholder="Precio total del combo"
+                value={formData.price === 0 ? '' : formData.price}
                 onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
               />
 
               <Input
                 type="number"
                 step="0.01"
-                placeholder="% Descuento"
-                value={formData.discount_percentage}
+                placeholder="% Descuento opcional"
+                value={formData.discount_percentage === 0 ? '' : formData.discount_percentage}
                 onChange={(e) => setFormData({...formData, discount_percentage: parseFloat(e.target.value) || 0})}
               />
               
               <Input
                 type="number"
-                placeholder="Orden"
-                value={formData.display_order}
+                placeholder="Orden de visualización"
+                value={formData.display_order === 0 ? '' : formData.display_order}
                 onChange={(e) => setFormData({...formData, display_order: parseInt(e.target.value) || 0})}
               />
             </div>
@@ -250,25 +250,28 @@ const ComboManager = ({ products, combos }: ComboManagerProps) => {
                       {editingId === combo.id ? (
                         <div className="flex-1 grid gap-4 md:grid-cols-2 lg:grid-cols-4 mr-4">
                           <Input
+                            placeholder="Nombre del combo"
                             value={formData.name}
                             onChange={(e) => setFormData({...formData, name: e.target.value})}
                           />
                           <Input
                             type="number"
+                            placeholder="Cantidad"
                             value={formData.quantity}
                             onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 0})}
                           />
                           <Input
                             type="number"
                             step="0.01"
+                            placeholder="Precio total"
                             value={formData.price}
                             onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
                           />
                           <Input
                             type="number"
                             step="0.01"
-                            placeholder="% Descuento"
-                            value={formData.discount_percentage}
+                            placeholder="% Descuento opcional"
+                            value={formData.discount_percentage === 0 ? '' : formData.discount_percentage}
                             onChange={(e) => setFormData({...formData, discount_percentage: parseFloat(e.target.value) || 0})}
                           />
                         </div>
