@@ -133,6 +133,12 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
                         )}
                       </div>
                       <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/profile/edit" className="flex items-center">
+                          <Settings className="mr-2 h-4 w-4" />
+                          Editar Información
+                        </Link>
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={handleSignOut}>
                         <LogOut className="mr-2 h-4 w-4" />
                         Cerrar Sesión
