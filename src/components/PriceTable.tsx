@@ -283,20 +283,10 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
                 {/* Contenido de la tarjeta */}
                 <div className="p-4">
                   <h4 className="font-bold text-lg mb-2">{combo.name}</h4>
-                  {product && (
-                    <p className="text-sm text-gray-600 mb-3">
-                      {product.name} - {product.size}
-                    </p>
-                  )}
-                  
-                  <div className="mb-3">
-                    <span className="text-sm text-gray-500">Cantidad: </span>
-                    <span className="font-medium">{combo.quantity} unidades</span>
-                  </div>
                   
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <span className="text-2xl font-bold text-primary">${combo.price.toLocaleString()}</span>
+                      <span className="text-2xl font-bold text-primary">${combo.price.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       {combo.discount_percentage > 0 && (
                         <div className="text-sm text-green-600 font-medium">
                           {combo.discount_percentage}% OFF
