@@ -404,7 +404,9 @@ const ComboManager = ({ products, combos }: ComboManagerProps) => {
                              />
                            )}
                            <div className="flex-1">
-                             <div className="font-medium">{combo.name}</div>
+                              <div className="font-medium">
+                                {combo.name} - Ø{combo.product?.diameter}mm
+                              </div>
                              <div className="text-sm text-muted-foreground">
                                {combo.quantity} unidades • ${combo.price}
                                {combo.discount_percentage > 0 && ` • ${combo.discount_percentage}% desc.`}

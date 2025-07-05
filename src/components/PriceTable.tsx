@@ -291,7 +291,9 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
                 
                 {/* Contenido de la tarjeta */}
                 <div className="p-4">
-                  <h4 className="font-bold text-lg mb-2">{combo.name}</h4>
+                  <h4 className="font-bold text-lg mb-2">
+                    {combo.name} - Ø{product?.diameter}mm
+                  </h4>
                   
                   <div className="flex items-center justify-between mb-4">
                     <div>
