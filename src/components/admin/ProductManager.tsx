@@ -484,7 +484,7 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
 
         {/* Diálogo de confirmación personalizado */}
         <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
-          <DialogContent className="sm:max-w-sm max-w-[90vw] mx-4">
+          <DialogContent className="sm:max-w-sm max-w-[90vw] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <DialogHeader>
               <DialogTitle className="text-lg">{confirmDialogData.title}</DialogTitle>
             </DialogHeader>
