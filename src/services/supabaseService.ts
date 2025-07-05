@@ -170,6 +170,21 @@ export const deleteCombo = async (id: string) => {
   if (error) throw error;
 };
 
+// ACTUALIZACIÓN MASIVA DE PRECIOS
+export const updatePricesByCategory = async (categoryId: string, percentage: number) => {
+  const { data, error } = await supabase
+    .from('products')
+    .update({
+      price: supabase.sql`price * (1 + ${percentage} / 100.0)`,
+      updated_at: new Date().toISOString()
+    })
+    .eq('category_id', categoryId)
+    .select();
+  
+  if (error) throw error;
+  return data;
+};
+
 // FUNCIÓN PARA OBTENER DATOS COMPLETOS PARA LA PÁGINA PRINCIPAL
 export const getPublicData = async () => {
   const { data, error } = await supabase

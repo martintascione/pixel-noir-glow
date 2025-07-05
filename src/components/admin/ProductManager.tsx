@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ProductCategory, Product, CreateProduct } from '@/types/supabase';
-import { createProduct, updateProduct, deleteProduct } from '@/services/supabaseService';
+import { createProduct, updateProduct, deleteProduct, updatePricesByCategory } from '@/services/supabaseService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Plus, Pencil, Trash2, Save, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Plus, Pencil, Trash2, Save, X, Percent } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ProductManagerProps {
@@ -18,6 +19,11 @@ interface ProductManagerProps {
 const ProductManager = ({ categories, products }: ProductManagerProps) => {
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isPriceUpdateOpen, setIsPriceUpdateOpen] = useState(false);
+  const [priceUpdateData, setPriceUpdateData] = useState({
+    categoryId: '',
+    percentage: 0
+  });
   const [formData, setFormData] = useState<CreateProduct>({
     category_id: '',
     name: '',
@@ -68,6 +74,28 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
     },
     onError: (error) => {
       toast({ title: "Error", description: "No se pudo eliminar el producto", variant: "destructive" });
+      console.error(error);
+    }
+  });
+
+  const updatePricesMutation = useMutation({
+    mutationFn: ({ categoryId, percentage }: { categoryId: string, percentage: number }) =>
+      updatePricesByCategory(categoryId, percentage),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      setIsPriceUpdateOpen(false);
+      setPriceUpdateData({ categoryId: '', percentage: 0 });
+      toast({ 
+        title: "Éxito", 
+        description: `Se actualizaron ${data.length} productos correctamente` 
+      });
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Error", 
+        description: "No se pudieron actualizar los precios", 
+        variant: "destructive" 
+      });
       console.error(error);
     }
   });
@@ -130,6 +158,42 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
     resetForm();
   };
 
+  const handlePriceUpdate = () => {
+    if (!priceUpdateData.categoryId || priceUpdateData.percentage === 0) {
+      toast({ 
+        title: "Error", 
+        description: "Selecciona una categoría y un porcentaje válido", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    const category = categories.find(c => c.id === priceUpdateData.categoryId);
+    const affectedProducts = products.filter(p => p.category_id === priceUpdateData.categoryId);
+    
+    if (affectedProducts.length === 0) {
+      toast({ 
+        title: "Advertencia", 
+        description: "No hay productos en esta categoría", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    const action = priceUpdateData.percentage > 0 ? 'aumentar' : 'reducir';
+    const absPercentage = Math.abs(priceUpdateData.percentage);
+    
+    if (window.confirm(
+      `¿Estás seguro de ${action} los precios de "${category?.name}" en ${absPercentage}%? ` +
+      `Se afectarán ${affectedProducts.length} productos.`
+    )) {
+      updatePricesMutation.mutate({
+        categoryId: priceUpdateData.categoryId,
+        percentage: priceUpdateData.percentage
+      });
+    }
+  };
+
   const getCategoryType = (categoryId: string) => {
     return categories.find(c => c.id === categoryId)?.type || 'estribos';
   };
@@ -152,10 +216,79 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <CardTitle>Gestión de Productos</CardTitle>
-          <Button onClick={() => setIsCreating(true)} disabled={isCreating} className="w-full sm:w-auto">
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Producto
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Dialog open={isPriceUpdateOpen} onOpenChange={setIsPriceUpdateOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="w-full sm:w-auto">
+                  <Percent className="h-4 w-4 mr-2" />
+                  Actualizar Precios
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Actualización Masiva de Precios</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Categoría</label>
+                    <Select 
+                      value={priceUpdateData.categoryId} 
+                      onValueChange={(value) => setPriceUpdateData({...priceUpdateData, categoryId: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar categoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Porcentaje de cambio (+ para aumentar, - para reducir)
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      placeholder="Ej: 5 (aumenta 5%), -10 (reduce 10%)"
+                      value={priceUpdateData.percentage === 0 ? '' : priceUpdateData.percentage}
+                      onChange={(e) => setPriceUpdateData({
+                        ...priceUpdateData, 
+                        percentage: parseFloat(e.target.value) || 0
+                      })}
+                    />
+                  </div>
+                  
+                  <div className="flex gap-2 pt-4">
+                    <Button 
+                      onClick={handlePriceUpdate} 
+                      disabled={!priceUpdateData.categoryId || priceUpdateData.percentage === 0 || updatePricesMutation.isPending}
+                      className="flex-1"
+                    >
+                      {updatePricesMutation.isPending ? 'Actualizando...' : 'Actualizar Precios'}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setIsPriceUpdateOpen(false)}
+                      className="flex-1"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+            
+            <Button onClick={() => setIsCreating(true)} disabled={isCreating} className="w-full sm:w-auto">
+              <Plus className="h-4 w-4 mr-2" />
+              Nuevo Producto
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
