@@ -4,7 +4,6 @@ import { ProductCategory, CreateProductCategory } from '@/types/supabase';
 import { createCategory, updateCategory, deleteCategory } from '@/services/supabaseService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Pencil, Trash2, Save, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -18,7 +17,7 @@ const CategoryManager = ({ categories }: CategoryManagerProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<CreateProductCategory>({
     name: '',
-    type: 'estribos',
+    type: '',
     display_order: 0
   });
   
@@ -30,7 +29,7 @@ const CategoryManager = ({ categories }: CategoryManagerProps) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       setIsCreating(false);
-      setFormData({ name: '', type: 'estribos', display_order: 0 });
+      setFormData({ name: '', type: '', display_order: 0 });
       toast({ title: "Éxito", description: "Categoría creada correctamente" });
     },
     onError: (error) => {
@@ -98,7 +97,7 @@ const CategoryManager = ({ categories }: CategoryManagerProps) => {
   const cancelEdit = () => {
     setEditingId(null);
     setIsCreating(false);
-    setFormData({ name: '', type: 'estribos', display_order: 0 });
+    setFormData({ name: '', type: '', display_order: 0 });
   };
 
   return (
@@ -122,19 +121,11 @@ const CategoryManager = ({ categories }: CategoryManagerProps) => {
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
               />
-              <Select 
-                value={formData.type} 
-                onValueChange={(value: any) => setFormData({...formData, type: value})}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="estribos">Estribos</SelectItem>
-                  <SelectItem value="clavos">Clavos</SelectItem>
-                  <SelectItem value="alambre">Alambre</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                placeholder="Tipo de la categoría"
+                value={formData.type}
+                onChange={(e) => setFormData({...formData, type: e.target.value})}
+              />
               <Input
                 type="number"
                 placeholder="Orden"
@@ -165,19 +156,11 @@ const CategoryManager = ({ categories }: CategoryManagerProps) => {
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                   />
-                  <Select 
-                    value={formData.type} 
-                    onValueChange={(value: any) => setFormData({...formData, type: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="estribos">Estribos</SelectItem>
-                      <SelectItem value="clavos">Clavos</SelectItem>
-                      <SelectItem value="alambre">Alambre</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    placeholder="Tipo de la categoría"
+                    value={formData.type}
+                    onChange={(e) => setFormData({...formData, type: e.target.value})}
+                  />
                   <Input
                     type="number"
                     value={formData.display_order}

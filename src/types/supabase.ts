@@ -1,7 +1,7 @@
 export interface ProductCategory {
   id: string;
   name: string;
-  type: 'estribos' | 'clavos' | 'alambre';
+  type: string;
   display_order: number;
   created_at: string;
   updated_at: string;
@@ -38,7 +38,7 @@ export interface ProductCombo {
 
 export interface CreateProductCategory {
   name: string;
-  type: 'estribos' | 'clavos' | 'alambre';
+  type: string;
   display_order?: number;
 }
 
