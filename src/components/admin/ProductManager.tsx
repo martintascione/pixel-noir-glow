@@ -194,8 +194,8 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
               <Input
                 type="number"
                 step="0.01"
-                placeholder="Precio"
-                value={formData.price}
+                placeholder="Precio unitario (ej: 150.50)"
+                value={formData.price === 0 ? '' : formData.price}
                 onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
               />
 
@@ -232,8 +232,8 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
               
               <Input
                 type="number"
-                placeholder="Orden"
-                value={formData.display_order}
+                placeholder="Orden de visualización (ej: 1, 2, 3)"
+                value={formData.display_order === 0 ? '' : formData.display_order}
                 onChange={(e) => setFormData({...formData, display_order: parseInt(e.target.value) || 0})}
               />
             </div>
@@ -269,21 +269,25 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
                       {editingId === product.id ? (
                         <div className="flex-1 grid gap-4 md:grid-cols-2 lg:grid-cols-4 mr-4">
                           <Input
+                            placeholder="Nombre del producto"
                             value={formData.name}
                             onChange={(e) => setFormData({...formData, name: e.target.value})}
                           />
                           <Input
+                            placeholder="Medida/Tamaño"
                             value={formData.size}
                             onChange={(e) => setFormData({...formData, size: e.target.value})}
                           />
                           <Input
                             type="number"
                             step="0.01"
+                            placeholder="Precio unitario"
                             value={formData.price}
                             onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
                           />
                           <Input
                             type="number"
+                            placeholder="Orden de visualización"
                             value={formData.display_order}
                             onChange={(e) => setFormData({...formData, display_order: parseInt(e.target.value) || 0})}
                           />

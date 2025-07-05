@@ -128,8 +128,8 @@ const CategoryManager = ({ categories }: CategoryManagerProps) => {
               />
               <Input
                 type="number"
-                placeholder="Orden"
-                value={formData.display_order}
+                placeholder="Orden de visualización (ej: 1, 2, 3)"
+                value={formData.display_order === 0 ? '' : formData.display_order}
                 onChange={(e) => setFormData({...formData, display_order: parseInt(e.target.value) || 0})}
               />
             </div>
@@ -153,6 +153,7 @@ const CategoryManager = ({ categories }: CategoryManagerProps) => {
               {editingId === category.id ? (
                 <div className="flex-1 grid gap-4 md:grid-cols-3 mr-4">
                   <Input
+                    placeholder="Nombre de la categoría"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                   />
@@ -163,6 +164,7 @@ const CategoryManager = ({ categories }: CategoryManagerProps) => {
                   />
                   <Input
                     type="number"
+                    placeholder="Orden de visualización"
                     value={formData.display_order}
                     onChange={(e) => setFormData({...formData, display_order: parseInt(e.target.value) || 0})}
                   />
