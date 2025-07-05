@@ -484,16 +484,16 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
 
         {/* Diálogo de confirmación personalizado */}
         <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-sm max-w-[90vw] mx-4">
             <DialogHeader>
-              <DialogTitle>{confirmDialogData.title}</DialogTitle>
+              <DialogTitle className="text-lg">{confirmDialogData.title}</DialogTitle>
             </DialogHeader>
-            <div className="py-4">
-              <p className="text-sm text-muted-foreground">
+            <div className="py-3">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 {confirmDialogData.message}
               </p>
             </div>
-            <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2 pt-2">
               <Button
                 variant="outline"
                 onClick={() => setIsConfirmDialogOpen(false)}
