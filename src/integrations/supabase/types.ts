@@ -9,7 +9,127 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      product_categories: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          id: string
+          name: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          name: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          name?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      product_combos: {
+        Row: {
+          created_at: string
+          discount_percentage: number | null
+          display_order: number | null
+          id: string
+          name: string
+          price: number
+          product_id: string
+          quantity: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          discount_percentage?: number | null
+          display_order?: number | null
+          id?: string
+          name: string
+          price: number
+          product_id: string
+          quantity: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          discount_percentage?: number | null
+          display_order?: number | null
+          id?: string
+          name?: string
+          price?: number
+          product_id?: string
+          quantity?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_combos_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          category_id: string
+          created_at: string
+          diameter: string | null
+          display_order: number | null
+          id: string
+          nail_type: string | null
+          name: string
+          price: number
+          shape: string | null
+          size: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          diameter?: string | null
+          display_order?: number | null
+          id?: string
+          nail_type?: string | null
+          name: string
+          price: number
+          shape?: string | null
+          size: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          diameter?: string | null
+          display_order?: number | null
+          id?: string
+          nail_type?: string | null
+          name?: string
+          price?: number
+          shape?: string | null
+          size?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

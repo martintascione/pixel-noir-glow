@@ -1,0 +1,336 @@
+import React, { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { ProductCategory, Product, CreateProduct } from '@/types/supabase';
+import { createProduct, updateProduct, deleteProduct } from '@/services/supabaseService';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Plus, Pencil, Trash2, Save, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+interface ProductManagerProps {
+  categories: ProductCategory[];
+  products: Product[];
+}
+
+const ProductManager = ({ categories, products }: ProductManagerProps) => {
+  const [isCreating, setIsCreating] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formData, setFormData] = useState<CreateProduct>({
+    category_id: '',
+    name: '',
+    size: '',
+    price: 0,
+    diameter: '',
+    shape: '',
+    nail_type: '',
+    display_order: 0
+  });
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const createMutation = useMutation({
+    mutationFn: createProduct,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      setIsCreating(false);
+      resetForm();
+      toast({ title: "Éxito", description: "Producto creado correctamente" });
+    },
+    onError: (error) => {
+      toast({ title: "Error", description: "No se pudo crear el producto", variant: "destructive" });
+      console.error(error);
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, updates }: { id: string, updates: Partial<CreateProduct> }) =>
+      updateProduct(id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      setEditingId(null);
+      toast({ title: "Éxito", description: "Producto actualizado correctamente" });
+    },
+    onError: (error) => {
+      toast({ title: "Error", description: "No se pudo actualizar el producto", variant: "destructive" });
+      console.error(error);
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteProduct,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({ title: "Éxito", description: "Producto eliminado correctamente" });
+    },
+    onError: (error) => {
+      toast({ title: "Error", description: "No se pudo eliminar el producto", variant: "destructive" });
+      console.error(error);
+    }
+  });
+
+  const resetForm = () => {
+    setFormData({
+      category_id: '',
+      name: '',
+      size: '',
+      price: 0,
+      diameter: '',
+      shape: '',
+      nail_type: '',
+      display_order: 0
+    });
+  };
+
+  const handleCreate = () => {
+    const cleanData = { ...formData };
+    if (!cleanData.diameter) delete cleanData.diameter;
+    if (!cleanData.shape) delete cleanData.shape;
+    if (!cleanData.nail_type) delete cleanData.nail_type;
+    
+    createMutation.mutate(cleanData);
+  };
+
+  const handleUpdate = (product: Product) => {
+    const cleanData = { ...formData };
+    delete cleanData.category_id; // No cambiar categoría en update
+    if (!cleanData.diameter) delete cleanData.diameter;
+    if (!cleanData.shape) delete cleanData.shape;
+    if (!cleanData.nail_type) delete cleanData.nail_type;
+    
+    updateMutation.mutate({ id: product.id, updates: cleanData });
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('¿Estás seguro de eliminar este producto? Se eliminarán todos sus combos.')) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const startEdit = (product: Product) => {
+    setEditingId(product.id);
+    setFormData({
+      category_id: product.category_id,
+      name: product.name,
+      size: product.size,
+      price: product.price,
+      diameter: product.diameter || '',
+      shape: product.shape || '',
+      nail_type: product.nail_type || '',
+      display_order: product.display_order
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setIsCreating(false);
+    resetForm();
+  };
+
+  const getCategoryType = (categoryId: string) => {
+    return categories.find(c => c.id === categoryId)?.type || 'estribos';
+  };
+
+  const getProductsByCategory = () => {
+    const grouped = products.reduce((acc, product) => {
+      const categoryName = product.category?.name || 'Sin categoría';
+      if (!acc[categoryName]) acc[categoryName] = [];
+      acc[categoryName].push(product);
+      return acc;
+    }, {} as Record<string, Product[]>);
+    
+    return grouped;
+  };
+
+  const productsByCategory = getProductsByCategory();
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>Gestión de Productos</CardTitle>
+          <Button onClick={() => setIsCreating(true)} disabled={isCreating}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Producto
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Formulario de creación */}
+        {isCreating && (
+          <div className="border rounded-lg p-4 bg-muted/50">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <Select 
+                value={formData.category_id} 
+                onValueChange={(value) => setFormData({...formData, category_id: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Input
+                placeholder="Nombre del producto"
+                value={formData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+              />
+              
+              <Input
+                placeholder="Medida/Tamaño"
+                value={formData.size}
+                onChange={(e) => setFormData({...formData, size: e.target.value})}
+              />
+              
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="Precio"
+                value={formData.price}
+                onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
+              />
+
+              {formData.category_id && getCategoryType(formData.category_id) === 'estribos' && (
+                <>
+                  <Input
+                    placeholder="Diámetro (ej: 4.2, 6)"
+                    value={formData.diameter}
+                    onChange={(e) => setFormData({...formData, diameter: e.target.value})}
+                  />
+                  <Select 
+                    value={formData.shape} 
+                    onValueChange={(value) => setFormData({...formData, shape: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Forma" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Cuadrado">Cuadrado</SelectItem>
+                      <SelectItem value="Rectangular">Rectangular</SelectItem>
+                      <SelectItem value="Triangular">Triangular</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+
+              {formData.category_id && getCategoryType(formData.category_id) === 'clavos' && (
+                <Input
+                  placeholder="Tipo de clavo"
+                  value={formData.nail_type}
+                  onChange={(e) => setFormData({...formData, nail_type: e.target.value})}
+                />
+              )}
+              
+              <Input
+                type="number"
+                placeholder="Orden"
+                value={formData.display_order}
+                onChange={(e) => setFormData({...formData, display_order: parseInt(e.target.value) || 0})}
+              />
+            </div>
+            <div className="flex gap-2 mt-4">
+              <Button onClick={handleCreate} disabled={!formData.name || !formData.category_id}>
+                <Save className="h-4 w-4 mr-2" />
+                Crear
+              </Button>
+              <Button variant="outline" onClick={cancelEdit}>
+                <X className="h-4 w-4 mr-2" />
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Lista de productos por categoría */}
+        <Accordion type="multiple" className="w-full">
+          {Object.entries(productsByCategory).map(([categoryName, categoryProducts]) => (
+            <AccordionItem key={categoryName} value={categoryName}>
+              <AccordionTrigger>
+                <div className="flex items-center justify-between w-full pr-4">
+                  <span className="font-medium">{categoryName}</span>
+                  <span className="text-muted-foreground text-sm">
+                    {categoryProducts.length} productos
+                  </span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-2">
+                  {categoryProducts.map((product) => (
+                    <div key={product.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      {editingId === product.id ? (
+                        <div className="flex-1 grid gap-4 md:grid-cols-2 lg:grid-cols-4 mr-4">
+                          <Input
+                            value={formData.name}
+                            onChange={(e) => setFormData({...formData, name: e.target.value})}
+                          />
+                          <Input
+                            value={formData.size}
+                            onChange={(e) => setFormData({...formData, size: e.target.value})}
+                          />
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={formData.price}
+                            onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
+                          />
+                          <Input
+                            type="number"
+                            value={formData.display_order}
+                            onChange={(e) => setFormData({...formData, display_order: parseInt(e.target.value) || 0})}
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex-1">
+                          <div className="font-medium">{product.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {product.size} • ${product.price}
+                            {product.diameter && ` • Ø${product.diameter}mm`}
+                            {product.shape && ` • ${product.shape}`}
+                            {product.nail_type && ` • ${product.nail_type}`}
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="flex gap-2">
+                        {editingId === product.id ? (
+                          <>
+                            <Button size="sm" onClick={() => handleUpdate(product)}>
+                              <Save className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={cancelEdit}>
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button size="sm" variant="ghost" onClick={() => startEdit(product)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => handleDelete(product.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default ProductManager;
