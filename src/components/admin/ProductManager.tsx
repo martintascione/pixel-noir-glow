@@ -20,6 +20,12 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isPriceUpdateOpen, setIsPriceUpdateOpen] = useState(false);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [confirmDialogData, setConfirmDialogData] = useState({
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  });
   const [priceUpdateData, setPriceUpdateData] = useState({
     categoryId: '',
     percentage: 0
@@ -133,9 +139,16 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm('¿Estás seguro de eliminar este producto? Se eliminarán todos sus combos.')) {
-      deleteMutation.mutate(id);
-    }
+    const product = products.find(p => p.id === id);
+    setConfirmDialogData({
+      title: "Confirmar eliminación",
+      message: `¿Estás seguro de eliminar el producto "${product?.name}"? Se eliminarán todos sus combos.`,
+      onConfirm: () => {
+        deleteMutation.mutate(id);
+        setIsConfirmDialogOpen(false);
+      }
+    });
+    setIsConfirmDialogOpen(true);
   };
 
   const startEdit = (product: Product) => {
@@ -183,15 +196,18 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
     const action = priceUpdateData.percentage > 0 ? 'aumentar' : 'reducir';
     const absPercentage = Math.abs(priceUpdateData.percentage);
     
-    if (window.confirm(
-      `¿Estás seguro de ${action} los precios de "${category?.name}" en ${absPercentage}%? ` +
-      `Se afectarán ${affectedProducts.length} productos.`
-    )) {
-      updatePricesMutation.mutate({
-        categoryId: priceUpdateData.categoryId,
-        percentage: priceUpdateData.percentage
-      });
-    }
+    setConfirmDialogData({
+      title: "Confirmar actualización de precios",
+      message: `¿Estás seguro de ${action} los precios de "${category?.name}" en ${absPercentage}%? Se afectarán ${affectedProducts.length} productos.`,
+      onConfirm: () => {
+        updatePricesMutation.mutate({
+          categoryId: priceUpdateData.categoryId,
+          percentage: priceUpdateData.percentage
+        });
+        setIsConfirmDialogOpen(false);
+      }
+    });
+    setIsConfirmDialogOpen(true);
   };
 
   const getCategoryType = (categoryId: string) => {
@@ -465,6 +481,35 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
             </AccordionItem>
           ))}
         </Accordion>
+
+        {/* Diálogo de confirmación personalizado */}
+        <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{confirmDialogData.title}</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-sm text-muted-foreground">
+                {confirmDialogData.message}
+              </p>
+            </div>
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsConfirmDialogOpen(false)}
+                className="w-full sm:w-auto"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={confirmDialogData.onConfirm}
+                className="w-full sm:w-auto bg-primary hover:bg-primary/90"
+              >
+                Aceptar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
