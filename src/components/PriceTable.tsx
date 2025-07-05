@@ -335,8 +335,8 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
           </p>
         </div>
         <div className="flex items-center justify-center gap-2 mt-2">
-          <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" fill="#22c55e"/>
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 6L9 17L4 12" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           <p className="text-sm text-muted-foreground">
             Precios con IVA incluido
