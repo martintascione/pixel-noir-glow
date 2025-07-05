@@ -161,7 +161,10 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
                   className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
                   variants={itemVariants}
                 >
-                  <div>{item.size}</div>
+                  <div className="flex items-center gap-2">
+                    <span>{item.size}</span>
+                    <span className="text-muted-foreground text-sm">- Ø{item.diameter}mm</span>
+                  </div>
                   <div className="text-right">${item.price}</div>
                 </motion.div>
               ))}
@@ -182,7 +185,10 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
                   className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
                   variants={itemVariants}
                 >
-                  <div>{item.size}</div>
+                  <div className="flex items-center gap-2">
+                    <span>{item.size}</span>
+                    <span className="text-muted-foreground text-sm">- Ø{item.diameter}mm</span>
+                  </div>
                   <div className="text-right">${item.price}</div>
                 </motion.div>
               ))}
@@ -203,7 +209,10 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
                   className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
                   variants={itemVariants}
                 >
-                  <div>{item.size}</div>
+                  <div className="flex items-center gap-2">
+                    <span>{item.size}</span>
+                    <span className="text-muted-foreground text-sm">- Ø{item.diameter}mm</span>
+                  </div>
                   <div className="text-right">${item.price}</div>
                 </motion.div>
               ))}
