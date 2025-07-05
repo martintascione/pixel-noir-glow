@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, Variants } from 'framer-motion';
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, ChevronDown, Square, RectangleHorizontal, Triangle } from "lucide-react";
+import { MessageSquare, ChevronDown, Square, RectangleHorizontal, Triangle, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -242,41 +242,80 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
 
     if (productCombos.length === 0) return null;
 
+    const handleBuyClick = (combo: ProductCombo) => {
+      const product = filteredProducts.find(p => p.id === combo.product_id);
+      const message = `Hola, quiero comprar el combo "${combo.name}" - ${product?.name} ${product?.size} - Cantidad: ${combo.quantity} unidades - Precio: $${combo.price.toLocaleString()}`;
+      
+      toast({
+        title: "Redirigiendo a WhatsApp",
+        description: "Procesando tu solicitud de compra...",
+      });
+      
+      window.open(`https://wa.me/+5491112345678?text=${encodeURIComponent(message)}`, "_blank");
+    };
+
     return (
-      <motion.div 
-        className="overflow-hidden rounded-xl border border-border bg-white mb-8"
-        variants={containerVariants}
-        initial="hidden"
-        animate="show"
-      >
-        <div className="px-6 py-4 border-b border-border bg-muted/50">
-          <h3 className="font-medium text-lg">Combos y Cajas</h3>
-        </div>
-        <div className="px-6 py-4 border-b border-border bg-white">
-          <div className="grid grid-cols-3">
-            <div className="font-medium">Producto</div>
-            <div className="font-medium">Cantidad</div>
-            <div className="font-medium text-right">Precio</div>
-          </div>
-        </div>
-        
-        <div className="divide-y divide-border">
+      <div className="mb-16">
+        <h3 className="text-2xl font-bold mb-8 text-center">Combos y Cajas</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {productCombos.map((combo, index) => {
             const product = filteredProducts.find(p => p.id === combo.product_id);
             return (
               <motion.div 
                 key={`combo-${index}`}
-                className="grid grid-cols-3 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
+                className="bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
                 variants={itemVariants}
+                initial="hidden"
+                animate="show"
               >
-                <div>{product?.size} - {combo.name}</div>
-                <div>{combo.quantity} unidades</div>
-                <div className="text-right">${combo.price}</div>
+                {/* Imagen del producto */}
+                <div className="aspect-square bg-gray-100 flex items-center justify-center">
+                  <img 
+                    src="https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400&h=400&fit=crop" 
+                    alt={combo.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                
+                {/* Contenido de la tarjeta */}
+                <div className="p-4">
+                  <h4 className="font-bold text-lg mb-2">{combo.name}</h4>
+                  {product && (
+                    <p className="text-sm text-gray-600 mb-3">
+                      {product.name} - {product.size}
+                    </p>
+                  )}
+                  
+                  <div className="mb-3">
+                    <span className="text-sm text-gray-500">Cantidad: </span>
+                    <span className="font-medium">{combo.quantity} unidades</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <span className="text-2xl font-bold text-primary">${combo.price.toLocaleString()}</span>
+                      {combo.discount_percentage > 0 && (
+                        <div className="text-sm text-green-600 font-medium">
+                          {combo.discount_percentage}% OFF
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Botón de comprar */}
+                  <Button 
+                    onClick={() => handleBuyClick(combo)}
+                    className="w-full bg-primary text-white hover:bg-primary/90 transition-colors font-medium flex items-center justify-center gap-2"
+                  >
+                    <ShoppingCart size={16} />
+                    Comprar
+                  </Button>
+                </div>
               </motion.div>
             );
           })}
         </div>
-      </motion.div>
+      </div>
     );
   };
 
@@ -311,10 +350,7 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
         </div>
       )}
 
-      {/* Renderizar combos primero */}
-      {renderCombos()}
-
-      {/* Tabla de precios */}
+      {/* Tabla de precios unitarios */}
       <motion.div 
         className="overflow-hidden rounded-xl border border-border bg-white mb-8"
         variants={containerVariants}
@@ -333,6 +369,9 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
           <div className="py-8 text-center text-muted-foreground">Cargando precios...</div>
         ) : renderPriceTable()}
       </motion.div>
+
+      {/* Sección de Combos y Cajas - Formato Tarjeta */}
+      {renderCombos()}
 
       <div className="mt-8 flex justify-center">
         <Button 
