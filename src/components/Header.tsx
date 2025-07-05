@@ -23,7 +23,7 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -106,11 +106,13 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
             <div className="flex-1 flex justify-end items-center gap-2">
               {user ? (
                 <>
-                  <Link to="/admin">
-                    <Button variant="outline" size="sm">
-                      Dashboard Admin
-                    </Button>
-                  </Link>
+                  {isAdmin() && (
+                    <Link to="/admin">
+                      <Button variant="outline" size="sm">
+                        Admin
+                      </Button>
+                    </Link>
+                  )}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm" className="flex items-center gap-2">

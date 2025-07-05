@@ -45,6 +45,11 @@ const AdminDashboard = () => {
           </Link>
           <h1 className="text-3xl font-bold">Dashboard Administrativo</h1>
         </div>
+        <Link to="/">
+          <Button variant="ghost" size="sm">
+            Página Principal
+          </Button>
+        </Link>
       </div>
 
       {/* Estadísticas */}

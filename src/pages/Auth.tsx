@@ -11,7 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import { Eye, EyeOff } from 'lucide-react';
 
 const Auth = () => {
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, user, isAdmin } = useAuth();
   const navigate = useNavigate();
   
   // Estados para Login
@@ -40,9 +40,13 @@ const Auth = () => {
   // Redirigir si ya está autenticado
   useEffect(() => {
     if (user) {
-      navigate('/');
+      if (isAdmin()) {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     }
-  }, [user, navigate]);
+  }, [user, navigate, isAdmin]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +80,12 @@ const Auth = () => {
           title: "¡Bienvenido!",
           description: "Has iniciado sesión correctamente",
         });
-        navigate('/');
+        // Redirigir al admin si es administrador, sino a la página principal
+        if (loginEmail === 'admin@hierrostascione.shop') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       }
     } catch (error) {
       toast({

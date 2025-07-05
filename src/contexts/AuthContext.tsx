@@ -21,6 +21,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  isAdmin: () => boolean;
   signUp: (data: SignUpData) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -132,11 +133,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await supabase.auth.signOut();
   };
 
+  const isAdmin = () => {
+    return user?.email === 'admin@hierrostascione.shop';
+  };
+
   const value = {
     user,
     session,
     profile,
     loading,
+    isAdmin,
     signUp,
     signIn,
     signOut,
