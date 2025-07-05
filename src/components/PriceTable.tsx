@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, Variants } from 'framer-motion';
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, ChevronDown, Square, RectangleHorizontal, Triangle, ShoppingCart } from "lucide-react";
+import { MessageSquare, ChevronDown, Square, RectangleHorizontal, Triangle, ShoppingCart, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -332,6 +332,14 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
         <div className="inline-block bg-gray-800 text-white px-3 py-1 rounded-lg">
           <p className="text-sm">
             Precios actualizados al {formattedUpdateDate}
+          </p>
+        </div>
+        <div className="flex items-center justify-center gap-2 mt-2">
+          <div className="flex items-center justify-center w-5 h-5 bg-green-500 rounded-full">
+            <Check className="w-3 h-3 text-white" />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Precios con IVA incluido
           </p>
         </div>
       </div>
