@@ -143,6 +143,7 @@ export type Database = {
           requires_invoice_a: boolean
           updated_at: string
           user_id: string
+          whatsapp_number: string | null
         }
         Insert: {
           accepts_notifications?: boolean
@@ -156,6 +157,7 @@ export type Database = {
           requires_invoice_a?: boolean
           updated_at?: string
           user_id: string
+          whatsapp_number?: string | null
         }
         Update: {
           accepts_notifications?: boolean
@@ -169,6 +171,7 @@ export type Database = {
           requires_invoice_a?: boolean
           updated_at?: string
           user_id?: string
+          whatsapp_number?: string | null
         }
         Relationships: []
       }

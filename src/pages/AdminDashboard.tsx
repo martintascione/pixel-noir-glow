@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Package, Tags, Gift } from 'lucide-react';
+import { ArrowLeft, Package, Tags, Gift, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,6 +9,8 @@ import { getCategories, getProducts, getCombos } from '@/services/supabaseServic
 import CategoryManager from '@/components/admin/CategoryManager';
 import ProductManager from '@/components/admin/ProductManager';
 import ComboManager from '@/components/admin/ComboManager';
+import ClientManager from '@/components/admin/ClientManager';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminDashboard = () => {
   const { data: categories = [], isLoading: loadingCategories } = useQuery({
@@ -26,7 +28,19 @@ const AdminDashboard = () => {
     queryFn: () => getCombos(),
   });
 
-  if (loadingCategories || loadingProducts || loadingCombos) {
+  const { data: clients = [], isLoading: loadingClients } = useQuery({
+    queryKey: ['clients'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*');
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  if (loadingCategories || loadingProducts || loadingCombos || loadingClients) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="text-center">Cargando dashboard...</div>
@@ -46,7 +60,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Estadísticas */}
-      <div className="grid gap-4 md:grid-cols-3 mb-6">
+      <div className="grid gap-4 md:grid-cols-4 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Categorías</CardTitle>
@@ -83,14 +97,27 @@ const AdminDashboard = () => {
             </p>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Clientes</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{clients.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Clientes registrados
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Pestañas de gestión */}
       <Tabs defaultValue="categories" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="categories">Categorías</TabsTrigger>
           <TabsTrigger value="products">Productos</TabsTrigger>
           <TabsTrigger value="combos">Combos</TabsTrigger>
+          <TabsTrigger value="clients">Clientes</TabsTrigger>
         </TabsList>
         
         <TabsContent value="categories">
@@ -103,6 +130,10 @@ const AdminDashboard = () => {
         
         <TabsContent value="combos">
           <ComboManager products={products} combos={combos} />
+        </TabsContent>
+        
+        <TabsContent value="clients">
+          <ClientManager />
         </TabsContent>
       </Tabs>
     </div>

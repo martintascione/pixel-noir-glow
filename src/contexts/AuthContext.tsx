@@ -10,6 +10,7 @@ interface Profile {
   company_name: string;
   company_legal_name: string;
   company_cuit: string;
+  whatsapp_number: string;
   requires_invoice_a: boolean;
   accepts_notifications: boolean;
   created_at: string;
@@ -35,6 +36,7 @@ interface SignUpData {
   companyName: string;
   companyLegalName: string;
   companyCuit: string;
+  whatsappNumber: string;
   requiresInvoiceA: boolean;
   acceptsNotifications: boolean;
 }
@@ -111,6 +113,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           company_name: data.companyName,
           company_legal_name: data.companyLegalName,
           company_cuit: data.companyCuit,
+          whatsapp_number: data.whatsappNumber,
           requires_invoice_a: data.requiresInvoiceA,
           accepts_notifications: data.acceptsNotifications,
         }

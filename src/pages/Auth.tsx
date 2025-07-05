@@ -29,6 +29,7 @@ const Auth = () => {
     companyName: '',
     companyLegalName: '',
     companyCuit: '',
+    whatsappNumber: '',
     requiresInvoiceA: false,
     acceptsNotifications: false,
   });
@@ -142,6 +143,7 @@ const Auth = () => {
         companyName: registerData.companyName,
         companyLegalName: registerData.companyLegalName,
         companyCuit: registerData.companyCuit,
+        whatsappNumber: registerData.whatsappNumber,
         requiresInvoiceA: registerData.requiresInvoiceA,
         acceptsNotifications: registerData.acceptsNotifications,
       });
@@ -179,6 +181,28 @@ const Auth = () => {
 
   const updateRegisterData = (field: string, value: any) => {
     setRegisterData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Función para formatear CUIT automáticamente
+  const formatCuit = (value: string) => {
+    // Remover todos los caracteres que no sean números
+    const numbers = value.replace(/\D/g, '');
+    
+    // Aplicar formato XX-XXXXXXXX-X
+    let formatted = numbers;
+    if (numbers.length >= 2) {
+      formatted = numbers.slice(0, 2) + '-' + numbers.slice(2);
+    }
+    if (numbers.length >= 10) {
+      formatted = numbers.slice(0, 2) + '-' + numbers.slice(2, 10) + '-' + numbers.slice(10, 11);
+    }
+    
+    return formatted;
+  };
+
+  const handleCuitChange = (value: string) => {
+    const formattedCuit = formatCuit(value);
+    updateRegisterData('companyCuit', formattedCuit);
   };
 
   return (
@@ -358,7 +382,19 @@ const Auth = () => {
                       id="companyCuit"
                       placeholder="XX-XXXXXXXX-X"
                       value={registerData.companyCuit}
-                      onChange={(e) => updateRegisterData('companyCuit', e.target.value)}
+                      onChange={(e) => handleCuitChange(e.target.value)}
+                      maxLength={13}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="whatsappNumber">Número de WhatsApp *</Label>
+                    <Input
+                      id="whatsappNumber"
+                      placeholder="+54 9 11 1234-5678"
+                      value={registerData.whatsappNumber}
+                      onChange={(e) => updateRegisterData('whatsappNumber', e.target.value)}
                       required
                     />
                   </div>
