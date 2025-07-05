@@ -127,9 +127,9 @@ const ClientManager = () => {
                         Ver Detalles
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto mx-4 sm:mx-auto w-[calc(100vw-2rem)] sm:w-full rounded-2xl">
+                    <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto w-[95vw] sm:w-full rounded-2xl">
                       <DialogHeader>
-                        <DialogTitle className="text-lg sm:text-xl">
+                        <DialogTitle className="text-lg sm:text-xl text-center">
                           Información Completa del Cliente
                         </DialogTitle>
                       </DialogHeader>
