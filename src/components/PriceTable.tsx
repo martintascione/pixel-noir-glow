@@ -283,7 +283,7 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
                 {/* Imagen del producto */}
                 <div className="aspect-square bg-gray-100 flex items-center justify-center">
                   <img 
-                    src="https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400&h=400&fit=crop" 
+                    src={combo.image_url || "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=400&h=400&fit=crop"} 
                     alt={combo.name}
                     className="w-full h-full object-cover"
                   />
