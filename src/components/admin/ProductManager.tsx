@@ -417,30 +417,67 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
                   {categoryProducts.map((product) => (
                     <div key={product.id} className="flex items-center justify-between p-3 border rounded-lg">
                       {editingId === product.id ? (
-                        <div className="flex-1 grid gap-4 md:grid-cols-2 lg:grid-cols-4 mr-4">
-                          <Input
-                            placeholder="Nombre del producto"
-                            value={formData.name}
-                            onChange={(e) => setFormData({...formData, name: e.target.value})}
-                          />
-                          <Input
-                            placeholder="Medida/Tamaño"
-                            value={formData.size}
-                            onChange={(e) => setFormData({...formData, size: e.target.value})}
-                          />
-                          <Input
-                            type="number"
-                            step="0.01"
-                            placeholder="Precio unitario"
-                            value={formData.price}
-                            onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
-                          />
-                          <Input
-                            type="number"
-                            placeholder="Orden de visualización"
-                            value={formData.display_order}
-                            onChange={(e) => setFormData({...formData, display_order: parseInt(e.target.value) || 0})}
-                          />
+                        <div className="flex-1 mr-4">
+                          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-4">
+                            <Input
+                              placeholder="Nombre del producto"
+                              value={formData.name}
+                              onChange={(e) => setFormData({...formData, name: e.target.value})}
+                            />
+                            <Input
+                              placeholder="Medida/Tamaño"
+                              value={formData.size}
+                              onChange={(e) => setFormData({...formData, size: e.target.value})}
+                            />
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="Precio unitario"
+                              value={formData.price}
+                              onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
+                            />
+                            <Input
+                              type="number"
+                              placeholder="Orden de visualización"
+                              value={formData.display_order}
+                              onChange={(e) => setFormData({...formData, display_order: parseInt(e.target.value) || 0})}
+                            />
+                          </div>
+
+                          {/* Campos específicos para estribos en edición */}
+                          {product.category?.type === 'estribos' && (
+                            <div className="grid gap-4 md:grid-cols-2">
+                              <Input
+                                placeholder="Diámetro (ej: 4.2, 6)"
+                                value={formData.diameter}
+                                onChange={(e) => setFormData({...formData, diameter: e.target.value})}
+                              />
+                              <Select 
+                                value={formData.shape} 
+                                onValueChange={(value) => setFormData({...formData, shape: value})}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Forma" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Cuadrado">Cuadrado</SelectItem>
+                                  <SelectItem value="Rectangular">Rectangular</SelectItem>
+                                  <SelectItem value="Triangular">Triangular</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+
+                          {/* Campos específicos para clavos en edición */}
+                          {product.category?.type === 'clavos' && (
+                            <div className="grid gap-4 md:grid-cols-1">
+                              <Input
+                                placeholder="Tipo de clavo"
+                                value={formData.nail_type}
+                                onChange={(e) => setFormData({...formData, nail_type: e.target.value})}
+                              />
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className="flex-1">
