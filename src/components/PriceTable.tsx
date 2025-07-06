@@ -291,16 +291,16 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
                 </div>
                 
                 {/* Contenido de la tarjeta */}
-                <div className="p-4">
-                  <h4 className="font-bold text-lg mb-2">
+                <div className="p-3">
+                  <h4 className="font-bold text-sm sm:text-lg mb-2">
                     {combo.name} - Ø{product?.diameter}mm
                   </h4>
                   
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-3">
                     <div>
-                      <span className="text-2xl font-bold text-primary">{formatPrice(combo.price)}</span>
+                      <span className="text-lg sm:text-2xl font-bold text-primary">{formatPrice(combo.price)}</span>
                       {combo.discount_percentage > 0 && (
-                        <div className="text-sm text-green-600 font-medium">
+                        <div className="text-xs sm:text-sm text-green-600 font-medium">
                           {combo.discount_percentage}% OFF
                         </div>
                       )}
@@ -310,9 +310,9 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
                   {/* Botón de comprar */}
                   <Button 
                     onClick={() => handleBuyClick(combo)}
-                    className="w-full bg-primary text-white hover:bg-primary/90 transition-colors font-medium flex items-center justify-center gap-2"
+                    className="w-full bg-primary text-white hover:bg-primary/90 transition-colors font-medium flex items-center justify-center gap-2 text-sm sm:text-base py-2"
                   >
-                    <ShoppingCart size={16} />
+                    <ShoppingCart size={14} className="sm:w-4 sm:h-4" />
                     Comprar
                   </Button>
                 </div>
