@@ -298,11 +298,9 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
                   
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg sm:text-2xl font-bold text-primary">{formatPrice(combo.price)}</span>
-                        <div className="text-[10px] text-muted-foreground">
-                          Sin imp. Nac. ${Math.round(combo.price / 1.21).toLocaleString('es-AR')}
-                        </div>
+                      <span className="text-lg sm:text-2xl font-bold text-primary">{formatPrice(combo.price)}</span>
+                      <div className="text-[10px] text-muted-foreground">
+                        Sin imp. Nac. ${Math.round(combo.price / 1.21).toLocaleString('es-AR')}
                       </div>
                       {combo.discount_percentage > 0 && (
                         <div className="text-xs sm:text-sm text-green-600 font-medium">
