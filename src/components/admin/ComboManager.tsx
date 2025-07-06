@@ -227,7 +227,7 @@ const ComboManager = ({ products, combos }: ComboManagerProps) => {
                 <SelectContent>
                   {products.map((product) => (
                     <SelectItem key={product.id} value={product.id}>
-                      {product.name} - Ø{product.diameter}mm
+                      {product.name} {product.diameter ? `- Ø${product.diameter}mm` : ''} {product.size ? `(${product.size})` : ''}
                     </SelectItem>
                   ))}
                 </SelectContent>
