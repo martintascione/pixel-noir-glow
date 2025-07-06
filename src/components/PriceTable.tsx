@@ -269,7 +269,7 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
 
     return (
       <div className="mb-16">
-        <h3 className="text-2xl font-bold mb-8 text-center">Combos y Cajas</h3>
+        <h3 className="text-2xl font-bold mb-8 text-center">Paquetes armados</h3>
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {combosToShow.map((combo, index) => {
             const product = filteredProducts.find(p => p.id === combo.product_id);
