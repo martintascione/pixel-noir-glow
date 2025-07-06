@@ -4,6 +4,7 @@ import { motion, Variants } from 'framer-motion';
 import { useToast } from "@/hooks/use-toast";
 import { MessageSquare, ChevronDown, Square, RectangleHorizontal, Triangle, ShoppingCart, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatPrice } from "@/lib/utils";
 import {
   Collapsible,
   CollapsibleContent,
@@ -165,7 +166,7 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
                     <span>{item.size}</span>
                     <span className="text-muted-foreground text-sm">- Ø{item.diameter}mm</span>
                   </div>
-                  <div className="text-right">${item.price}</div>
+                  <div className="text-right">{formatPrice(item.price)}</div>
                 </motion.div>
               ))}
             </>
@@ -189,7 +190,7 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
                     <span>{item.size}</span>
                     <span className="text-muted-foreground text-sm">- Ø{item.diameter}mm</span>
                   </div>
-                  <div className="text-right">${item.price}</div>
+                  <div className="text-right">{formatPrice(item.price)}</div>
                 </motion.div>
               ))}
             </>
@@ -213,7 +214,7 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
                     <span>{item.size}</span>
                     <span className="text-muted-foreground text-sm">- Ø{item.diameter}mm</span>
                   </div>
-                  <div className="text-right">${item.price}</div>
+                  <div className="text-right">{formatPrice(item.price)}</div>
                 </motion.div>
               ))}
             </>
@@ -233,7 +234,7 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
               variants={itemVariants}
             >
               <div>{item.size}</div>
-              <div className="text-right">${item.price}</div>
+              <div className="text-right">{formatPrice(item.price)}</div>
             </motion.div>
           ))
         ) : (
@@ -256,7 +257,7 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
 
     const handleBuyClick = (combo: ProductCombo) => {
       const product = filteredProducts.find(p => p.id === combo.product_id);
-      const message = `Hola, quiero comprar el combo "${combo.name}" - ${product?.name} ${product?.size} - Cantidad: ${combo.quantity} unidades - Precio: $${combo.price.toLocaleString()}`;
+      const message = `Hola, quiero comprar el combo "${combo.name}" - ${product?.name} ${product?.size} - Cantidad: ${combo.quantity} unidades - Precio: ${formatPrice(combo.price)}`;
       
       toast({
         title: "Redirigiendo a WhatsApp",
@@ -297,7 +298,7 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
                   
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <span className="text-2xl font-bold text-primary">${combo.price.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className="text-2xl font-bold text-primary">{formatPrice(combo.price)}</span>
                       {combo.discount_percentage > 0 && (
                         <div className="text-sm text-green-600 font-medium">
                           {combo.discount_percentage}% OFF

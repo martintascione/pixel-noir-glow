@@ -3,6 +3,7 @@ import React from 'react';
 import { Product } from '@/types/products';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2 } from 'lucide-react';
+import { formatPrice } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -93,7 +94,7 @@ const ProductList = ({ products, onEdit, onDelete }: ProductListProps) => {
                       {product.type !== 'alambre' && (
                         <TableCell>{size.shape || '-'}</TableCell>
                       )}
-                      <TableCell className="text-right">${size.price.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">{formatPrice(size.price)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

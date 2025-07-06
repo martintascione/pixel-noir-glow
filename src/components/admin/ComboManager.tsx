@@ -10,6 +10,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Plus, Pencil, Trash2, Save, X, Package, Image, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { formatPrice } from "@/lib/utils";
 
 interface ComboManagerProps {
   products: Product[];
@@ -407,10 +408,10 @@ const ComboManager = ({ products, combos }: ComboManagerProps) => {
                               <div className="font-medium">
                                 {combo.name} - Ø{combo.product?.diameter}mm
                               </div>
-                             <div className="text-sm text-muted-foreground">
-                               {combo.quantity} unidades • ${combo.price}
-                               {combo.discount_percentage > 0 && ` • ${combo.discount_percentage}% desc.`}
-                             </div>
+                              <div className="text-sm text-muted-foreground">
+                                {combo.quantity} unidades • {formatPrice(combo.price)}
+                                {combo.discount_percentage > 0 && ` • ${combo.discount_percentage}% desc.`}
+                              </div>
                            </div>
                          </div>
                        )}
