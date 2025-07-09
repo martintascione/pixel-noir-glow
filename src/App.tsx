@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
 import ProfileEdit from "./pages/ProfileEdit";
 import Auth from "./pages/Auth";
+import RemitosGenerator from "./pages/RemitosGenerator";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/remitos" 
+              element={
+                <ProtectedRoute>
+                  <RemitosGenerator />
                 </ProtectedRoute>
               } 
             />

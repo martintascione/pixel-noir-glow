@@ -59,7 +59,7 @@ const AdminDashboard = () => {
         <h1 className="text-3xl font-bold">Dashboard Administrativo</h1>
       </div>
 
-      <div className="mb-6">
+      <div className="mb-6 flex gap-4">
         <a 
           href="https://calculos-costos.hierrostascione.com" 
           target="_blank" 
@@ -69,6 +69,11 @@ const AdminDashboard = () => {
             Página de Costos
           </Button>
         </a>
+        <Link to="/admin/remitos">
+          <Button variant="outline">
+            Generar Remito
+          </Button>
+        </Link>
       </div>
 
       {/* Estadísticas */}
