@@ -32,7 +32,7 @@ const AdminDashboard = () => {
     queryKey: ['clients'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('clients')
         .select('*');
       
       if (error) throw error;
