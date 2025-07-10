@@ -594,7 +594,9 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                               <div className="text-right text-xs text-slate-300">
                                 <p className="font-bold text-white mb-1 text-xs my-0">HIERROS TASCIONE</p>
                                 <p className="mb-1">LUIS MARIA TASCIONE</p>
-                                <p>CUIT: 20-21856308-3</p>
+                                <p className="mb-1">CUIT: 20-21856308-3</p>
+                                <p className="mb-1">TUCUMAN 396</p>
+                                <p>30 DE AGOSTO</p>
                               </div>
                             </div>
                           </div>
