@@ -81,58 +81,20 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
   const element = document.getElementById(elementId);
   if (!element) throw new Error('Elemento no encontrado');
   
-  // Obtener dimensiones reales del elemento
-  const rect = element.getBoundingClientRect();
-  const actualWidth = rect.width;
-  const actualHeight = rect.height;
-  
-  // Configuración mejorada para evitar textos cortados
+  // Configuración simple que respeta el tamaño natural del elemento
   const canvas = await html2canvas(element, {
     backgroundColor: '#ffffff',
-    scale: 3, // Escala más conservadora para mejor renderizado
+    scale: 2, // Escala para buena calidad
     useCORS: true,
     allowTaint: true,
-    width: actualWidth, // Usar el ancho real del elemento
-    height: actualHeight, // Usar la altura real del elemento
-    removeContainer: false, // No remover el contenedor
-    foreignObjectRendering: false,
     scrollX: 0,
     scrollY: 0,
-    x: 0,
-    y: 0,
-    windowWidth: window.innerWidth,
-    windowHeight: window.innerHeight,
     onclone: (clonedDoc) => {
       const clonedElement = clonedDoc.getElementById(elementId);
       if (clonedElement) {
-        // Asegurar que el elemento clonado mantenga sus dimensiones originales
-        clonedElement.style.position = 'relative';
-        clonedElement.style.left = '0';
-        clonedElement.style.top = '0';
-        clonedElement.style.margin = '0';
-        clonedElement.style.padding = '0';
+        // Solo asegurar que no haya transformaciones que distorsionen
         clonedElement.style.transform = 'none';
-        clonedElement.style.scale = '1';
         clonedElement.style.overflow = 'visible';
-        clonedElement.style.width = `${actualWidth}px`;
-        clonedElement.style.height = `${actualHeight}px`;
-        clonedElement.style.boxSizing = 'border-box';
-        
-        // Asegurar que todos los textos y elementos internos sean visibles
-        const allElements = clonedElement.querySelectorAll('*');
-        allElements.forEach((child) => {
-          const childElement = child as HTMLElement;
-          childElement.style.transform = 'none';
-          childElement.style.scale = '1';
-          childElement.style.overflow = 'visible';
-          childElement.style.whiteSpace = 'nowrap';
-          
-          // Asegurar que los textos no se corten
-          if (childElement.tagName === 'P' || childElement.tagName === 'SPAN') {
-            childElement.style.textOverflow = 'visible';
-            childElement.style.overflow = 'visible';
-          }
-        });
       }
     }
   });
