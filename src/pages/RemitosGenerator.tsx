@@ -686,7 +686,7 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
 
                         {/* Client Section */}
                         <div className="p-6 border-b border-slate-200">
-                          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Facturar a:</h3>
+                          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Cliente:</h3>
                           <div className="space-y-1">
                             <h4 className="text-lg font-semibold text-slate-900">{getCurrentClientData().name}</h4>
                             <p className="text-sm text-slate-600">{getCurrentClientData().company_name}</p>
