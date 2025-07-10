@@ -589,8 +589,8 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                                   <p className="text-sm text-slate-300">Fecha: <span className="text-white font-medium">{generateRemitoData().fecha}</span></p>
                                 </div>
                               </div>
-                              <div className="text-right text-xs text-slate-300">
-                                <p className="font-bold text-white mb-1 text-xs">HIERROS TASCIONE</p>
+                              <div className="text-right text-xs text-slate-300 my-[20px]">
+                                <p className="font-bold text-white mb-1 text-xs my-0">HIERROS TASCIONE</p>
                                 <p className="mb-1">LUIS MARIA TASCIONE</p>
                                 <p>CUIT: 20-21856308-3</p>
                               </div>
