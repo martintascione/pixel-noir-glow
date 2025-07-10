@@ -658,122 +658,124 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
 
               {/* Preview del Remito */}
               {items.length > 0 && (
-                <Card className="mx-0 overflow-hidden">
-                  <CardHeader className="p-4">
-                    <CardTitle>Preview del Remito</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0 m-0">
-                    {/* Container responsivo para la preview */}
-                    <div className="flex justify-center items-center w-full h-auto m-0 p-0">
-                      <div className="transform-gpu transition-transform duration-300 scale-[0.5] sm:scale-[0.6] md:scale-[0.7] lg:scale-[0.8] xl:scale-[0.9] origin-center">
-                        <div id="remito-preview" ref={remitoRef} className="w-full bg-white shadow-xl border border-gray-200" style={{width: '420px', minWidth: '420px', height: 'auto'}}>
-                        {/* Header Section */}
-                        <div className="bg-slate-900 text-white p-6">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h1 className="text-2xl font-light tracking-widest mb-3">REMITO</h1>
-                              <div className="space-y-1">
-                                <p className="text-sm text-slate-300">Nro de remito: <span className="text-white font-medium">{generateRemitoData().numero}</span></p>
-                                <p className="text-sm text-slate-300">Fecha: <span className="text-white font-medium">{generateRemitoData().fecha}</span></p>
-                              </div>
-                            </div>
-                            <div className="text-right text-xs text-slate-300">
-                              <p className="font-bold text-white text-sm mb-1">HIERROS TASCIONE</p>
-                              <p className="mb-1">LUIS MARIA TASCIONE</p>
-                              <p>CUIT: 20-21856308-3</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Client Section */}
-                        <div className="p-6 border-b border-slate-200">
-                          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Cliente:</h3>
-                          <div className="space-y-1">
-                            <h4 className="text-lg font-semibold text-slate-900">{getCurrentClientData().name}</h4>
-                            <p className="text-sm text-slate-600">{getCurrentClientData().company_name}</p>
-                            <p className="text-sm text-slate-500">CUIT: {getCurrentClientData().cuit}</p>
-                          </div>
-                        </div>
-
-                        {/* Products Section */}
-                        <div className="p-6">
-                          {/* Table Header */}
-                          <div className="grid grid-cols-12 gap-2 mb-4 pb-3 border-b-2 border-slate-900">
-                            <div className="col-span-1 text-xs font-bold text-slate-900 uppercase text-center">#</div>
-                            <div className="col-span-4 text-xs font-bold text-slate-900 uppercase">Descripción</div>
-                            <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">Cant.</div>
-                            <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">Precio Unit.</div>
-                            <div className="col-span-3 text-xs font-bold text-slate-900 uppercase text-center">Total</div>
-                          </div>
-
-                          {/* Products List */}
-                          <div className="space-y-3">
-                            {items.map((item, index) => (
-                              <div key={item.id} className="grid grid-cols-12 gap-2 py-3 border-b border-slate-100">
-                                <div className="col-span-1 text-sm text-slate-600 font-medium text-center">
-                                  {String(index + 1).padStart(2, '0')}
-                                </div>
-                                <div className="col-span-4">
-                                  <p className="text-sm font-semibold text-slate-900 mb-1">{item.medida}</p>
-                                  <p className="text-xs text-slate-600">{item.producto}</p>
-                                </div>
-                                <div className="col-span-2 text-center">
-                                  <span className="inline-block bg-slate-100 text-slate-900 px-2 py-1 rounded text-sm font-medium">
-                                    {item.cantidad}
-                                  </span>
-                                </div>
-                                <div className="col-span-2 text-center">
-                                  <p className="text-sm font-medium text-slate-900">${formatPrice(item.precioUnitario)}</p>
-                                </div>
-                                <div className="col-span-3 text-center">
-                                  <p className="text-sm font-bold text-slate-900">${formatPrice(item.precioTotal)}</p>
+                <div className="w-full max-w-full mx-0 px-0 overflow-hidden">
+                  <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <div className="px-2 py-2 border-b border-gray-200">
+                      <h3 className="text-sm font-medium text-gray-900">Preview del Remito</h3>
+                    </div>
+                    <div className="p-0 m-0">
+                      {/* Container responsivo para la preview */}
+                      <div className="flex justify-center items-center w-full h-auto m-0 p-0">
+                        <div className="transform-gpu transition-transform duration-300 scale-[0.5] sm:scale-[0.6] md:scale-[0.7] lg:scale-[0.8] xl:scale-[0.9] origin-center">
+                          <div id="remito-preview" ref={remitoRef} className="w-full bg-white shadow-xl border border-gray-200" style={{width: '420px', minWidth: '420px', height: 'auto'}}>
+                          {/* Header Section */}
+                          <div className="bg-slate-900 text-white p-6">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h1 className="text-2xl font-light tracking-widest mb-3">REMITO</h1>
+                                <div className="space-y-1">
+                                  <p className="text-sm text-slate-300">Nro de remito: <span className="text-white font-medium">{generateRemitoData().numero}</span></p>
+                                  <p className="text-sm text-slate-300">Fecha: <span className="text-white font-medium">{generateRemitoData().fecha}</span></p>
                                 </div>
                               </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Total Section */}
-                        <div className="p-6 pt-4 bg-slate-50">
-                          <div className="flex justify-center">
-                            <div className="w-72">
-                              <div className="space-y-2 mb-4">
-                                <div className="flex justify-between py-2">
-                                  <span className="text-sm text-slate-600">Subtotal:</span>
-                                  <span className="text-sm font-medium text-slate-900">${formatPrice(totalVenta)}</span>
-                                </div>
-                              </div>
-                              <div className="border-t-2 border-slate-900 pt-4">
-                                <div className="flex justify-between items-center">
-                                  <span className="text-lg font-bold text-slate-900 uppercase">Total:</span>
-                                  <span className="text-xl font-bold text-slate-900">${formatPrice(totalVenta)}</span>
-                                </div>
+                              <div className="text-right text-xs text-slate-300">
+                                <p className="font-bold text-white text-sm mb-1">HIERROS TASCIONE</p>
+                                <p className="mb-1">LUIS MARIA TASCIONE</p>
+                                <p>CUIT: 20-21856308-3</p>
                               </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Footer */}
-                        <div className="p-6 pt-4 text-center border-t border-slate-200">
-                          <p className="text-xs text-slate-500">Precios con IVA incluido</p>
-                        </div>
+                          {/* Client Section */}
+                          <div className="p-6 border-b border-slate-200">
+                            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Cliente:</h3>
+                            <div className="space-y-1">
+                              <h4 className="text-lg font-semibold text-slate-900">{getCurrentClientData().name}</h4>
+                              <p className="text-sm text-slate-600">{getCurrentClientData().company_name}</p>
+                              <p className="text-sm text-slate-500">CUIT: {getCurrentClientData().cuit}</p>
+                            </div>
+                          </div>
+
+                          {/* Products Section */}
+                          <div className="p-6">
+                            {/* Table Header */}
+                            <div className="grid grid-cols-12 gap-2 mb-4 pb-3 border-b-2 border-slate-900">
+                              <div className="col-span-1 text-xs font-bold text-slate-900 uppercase text-center">#</div>
+                              <div className="col-span-4 text-xs font-bold text-slate-900 uppercase">Descripción</div>
+                              <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">Cant.</div>
+                              <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">Precio Unit.</div>
+                              <div className="col-span-3 text-xs font-bold text-slate-900 uppercase text-center">Total</div>
+                            </div>
+
+                            {/* Products List */}
+                            <div className="space-y-3">
+                              {items.map((item, index) => (
+                                <div key={item.id} className="grid grid-cols-12 gap-2 py-3 border-b border-slate-100">
+                                  <div className="col-span-1 text-sm text-slate-600 font-medium text-center">
+                                    {String(index + 1).padStart(2, '0')}
+                                  </div>
+                                  <div className="col-span-4">
+                                    <p className="text-sm font-semibold text-slate-900 mb-1">{item.medida}</p>
+                                    <p className="text-xs text-slate-600">{item.producto}</p>
+                                  </div>
+                                  <div className="col-span-2 text-center">
+                                    <span className="inline-block bg-slate-100 text-slate-900 px-2 py-1 rounded text-sm font-medium">
+                                      {item.cantidad}
+                                    </span>
+                                  </div>
+                                  <div className="col-span-2 text-center">
+                                    <p className="text-sm font-medium text-slate-900">${formatPrice(item.precioUnitario)}</p>
+                                  </div>
+                                  <div className="col-span-3 text-center">
+                                    <p className="text-sm font-bold text-slate-900">${formatPrice(item.precioTotal)}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Total Section */}
+                          <div className="p-6 pt-4 bg-slate-50">
+                            <div className="flex justify-center">
+                              <div className="w-72">
+                                <div className="space-y-2 mb-4">
+                                  <div className="flex justify-between py-2">
+                                    <span className="text-sm text-slate-600">Subtotal:</span>
+                                    <span className="text-sm font-medium text-slate-900">${formatPrice(totalVenta)}</span>
+                                  </div>
+                                </div>
+                                <div className="border-t-2 border-slate-900 pt-4">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-lg font-bold text-slate-900 uppercase">Total:</span>
+                                    <span className="text-xl font-bold text-slate-900">${formatPrice(totalVenta)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Footer */}
+                          <div className="p-6 pt-4 text-center border-t border-slate-200">
+                            <p className="text-xs text-slate-500">Precios con IVA incluido</p>
+                          </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Botón de Acción */}
-                    <div className="flex justify-center py-4">
-                      <Button 
-                        onClick={handleSendWhatsApp} 
-                        disabled={items.length === 0 || !getCurrentClientData().whatsapp_number}
-                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
-                      >
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        Enviar por WhatsApp
-                      </Button>
+                      {/* Botón de Acción */}
+                      <div className="flex justify-center py-2">
+                        <Button 
+                          onClick={handleSendWhatsApp} 
+                          disabled={items.length === 0 || !getCurrentClientData().whatsapp_number}
+                          className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
+                        >
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          Enviar por WhatsApp
+                        </Button>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               )}
 
               {/* Panel de Administración */}
