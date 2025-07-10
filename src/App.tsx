@@ -12,6 +12,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ProfileEdit from "./pages/ProfileEdit";
 import Auth from "./pages/Auth";
 import RemitosGenerator from "./pages/RemitosGenerator";
+import AdminCostos from "./pages/AdminCostos";
 import { ClientRemitoHistory } from "@/components/admin/ClientRemitoHistory";
 import { RemitoDetailView } from "@/components/admin/RemitoDetailView";
 
@@ -65,6 +66,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <RemitoDetailView />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/costos" 
+              element={
+                <ProtectedRoute>
+                  <AdminCostos />
                 </ProtectedRoute>
               } 
             />
