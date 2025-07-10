@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getCategories, getProducts, getCombos } from '@/services/supabaseService';
 import CategoryManager from '@/components/admin/CategoryManager';
 import ProductManager from '@/components/admin/ProductManager';
-import { CostManager } from '@/components/admin/CostManager';
 import ComboManager from '@/components/admin/ComboManager';
 import ClientManager from '@/components/admin/ClientManager';
 import { supabase } from '@/integrations/supabase/client';
@@ -131,10 +130,9 @@ const AdminDashboard = () => {
 
       {/* Pestañas de gestión */}
       <Tabs defaultValue="categories" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="categories">Categorías</TabsTrigger>
           <TabsTrigger value="products">Productos</TabsTrigger>
-          <TabsTrigger value="costos">Costos</TabsTrigger>
           <TabsTrigger value="combos">Combos</TabsTrigger>
           <TabsTrigger value="clients">Clientes</TabsTrigger>
         </TabsList>
@@ -145,10 +143,6 @@ const AdminDashboard = () => {
         
         <TabsContent value="products">
           <ProductManager categories={categories} products={products} />
-        </TabsContent>
-        
-        <TabsContent value="costos">
-          <CostManager products={products} />
         </TabsContent>
         
         <TabsContent value="combos">

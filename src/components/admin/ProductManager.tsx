@@ -8,9 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, Save, X, Percent } from 'lucide-react';
+import { Plus, Pencil, Trash2, Save, X, Percent, Calculator } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatPrice } from "@/lib/utils";
+import { CostManager } from '@/components/admin/CostManager';
 
 interface ProductManagerProps {
   categories: ProductCategory[];
@@ -21,6 +22,7 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isPriceUpdateOpen, setIsPriceUpdateOpen] = useState(false);
+  const [isCostManagerOpen, setIsCostManagerOpen] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [confirmDialogData, setConfirmDialogData] = useState({
     title: '',
@@ -298,6 +300,21 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
                     </Button>
                   </div>
                 </div>
+              </DialogContent>
+            </Dialog>
+            
+            <Dialog open={isCostManagerOpen} onOpenChange={setIsCostManagerOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="w-full sm:w-auto">
+                  <Calculator className="h-4 w-4 mr-2" />
+                  Costos
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Gestión de Costos de Productos</DialogTitle>
+                </DialogHeader>
+                <CostManager products={products} />
               </DialogContent>
             </Dialog>
             
