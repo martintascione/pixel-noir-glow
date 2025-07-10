@@ -743,21 +743,15 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                       </div>
                     </div>
 
-                    <div className="flex gap-2 mt-4">
-                      <Button onClick={handleGeneratePDF} className="flex-1 min-w-0">
-                        <Download className="h-4 w-4 mr-1" />
-                        PDF
+                    <div className="flex justify-center mt-4">
+                      <Button 
+                        onClick={handleSendWhatsApp} 
+                        disabled={items.length === 0 || !getCurrentClientData().whatsapp_number}
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
+                      >
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Enviar por WhatsApp
                       </Button>
-                      <Button onClick={handleGenerateJPG} variant="outline" className="flex-1 min-w-0">
-                        <Download className="h-4 w-4 mr-1" />
-                        JPG
-                      </Button>
-                      {getCurrentClientData().whatsapp_number && (
-                        <Button onClick={handleSendWhatsApp} variant="outline" className="min-w-0">
-                          <MessageCircle className="h-4 w-4 mr-1" />
-                          WhatsApp
-                        </Button>
-                      )}
                     </div>
                   </CardContent>
                 </Card>
