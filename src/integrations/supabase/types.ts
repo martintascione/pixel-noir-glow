@@ -124,6 +124,41 @@ export type Database = {
           },
         ]
       }
+      product_costs: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          production_cost: number
+          profit_margin: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          production_cost?: number
+          profit_margin?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          production_cost?: number
+          profit_margin?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_costs_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category_id: string
