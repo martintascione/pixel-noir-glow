@@ -658,15 +658,15 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
 
               {/* Preview del Remito */}
               {items.length > 0 && (
-                <div className="w-full max-w-full mx-0 px-0 overflow-hidden">
-                  <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-                    <div className="px-2 py-2 border-b border-gray-200">
+                <div className="w-screen max-w-full -mx-3 sm:-mx-6 overflow-hidden">
+                  <div className="bg-white border-t border-gray-200">
+                    <div className="px-3 py-2 bg-gray-50 border-b border-gray-200">
                       <h3 className="text-sm font-medium text-gray-900">Preview del Remito</h3>
                     </div>
-                    <div className="p-0 m-0">
+                    <div className="w-full overflow-hidden">
                       {/* Container responsivo para la preview */}
-                      <div className="flex justify-center items-center w-full h-auto m-0 p-0">
-                        <div className="transform-gpu transition-transform duration-300 scale-[0.5] sm:scale-[0.6] md:scale-[0.7] lg:scale-[0.8] xl:scale-[0.9] origin-center">
+                      <div className="flex justify-center items-center w-full">
+                        <div className="transform-gpu scale-[0.35] sm:scale-[0.45] md:scale-[0.6] lg:scale-[0.75] xl:scale-[0.85] origin-center">
                           <div id="remito-preview" ref={remitoRef} className="w-full bg-white shadow-xl border border-gray-200" style={{width: '420px', minWidth: '420px', height: 'auto'}}>
                           {/* Header Section */}
                           <div className="bg-slate-900 text-white p-6">
@@ -763,7 +763,7 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                       </div>
 
                       {/* Botón de Acción */}
-                      <div className="flex justify-center py-2">
+                      <div className="flex justify-center py-3 bg-gray-50">
                         <Button 
                           onClick={handleSendWhatsApp} 
                           disabled={items.length === 0 || !getCurrentClientData().whatsapp_number}
