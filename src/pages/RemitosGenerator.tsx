@@ -613,29 +613,29 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                           {/* Products Section */}
                           <div className="p-6">
                             {/* Table Header */}
-                            <div className="grid grid-cols-11 gap-4 mb-4 pb-3 border-b-2 border-slate-900">
-                              <div className="col-span-4 text-xs font-bold text-slate-900 uppercase">Desc.</div>
-                              <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">Cant.</div>
-                              <div className="col-span-3 text-xs font-bold text-slate-900 uppercase text-right">Precio Unit.</div>
-                              <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-right">Total</div>
+                            <div className="grid grid-cols-12 gap-4 mb-4 pb-3 border-b-2 border-slate-900">
+                              <div className="col-span-5 text-xs font-bold text-slate-900 uppercase">Descripción</div>
+                              <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">Cantidad</div>
+                              <div className="col-span-3 text-xs font-bold text-slate-900 uppercase text-center">Precio Unit.</div>
+                              <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">Total</div>
                             </div>
 
                             {/* Products List */}
                             <div className="space-y-3">
-                              {items.map((item, index) => <div key={item.id} className="grid grid-cols-11 gap-4 py-3 border-b border-slate-100">
-                                  <div className="col-span-4">
-                                    <p className="text-sm font-semibold text-slate-900 mb-1 truncate">{item.medida}</p>
-                                    <p className="text-xs text-slate-600 truncate">{item.producto}</p>
+                              {items.map((item, index) => <div key={item.id} className="grid grid-cols-12 gap-4 py-3 border-b border-slate-100">
+                                  <div className="col-span-5">
+                                    <p className="text-sm font-semibold text-slate-900 mb-1">{item.medida}</p>
+                                    <p className="text-xs text-slate-600">{item.producto}</p>
                                   </div>
-                                  <div className="col-span-2 text-center">
+                                  <div className="col-span-2 text-center flex items-center justify-center">
                                     <span className="text-sm font-medium text-slate-900">
                                       {item.cantidad}
                                     </span>
                                   </div>
-                                  <div className="col-span-3 text-right">
+                                  <div className="col-span-3 text-center flex items-center justify-center">
                                     <p className="text-sm font-medium text-slate-900">${formatPrice(item.precioUnitario)}</p>
                                   </div>
-                                  <div className="col-span-2 text-right">
+                                  <div className="col-span-2 text-center flex items-center justify-center">
                                     <p className="text-sm font-bold text-slate-900">${formatPrice(item.precioTotal)}</p>
                                   </div>
                                 </div>)}
