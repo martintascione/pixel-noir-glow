@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getProducts } from '@/services/supabaseService';
 import { getClients, createClient, deleteClient, type Client } from '@/services/clientsService';
 import { generateRemitoPDF, generateRemitoJPG, sendToWhatsApp, downloadFile, type RemitoData } from '@/services/remitoService';
+import { saveImageToGallery, isNativeApp } from '@/services/galleryService';
 
 interface RemitoItem {
   id: string;
@@ -252,11 +253,37 @@ const RemitosGenerator = () => {
       const jpgBlob = await generateRemitoJPG('remito-preview');
       const remitoData = generateRemitoData();
       
-      // Descargar la imagen automáticamente
-      downloadFile(jpgBlob, `remito_${remitoData.numero}.jpg`);
-      
-      // Preparar mensaje
-      const message = `Hola ${clientData.name}, te envío el remito N° ${remitoData.numero} por un total de $${remitoData.total.toFixed(2)}. 
+      // Verificar si estamos en una app nativa (iOS/Android)
+      if (isNativeApp()) {
+        // Guardar en galería del dispositivo
+        await saveImageToGallery(jpgBlob);
+        
+        // Preparar mensaje para app nativa
+        const nativeMessage = `Hola ${clientData.name}, te envío el remito N° ${remitoData.numero} por un total de $${remitoData.total.toFixed(2)}. 
+
+📋 *DETALLE DEL PEDIDO:*
+${remitoData.items.map(item => `• ${item.cantidad} x ${item.medida} - ${item.producto} - $${item.precioTotal.toFixed(2)}`).join('\n')}
+
+💰 *TOTAL: $${remitoData.total.toFixed(2)}*
+
+La imagen del remito se guardó en tu galería. Adjúntala desde ahí.
+
+¡Gracias por tu compra! 🙏`;
+        
+        // Abrir WhatsApp con el mensaje
+        sendToWhatsApp(clientData.whatsapp_number, nativeMessage);
+        
+        toast({
+          title: "¡Éxito! 📱",
+          description: "Imagen guardada en galería. WhatsApp abierto con mensaje.",
+          duration: 5000
+        });
+      } else {
+        // Descargar para navegador web
+        downloadFile(jpgBlob, `remito_${remitoData.numero}.jpg`);
+        
+        // Preparar mensaje para navegador
+        const webMessage = `Hola ${clientData.name}, te envío el remito N° ${remitoData.numero} por un total de $${remitoData.total.toFixed(2)}. 
 
 📋 *DETALLE DEL PEDIDO:*
 ${remitoData.items.map(item => `• ${item.cantidad} x ${item.medida} - ${item.producto} - $${item.precioTotal.toFixed(2)}`).join('\n')}
@@ -266,19 +293,22 @@ ${remitoData.items.map(item => `• ${item.cantidad} x ${item.medida} - ${item.p
 La imagen del remito se descargó automáticamente. Por favor adjúntala a este mensaje.
 
 ¡Gracias por tu compra! 🙏`;
+        
+        // Abrir WhatsApp con el mensaje
+        sendToWhatsApp(clientData.whatsapp_number, webMessage);
+        
+        toast({
+          title: "Éxito",
+          description: "Imagen descargada y WhatsApp abierto. Adjunta manualmente la imagen descargada.",
+          duration: 5000
+        });
+      }
       
-      // Abrir WhatsApp con el mensaje
-      sendToWhatsApp(clientData.whatsapp_number, message);
-      
-      toast({
-        title: "Éxito",
-        description: "Imagen descargada y WhatsApp abierto. Adjunta manualmente la imagen descargada.",
-        duration: 5000
-      });
     } catch (error) {
+      console.error('Error:', error);
       toast({
         title: "Error",
-        description: "Error al generar la imagen del remito",
+        description: isNativeApp() ? "Error al guardar en galería" : "Error al generar la imagen del remito",
         variant: "destructive"
       });
     }

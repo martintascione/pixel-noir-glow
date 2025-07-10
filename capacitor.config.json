@@ -1,0 +1,14 @@
+{
+  "appId": "app.lovable.51355b2d31a64097af88bb905c51abd8",
+  "appName": "pixel-noir-glow",
+  "webDir": "dist",
+  "server": {
+    "url": "https://51355b2d-31a6-4097-af88-bb905c51abd8.lovableproject.com?forceHideBadge=true",
+    "cleartext": true
+  },
+  "plugins": {
+    "Camera": {
+      "permissions": ["camera", "photos"]
+    }
+  }
+}
