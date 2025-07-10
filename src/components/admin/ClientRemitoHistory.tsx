@@ -96,60 +96,64 @@ export const ClientRemitoHistory = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/admin/clientes')}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Historial de Remitos</h1>
-            <p className="text-muted-foreground">Cliente: {clientName}</p>
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/admin/clientes')}
+              className="flex-shrink-0"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl font-bold truncate">Historial de Remitos</h1>
+              <p className="text-muted-foreground text-sm sm:text-base truncate">Cliente: {clientName}</p>
+            </div>
           </div>
+
+          {selectedRemitos.length > 0 && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm" className="whitespace-nowrap">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Eliminar Seleccionados</span>
+                  <span className="sm:hidden">Eliminar</span>
+                  <span className="ml-1">({selectedRemitos.length})</span>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="max-w-[90vw] sm:max-w-lg">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>¿Confirmar eliminación?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta acción eliminará permanentemente {selectedRemitos.length} remito(s) seleccionado(s). 
+                    Esta acción no se puede deshacer.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteSelected} className="bg-destructive hover:bg-destructive/90">
+                    Eliminar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
 
-        {selectedRemitos.length > 0 && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" size="sm">
-                <Trash2 className="h-4 w-4 mr-2" />
-                Eliminar Seleccionados ({selectedRemitos.length})
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>¿Confirmar eliminación?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Esta acción eliminará permanentemente {selectedRemitos.length} remito(s) seleccionado(s). 
-                  Esta acción no se puede deshacer.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteSelected} className="bg-destructive hover:bg-destructive/90">
-                  Eliminar
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+        {remitos.length > 0 && (
+          <div className="flex items-center gap-2 p-3 sm:p-4 bg-muted/50 rounded-lg">
+            <Checkbox
+              checked={selectedRemitos.length === remitos.length}
+              onCheckedChange={handleSelectAll}
+            />
+            <span className="text-xs sm:text-sm font-medium">
+              Seleccionar todos ({remitos.length} remitos)
+            </span>
+          </div>
         )}
-      </div>
-
-      {remitos.length > 0 && (
-        <div className="flex items-center gap-2 p-4 bg-muted/50 rounded-lg">
-          <Checkbox
-            checked={selectedRemitos.length === remitos.length}
-            onCheckedChange={handleSelectAll}
-          />
-          <span className="text-sm font-medium">
-            Seleccionar todos ({remitos.length} remitos)
-          </span>
-        </div>
-      )}
 
       {remitos.length === 0 ? (
         <Card>
@@ -166,66 +170,88 @@ export const ClientRemitoHistory = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="space-y-3">
           {remitos.map((remito) => (
             <Card key={remito.id} className="transition-all hover:shadow-md">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+              <CardHeader className="pb-3 px-3 sm:px-6">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-2 flex-1 min-w-0">
                     <Checkbox
                       checked={selectedRemitos.includes(remito.id)}
                       onCheckedChange={() => handleSelectRemito(remito.id)}
+                      className="mt-1 flex-shrink-0"
                     />
-                    <div>
-                      <CardTitle className="text-lg">Remito N° {remito.numero}</CardTitle>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {new Date(remito.fecha).toLocaleDateString('es-AR')}
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-base sm:text-lg truncate">
+                        Remito N° {remito.numero}
+                      </CardTitle>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-muted-foreground mt-1">
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <Calendar className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">
+                            {new Date(remito.fecha).toLocaleDateString('es-AR')}
+                          </span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <DollarSign className="h-3 w-3" />
-                          {formatCurrency(remito.total)}
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <DollarSign className="h-3 w-3 flex-shrink-0" />
+                          <span className="font-medium">
+                            {formatCurrency(remito.total)}
+                          </span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">
-                      {remito.items.length} artículo{remito.items.length !== 1 ? 's' : ''}
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    <Badge variant="secondary" className="text-xs whitespace-nowrap">
+                      {remito.items.length} art.
                     </Badge>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleViewRemito(remito)}
+                      className="text-xs px-2 py-1 h-8"
                     >
-                      <Eye className="h-4 w-4 mr-2" />
-                      Ver Detalle
+                      <Eye className="h-3 w-3 mr-1" />
+                      <span className="hidden sm:inline">Ver Detalle</span>
+                      <span className="sm:hidden">Ver</span>
                     </Button>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="pt-0">
+              <CardContent className="pt-0 px-3 sm:px-6">
                 <div className="space-y-2">
-                  <h4 className="font-medium text-sm text-muted-foreground mb-2">Artículos:</h4>
-                  {remito.items.slice(0, 3).map((item, index) => (
-                    <div key={index} className="flex justify-between items-center text-sm">
-                      <span className="font-medium">{item.cantidad}x {item.medida}</span>
-                      <span className="text-muted-foreground">{item.producto}</span>
-                      <span className="font-semibold">{formatCurrency(item.precio_total)}</span>
-                    </div>
-                  ))}
-                  {remito.items.length > 3 && (
-                    <div className="text-sm text-muted-foreground text-center py-1">
-                      +{remito.items.length - 3} artículo{remito.items.length - 3 !== 1 ? 's' : ''} más...
-                    </div>
-                  )}
+                  <h4 className="font-medium text-xs sm:text-sm text-muted-foreground mb-2">
+                    Artículos:
+                  </h4>
+                  <div className="space-y-1">
+                    {remito.items.slice(0, 2).map((item, index) => (
+                      <div key={index} className="flex justify-between items-start gap-2 text-xs sm:text-sm">
+                        <div className="flex-1 min-w-0">
+                          <span className="font-medium block truncate">
+                            {item.cantidad}x {item.medida}
+                          </span>
+                          <span className="text-muted-foreground block truncate text-xs">
+                            {item.producto}
+                          </span>
+                        </div>
+                        <span className="font-semibold flex-shrink-0 text-xs sm:text-sm">
+                          {formatCurrency(item.precio_total)}
+                        </span>
+                      </div>
+                    ))}
+                    {remito.items.length > 2 && (
+                      <div className="text-xs text-muted-foreground text-center py-1 border-t">
+                        +{remito.items.length - 2} artículo{remito.items.length - 2 !== 1 ? 's' : ''} más...
+                      </div>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 };
