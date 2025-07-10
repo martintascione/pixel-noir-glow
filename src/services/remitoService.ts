@@ -81,18 +81,15 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
   const element = document.getElementById(elementId);
   if (!element) throw new Error('Elemento no encontrado');
   
-  // Obtener las dimensiones reales del elemento
-  const rect = element.getBoundingClientRect();
-  const actualWidth = element.offsetWidth;
-  const actualHeight = element.offsetHeight;
+  // Configurar dimensiones estándar para el remito
+  const fixedWidth = 420;
   
   const canvas = await html2canvas(element, {
     backgroundColor: '#ffffff',
-    scale: 2, // Escala moderada para buena calidad
+    scale: 3, // Escala alta para mejor calidad
     useCORS: true,
     allowTaint: true,
-    width: actualWidth,
-    height: actualHeight,
+    width: fixedWidth,
     removeContainer: true,
     foreignObjectRendering: false,
     scrollX: 0,
@@ -100,18 +97,34 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
     onclone: (clonedDoc) => {
       const clonedElement = clonedDoc.getElementById(elementId);
       if (clonedElement) {
-        // Mantener las dimensiones originales
-        clonedElement.style.width = `${actualWidth}px`;
-        clonedElement.style.height = `${actualHeight}px`;
-        clonedElement.style.minWidth = `${actualWidth}px`;
-        clonedElement.style.minHeight = `${actualHeight}px`;
-        clonedElement.style.maxWidth = `${actualWidth}px`;
-        clonedElement.style.maxHeight = `${actualHeight}px`;
+        // Remover todas las transformaciones y contenedores responsivos
         clonedElement.style.transform = 'none';
+        clonedElement.style.scale = '1';
+        clonedElement.style.width = `${fixedWidth}px`;
+        clonedElement.style.maxWidth = `${fixedWidth}px`;
+        clonedElement.style.minWidth = `${fixedWidth}px`;
         clonedElement.style.position = 'static';
         clonedElement.style.overflow = 'visible';
         clonedElement.style.margin = '0';
         clonedElement.style.padding = '0';
+        clonedElement.style.boxSizing = 'border-box';
+        
+        // Remover estilos responsivos del elemento padre si existen
+        const parentElements = clonedElement.closest('[class*="max-w"]');
+        if (parentElements) {
+          const parent = parentElements as HTMLElement;
+          parent.style.maxWidth = 'none';
+          parent.style.width = 'auto';
+          parent.style.transform = 'none';
+        }
+        
+        // Asegurar que todos los elementos internos mantengan su estilo
+        const allChildren = clonedElement.querySelectorAll('*');
+        allChildren.forEach((child) => {
+          const childElement = child as HTMLElement;
+          childElement.style.transform = 'none';
+          childElement.style.scale = '1';
+        });
       }
     }
   });
@@ -119,7 +132,7 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
   return new Promise((resolve) => {
     canvas.toBlob((blob) => {
       if (blob) resolve(blob);
-    }, 'image/jpeg', 0.95); // Alta calidad
+    }, 'image/jpeg', 0.95);
   });
 };
 
