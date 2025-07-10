@@ -590,8 +590,8 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                                 </div>
                               </div>
                               {/* Línea separatoria minimalista */}
-                              <div className="border-l border-slate-500 h-16 mx-6"></div>
-                              <div className="text-right text-xs text-slate-300">
+                              <div className="border-l border-slate-500 h-24 mx-6"></div>
+                              <div className="text-left text-xs text-slate-300">
                                 <p className="font-bold text-white mb-1 text-xs my-0">HIERROS TASCIONE</p>
                                 <p className="mb-1">LUIS MARIA TASCIONE</p>
                                 <p className="mb-1">CUIT: 20-21856308-3</p>
