@@ -30,10 +30,15 @@ export interface SavedRemitoItem {
 }
 
 export const saveRemitoToDatabase = async (remitoData: RemitoData, clientId: string): Promise<string> => {
+  console.log('saveRemitoToDatabase called with:', { remitoData, clientId });
+  
   const { data: { user } } = await supabase.auth.getUser();
+  console.log('Current user:', user);
+  
   if (!user) throw new Error('Usuario no autenticado');
 
   // Guardar el remito principal
+  console.log('Inserting remito...');
   const { data: remito, error: remitoError } = await supabase
     .from('remitos')
     .insert({
@@ -46,6 +51,7 @@ export const saveRemitoToDatabase = async (remitoData: RemitoData, clientId: str
     .select()
     .single();
 
+  console.log('Remito insert result:', { remito, remitoError });
   if (remitoError) throw remitoError;
 
   // Guardar los items del remito
@@ -58,12 +64,15 @@ export const saveRemitoToDatabase = async (remitoData: RemitoData, clientId: str
     precio_total: item.precioTotal
   }));
 
+  console.log('Inserting remito items:', remitoItems);
   const { error: itemsError } = await supabase
     .from('remito_items')
     .insert(remitoItems);
 
+  console.log('Items insert result:', { itemsError });
   if (itemsError) throw itemsError;
 
+  console.log('Successfully saved remito with ID:', remito.id);
   return remito.id;
 };
 
