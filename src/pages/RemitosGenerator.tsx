@@ -758,6 +758,7 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                           <div className="p-6 pt-4 text-center border-t border-slate-200">
                             <p className="text-xs text-slate-500">Precios con IVA incluido</p>
                           </div>
+                          </div>
                         </div>
                       </div>
                     </div>
