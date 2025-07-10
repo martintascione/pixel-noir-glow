@@ -231,25 +231,28 @@ export const CostManager = ({ products }: Props) => {
 
           {/* Input de IVA general */}
           <div className="mb-6 p-4 bg-muted/50 rounded-lg">
-            <div className="space-y-2">
-              <Label htmlFor="iva-rate" className="flex items-center gap-2">
-                <Percent className="w-4 h-4" />
-                IVA General (%)
-              </Label>
-              <Input
-                id="iva-rate"
-                type="number"
-                step="0.1"
-                value={ivaRate}
-                onChange={async (e) => {
-                  const newRate = parseFloat(e.target.value) || 21;
-                  setIvaRate(newRate);
-                  
-                  // Guardar en base de datos
+            <div className="flex items-center gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="iva-rate" className="flex items-center gap-2">
+                  <Percent className="w-4 h-4" />
+                  IVA General (%)
+                </Label>
+                <Input
+                  id="iva-rate"
+                  type="number"
+                  step="0.1"
+                  value={ivaRate}
+                  onChange={(e) => setIvaRate(parseFloat(e.target.value) || 21)}
+                  placeholder="21.0"
+                  className="w-32"
+                />
+              </div>
+              <Button
+                onClick={async () => {
                   try {
                     const { error } = await supabase
                       .from('general_config')
-                      .upsert({ iva_rate: newRate });
+                      .upsert({ iva_rate: ivaRate });
                     
                     if (error) throw error;
                     
@@ -266,13 +269,15 @@ export const CostManager = ({ products }: Props) => {
                     });
                   }
                 }}
-                placeholder="21.0"
-                className="w-32"
-              />
-              <p className="text-sm text-muted-foreground">
-                Este porcentaje se aplicará a todos los productos para el cálculo del IVA.
-              </p>
+                className="mt-6"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Guardar IVA
+              </Button>
             </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              Este porcentaje se aplicará a todos los productos para el cálculo del IVA.
+            </p>
           </div>
           
           <div className="space-y-8">
@@ -285,27 +290,38 @@ export const CostManager = ({ products }: Props) => {
                 
                 {/* Input de margen por categoría */}
                 <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                  <div className="space-y-2">
-                    <Label htmlFor={`margin-${categoryName}`} className="flex items-center gap-2">
-                      <Percent className="w-4 h-4" />
-                      Margen de Ganancia para {categoryName} (%)
-                    </Label>
-                    <Input
-                      id={`margin-${categoryName}`}
-                      type="number"
-                      step="0.1"
-                      value={categoryMargins[categoryName] || 0}
-                      onChange={async (e) => {
-                        const newMargin = parseFloat(e.target.value) || 0;
-                        setCategoryMargins(prev => ({ ...prev, [categoryName]: newMargin }));
-                        
-                        // Guardar en base de datos
+                  <div className="flex items-center gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor={`margin-${categoryName}`} className="flex items-center gap-2">
+                        <Percent className="w-4 h-4" />
+                        Margen de Ganancia para {categoryName} (%)
+                      </Label>
+                      <Input
+                        id={`margin-${categoryName}`}
+                        type="number"
+                        step="0.1"
+                        value={categoryMargins[categoryName] || 0}
+                        onChange={(e) => {
+                          const newMargin = parseFloat(e.target.value) || 0;
+                          setCategoryMargins(prev => ({ ...prev, [categoryName]: newMargin }));
+                          
+                          // Actualizar todos los productos de esta categoría
+                          groupedProducts[categoryName].forEach(product => {
+                            updateCost(product.id, 'profit_margin', newMargin);
+                          });
+                        }}
+                        placeholder="0.0"
+                        className="w-32"
+                      />
+                    </div>
+                    <Button
+                      onClick={async () => {
                         try {
                           const { error } = await supabase
                             .from('category_margins')
                             .upsert({
                               category_name: categoryName,
-                              profit_margin: newMargin
+                              profit_margin: categoryMargins[categoryName] || 0
                             });
                           
                           if (error) throw error;
@@ -322,19 +338,16 @@ export const CostManager = ({ products }: Props) => {
                             variant: "destructive",
                           });
                         }
-                        
-                        // Actualizar todos los productos de esta categoría
-                        groupedProducts[categoryName].forEach(product => {
-                          updateCost(product.id, 'profit_margin', newMargin);
-                        });
                       }}
-                      placeholder="0.0"
-                      className="w-32"
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Este margen se aplicará a todos los productos de la categoría {categoryName}.
-                    </p>
+                      className="mt-6"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      Guardar Margen
+                    </Button>
                   </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Este margen se aplicará a todos los productos de la categoría {categoryName}.
+                  </p>
                 </div>
                 
                 <Separator />
@@ -350,15 +363,13 @@ export const CostManager = ({ products }: Props) => {
                         <CardContent className="p-6">
                           <div className="grid gap-6">
                             {/* Información del producto */}
-                            <div className="grid grid-cols-3 gap-4">
-                              <div>
-                                <h3 className="font-semibold text-lg">{product.name}</h3>
+                            <div className="space-y-2">
+                              <h3 className="font-semibold text-lg">{product.name}</h3>
+                              <div className="text-sm text-muted-foreground">
+                                Tamaño: {product.size}
                               </div>
-                              <div>
-                                <span className="text-sm text-muted-foreground">Tamaño: {product.size}</span>
-                              </div>
-                              <div>
-                                <span className="text-sm text-muted-foreground">Precio actual: {formatCurrency(product.price)}</span>
+                              <div className="text-sm text-muted-foreground">
+                                Precio actual: {formatCurrency(product.price)}
                               </div>
                             </div>
 
