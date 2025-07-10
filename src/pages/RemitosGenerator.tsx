@@ -56,11 +56,13 @@ const RemitosGenerator = () => {
     
     // Agrupar por tipo
     const grouped = {
-      '4mm': uniqueMedidas.filter(m => m.diameter === '4'),
-      '6mm': uniqueMedidas.filter(m => m.diameter === '6'),
-      'triangular': uniqueMedidas.filter(m => m.shape?.toLowerCase().includes('triangular') || m.shape?.toLowerCase().includes('triang'))
+      '4mm': uniqueMedidas.filter(m => m.diameter && (m.diameter.startsWith('4') || m.diameter === '4.2')),
+      '6mm': uniqueMedidas.filter(m => m.diameter && m.diameter.startsWith('6')),
+      'triangular': uniqueMedidas.filter(m => m.shape?.toLowerCase().includes('triangular')),
+      'otros': uniqueMedidas.filter(m => !m.diameter || (!m.diameter.startsWith('4') && !m.diameter.startsWith('6') && !m.shape?.toLowerCase().includes('triangular')))
     };
     
+    console.log('Medidas agrupadas:', grouped); // Para debug
     return grouped;
   }, [products]);
 
@@ -190,16 +192,16 @@ const RemitosGenerator = () => {
                       <SelectTrigger className="bg-background">
                         <SelectValue placeholder="Seleccionar medida" />
                       </SelectTrigger>
-                      <SelectContent className="bg-background border shadow-lg z-50">
+                      <SelectContent className="bg-background border shadow-lg z-50 max-h-80 overflow-y-auto">
                         {/* Medidas 4mm */}
                         {medidasGrouped['4mm'].length > 0 && (
                           <>
-                            <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50">
-                              Ø4mm
+                            <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
+                              Ø4.2mm
                             </div>
                             {medidasGrouped['4mm'].map((medida) => (
                               <SelectItem key={`4mm-${medida.size}`} value={medida.size} className="pl-4">
-                                {medida.size} (Ø4mm)
+                                {medida.size} (Ø4.2mm)
                               </SelectItem>
                             ))}
                           </>
@@ -213,7 +215,7 @@ const RemitosGenerator = () => {
                         {/* Medidas 6mm */}
                         {medidasGrouped['6mm'].length > 0 && (
                           <>
-                            <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50">
+                            <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
                               Ø6mm
                             </div>
                             {medidasGrouped['6mm'].map((medida) => (
@@ -232,12 +234,31 @@ const RemitosGenerator = () => {
                         {/* Medidas triangulares */}
                         {medidasGrouped['triangular'].length > 0 && (
                           <>
-                            <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50">
+                            <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
                               Triangulares
                             </div>
                             {medidasGrouped['triangular'].map((medida) => (
                               <SelectItem key={`triangular-${medida.size}`} value={medida.size} className="pl-4">
-                                {medida.size} (Triangular)
+                                {medida.size}
+                              </SelectItem>
+                            ))}
+                          </>
+                        )}
+                        
+                        {/* Separador */}
+                        {(medidasGrouped['4mm'].length > 0 || medidasGrouped['6mm'].length > 0 || medidasGrouped['triangular'].length > 0) && medidasGrouped['otros'].length > 0 && (
+                          <div className="border-t my-1" />
+                        )}
+                        
+                        {/* Otros productos */}
+                        {medidasGrouped['otros'].length > 0 && (
+                          <>
+                            <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
+                              Clavos y Otros
+                            </div>
+                            {medidasGrouped['otros'].map((medida) => (
+                              <SelectItem key={`otros-${medida.size}`} value={medida.size} className="pl-4">
+                                {medida.size}
                               </SelectItem>
                             ))}
                           </>
