@@ -81,11 +81,33 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
   const element = document.getElementById(elementId);
   if (!element) throw new Error('Elemento no encontrado');
   
-  // Configuración que respeta el tamaño natural del elemento
+  // Configuración optimizada para generar imagen limpia
   const canvas = await html2canvas(element, {
     backgroundColor: '#ffffff',
+    scale: 1,
     useCORS: true,
-    allowTaint: true
+    allowTaint: true,
+    foreignObjectRendering: false,
+    removeContainer: true,
+    onclone: (clonedDoc) => {
+      // Asegurar que el elemento clonado tenga el tamaño correcto
+      const clonedElement = clonedDoc.getElementById(elementId);
+      if (clonedElement) {
+        clonedElement.style.width = '420px';
+        clonedElement.style.maxWidth = '420px';
+        clonedElement.style.transform = 'none';
+        clonedElement.style.position = 'static';
+        clonedElement.style.margin = '0';
+        clonedElement.style.padding = '0';
+        
+        // Asegurar que todos los textos se rendericen correctamente
+        const allElements = clonedElement.querySelectorAll('*');
+        allElements.forEach((el: any) => {
+          el.style.webkitFontSmoothing = 'antialiased';
+          el.style.fontSmoothing = 'antialiased';
+        });
+      }
+    }
   });
   
   return new Promise((resolve) => {

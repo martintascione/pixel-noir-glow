@@ -574,10 +574,11 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                     {/* Container responsivo para la preview */}
                     <div className="w-full overflow-hidden">
                       <div className="flex justify-center">
-                        <div className="w-full max-w-[95vw] sm:max-w-[420px] mx-auto transform-gpu scale-[0.8] sm:scale-[0.9] md:scale-100 origin-center">
-                          <div id="remito-preview" ref={remitoRef} className="w-full bg-white shadow-xl border border-gray-200 mx-auto" style={{
-                          maxWidth: '100%',
-                          width: '100%'
+                        <div className="w-full max-w-[420px] mx-auto">
+                          <div id="remito-preview" ref={remitoRef} className="w-[420px] bg-white shadow-xl border border-gray-200" style={{
+                          width: '420px',
+                          maxWidth: '420px',
+                          minWidth: '420px'
                         }}>
                           {/* Header Section */}
                           <div className="bg-slate-900 text-white p-6">
