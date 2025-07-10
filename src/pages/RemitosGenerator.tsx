@@ -610,17 +610,17 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                           {/* Products Section */}
                           <div className="p-6">
                             {/* Table Header */}
-                            <div className="grid grid-cols-12 gap-2 mb-4 pb-3 border-b-2 border-slate-900">
+                            <div className="grid grid-cols-12 gap-1 mb-4 pb-3 border-b-2 border-slate-900">
                               <div className="col-span-1 text-xs font-bold text-slate-900 uppercase text-center">#</div>
                               <div className="col-span-4 text-xs font-bold text-slate-900 uppercase">Descripción</div>
                               <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">Cant.</div>
-                              <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">Precio Unit.</div>
-                              <div className="col-span-3 text-xs font-bold text-slate-900 uppercase text-center">Total</div>
+                              <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-right">Precio Unit.</div>
+                              <div className="col-span-3 text-xs font-bold text-slate-900 uppercase text-right">Total</div>
                             </div>
 
                             {/* Products List */}
                             <div className="space-y-3">
-                              {items.map((item, index) => <div key={item.id} className="grid grid-cols-12 gap-2 py-3 border-b border-slate-100">
+                              {items.map((item, index) => <div key={item.id} className="grid grid-cols-12 gap-1 py-3 border-b border-slate-100">
                                   <div className="col-span-1 text-sm text-slate-600 font-medium text-center">
                                     {String(index + 1).padStart(2, '0')}
                                   </div>
@@ -629,14 +629,14 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                                     <p className="text-xs text-slate-600">{item.producto}</p>
                                   </div>
                                   <div className="col-span-2 text-center">
-                                    <span className="inline-block bg-slate-100 text-slate-900 py-1 rounded text-sm font-medium px-[15px]">
+                                    <span className="inline-block bg-slate-100 text-slate-900 py-1 rounded text-sm font-medium px-2">
                                       {item.cantidad}
                                     </span>
                                   </div>
-                                  <div className="col-span-2 text-center">
+                                  <div className="col-span-2 text-right pr-2">
                                     <p className="text-sm font-medium text-slate-900">${formatPrice(item.precioUnitario)}</p>
                                   </div>
-                                  <div className="col-span-3 text-center">
+                                  <div className="col-span-3 text-right">
                                     <p className="text-sm font-bold text-slate-900">${formatPrice(item.precioTotal)}</p>
                                   </div>
                                 </div>)}
