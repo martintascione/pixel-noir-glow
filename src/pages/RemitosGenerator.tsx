@@ -103,9 +103,9 @@ const RemitosGenerator = () => {
     const uniqueMedidas = allMedidas.filter((medida, index, self) => index === self.findIndex(m => m.size === medida.size));
     const grouped = {
       '4mm': uniqueMedidas.filter(m => m.diameter && (m.diameter.startsWith('4') || m.diameter === '4.2')),
-      '6mm': uniqueMedidas.filter(m => m.diameter && m.diameter.startsWith('6')),
+      '6mm': uniqueMedidas.filter(m => m.diameter && (m.diameter.startsWith('6') || m.diameter === '6')),
       'triangular': uniqueMedidas.filter(m => m.shape?.toLowerCase().includes('triangular')),
-      'otros': uniqueMedidas.filter(m => !m.diameter || !m.diameter.startsWith('4') && !m.diameter.startsWith('6') && !m.shape?.toLowerCase().includes('triangular'))
+      'otros': uniqueMedidas.filter(m => !m.diameter || (!m.diameter.startsWith('4') && m.diameter !== '4.2' && !m.diameter.startsWith('6') && m.diameter !== '6' && !m.shape?.toLowerCase().includes('triangular')))
     };
     return grouped;
   }, [products]);
