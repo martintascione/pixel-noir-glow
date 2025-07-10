@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      clients: {
+        Row: {
+          company_legal_name: string | null
+          company_name: string
+          created_at: string
+          cuit: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+          whatsapp_number: string | null
+        }
+        Insert: {
+          company_legal_name?: string | null
+          company_name: string
+          created_at?: string
+          cuit: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+          whatsapp_number?: string | null
+        }
+        Update: {
+          company_legal_name?: string | null
+          company_name?: string
+          created_at?: string
+          cuit?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+          whatsapp_number?: string | null
+        }
+        Relationships: []
+      }
       product_categories: {
         Row: {
           created_at: string
