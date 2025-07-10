@@ -612,9 +612,9 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                             {/* Table Header */}
                             <div className="grid grid-cols-12 gap-2 mb-4 pb-3 border-b-2 border-slate-900">
                               <div className="col-span-1 text-xs font-bold text-slate-900 uppercase text-center">#</div>
-                              <div className="col-span-4 text-xs font-bold text-slate-900 uppercase">Descripción</div>
+                              <div className="col-span-3 text-xs font-bold text-slate-900 uppercase">Desc.</div>
                               <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">Cant.</div>
-                              <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-right">Precio Unit.</div>
+                              <div className="col-span-3 text-xs font-bold text-slate-900 uppercase text-right">Precio Unit.</div>
                               <div className="col-span-3 text-xs font-bold text-slate-900 uppercase text-right">Total</div>
                             </div>
 
@@ -624,7 +624,7 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                                   <div className="col-span-1 text-sm text-slate-600 font-medium text-center">
                                     {String(index + 1).padStart(2, '0')}
                                   </div>
-                                  <div className="col-span-4">
+                                  <div className="col-span-3">
                                     <p className="text-sm font-semibold text-slate-900 mb-1">{item.medida}</p>
                                     <p className="text-xs text-slate-600">{item.producto}</p>
                                   </div>
@@ -633,7 +633,7 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                                       {item.cantidad}
                                     </span>
                                   </div>
-                                  <div className="col-span-2 text-right pr-2">
+                                  <div className="col-span-3 text-right pr-2">
                                     <p className="text-sm font-medium text-slate-900">${formatPrice(item.precioUnitario)}</p>
                                   </div>
                                   <div className="col-span-3 text-right">
