@@ -665,56 +665,57 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                   <CardContent className="space-y-4">
                     {/* Remito Visual */}
                     <div className="flex justify-center">
-                      <div id="remito-preview" ref={remitoRef} className="w-full max-w-sm bg-white shadow-2xl rounded-2xl overflow-hidden relative border border-gray-100" style={{width: '350px', minWidth: '350px', height: 'auto', minHeight: `${Math.max(450, 300 + items.length * 35)}px`}}>
+                      <div id="remito-preview" ref={remitoRef} className="w-full bg-white shadow-2xl rounded-2xl overflow-hidden border border-gray-100" style={{width: '400px', minWidth: '400px', height: 'auto', paddingBottom: '16px'}}>
                         {/* Header */}
-                        <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white p-4 rounded-t-2xl">
+                        <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white p-5 rounded-t-2xl">
                           <div className="flex justify-between items-center">
                             <div>
-                              <h1 className="text-2xl font-bold tracking-wider">REMITO</h1>
-                              <p className="text-xs opacity-80">Documento de Entrega</p>
+                              <h1 className="text-3xl font-bold tracking-wider">REMITO</h1>
+                              <p className="text-sm opacity-80">Documento de Entrega</p>
                             </div>
-                            <div className="text-right bg-white/10 rounded-lg p-2">
-                              <p className="text-sm font-bold">N° {generateRemitoData().numero}</p>
-                              <p className="text-xs opacity-90">{generateRemitoData().fecha}</p>
+                            <div className="text-right bg-white/10 rounded-lg p-3">
+                              <p className="text-lg font-bold">N° {generateRemitoData().numero}</p>
+                              <p className="text-sm opacity-90">{generateRemitoData().fecha}</p>
                             </div>
                           </div>
                         </div>
 
-                        {/* Company & Client Info - Compact Layout */}
-                        <div className="p-4 space-y-3">
-                          {/* Company Info - Horizontal */}
-                          <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-3 border border-gray-200">
+                        {/* Company & Client Info */}
+                        <div className="p-5 space-y-4">
+                          {/* Company Info */}
+                          <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200">
                             <div className="flex justify-between items-center">
                               <div>
-                                <h2 className="text-sm font-bold text-gray-800">HIERROS TASCIONE</h2>
-                                <p className="text-xs text-gray-600">LUIS MARIA TASCIONE</p>
+                                <h2 className="text-lg font-bold text-gray-800">HIERROS TASCIONE</h2>
+                                <p className="text-sm text-gray-600">LUIS MARIA TASCIONE</p>
                               </div>
                               <div className="text-right">
-                                <p className="text-xs text-gray-600">CUIT: 20-21856308-3</p>
+                                <p className="text-sm text-gray-600 font-medium">CUIT: 20-21856308-3</p>
                               </div>
                             </div>
                           </div>
 
-                          {/* Client Info - Compact */}
-                          <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
-                            <h3 className="text-xs font-bold text-gray-500 mb-1 uppercase tracking-wider">Cliente:</h3>
+                          {/* Client Info */}
+                          <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                            <h3 className="text-sm font-bold text-gray-500 mb-2 uppercase tracking-wider">Cliente:</h3>
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
-                                <p className="text-sm font-semibold text-gray-900">{getCurrentClientData().name}</p>
-                                <p className="text-xs text-gray-600">{getCurrentClientData().company_name}</p>
+                                <p className="text-lg font-semibold text-gray-900">{getCurrentClientData().name}</p>
+                                <p className="text-sm text-gray-600">{getCurrentClientData().company_name}</p>
                               </div>
                               <div className="text-right">
-                                <p className="text-xs text-gray-500">CUIT: {getCurrentClientData().cuit}</p>
+                                <p className="text-sm text-gray-500 font-medium">CUIT: {getCurrentClientData().cuit}</p>
                               </div>
                             </div>
                           </div>
                         </div>
 
                         {/* Products Table */}
-                        <div className="px-4 pb-4">
+                        <div className="px-5 pb-4">
                           <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                            <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white text-xs font-bold p-3">
-                              <div className="grid grid-cols-12 gap-2">
+                            {/* Table Header */}
+                            <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white font-bold p-4">
+                              <div className="grid grid-cols-12 gap-3 text-sm">
                                 <div className="col-span-1 text-center">#</div>
                                 <div className="col-span-5">DESCRIPCIÓN</div>
                                 <div className="col-span-2 text-center">CANT.</div>
@@ -723,24 +724,25 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                               </div>
                             </div>
                             
-                            <div className="max-h-60 overflow-y-auto">
+                            {/* Table Body - NO SCROLL, todos los productos visibles */}
+                            <div>
                               {items.map((item, index) => (
-                                <div key={item.id} className={`text-xs p-3 border-b border-gray-100 last:border-b-0 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                                  <div className="grid grid-cols-12 gap-2 items-center">
-                                    <div className="col-span-1 text-center font-medium text-gray-600">
+                                <div key={item.id} className={`p-4 border-b border-gray-100 last:border-b-0 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                                  <div className="grid grid-cols-12 gap-3 items-center">
+                                    <div className="col-span-1 text-center font-medium text-gray-600 text-sm">
                                       {String(index + 1).padStart(2, '0')}
                                     </div>
                                     <div className="col-span-5">
-                                      <p className="font-semibold text-gray-900 text-xs leading-tight">{item.medida}</p>
-                                      <p className="text-gray-600 text-xs leading-tight">{item.producto}</p>
+                                      <p className="font-bold text-gray-900 text-sm">{item.medida}</p>
+                                      <p className="text-gray-600 text-sm">{item.producto}</p>
                                     </div>
                                     <div className="col-span-2 text-center">
-                                      <span className="bg-gray-100 rounded-md px-2 py-1 font-medium text-xs">{item.cantidad}</span>
+                                      <span className="bg-gray-100 rounded-lg px-3 py-2 font-bold text-sm">{item.cantidad}</span>
                                     </div>
-                                    <div className="col-span-2 text-center font-medium text-xs">
+                                    <div className="col-span-2 text-center font-bold text-sm">
                                       ${formatNumber(item.precioUnitario)}
                                     </div>
-                                    <div className="col-span-2 text-right font-bold text-xs text-gray-900">
+                                    <div className="col-span-2 text-right font-bold text-sm text-gray-900">
                                       ${formatNumber(item.precioTotal)}
                                     </div>
                                   </div>
@@ -751,19 +753,24 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                         </div>
 
                         {/* Total Section */}
-                        <div className="px-4 pb-4">
+                        <div className="px-5 pb-5">
                           <div className="flex justify-end">
-                            <div className="w-64 space-y-2">
-                              <div className="flex justify-between text-sm bg-gray-50 rounded-lg p-3">
-                                <span className="text-gray-600 font-medium">Subtotal:</span>
+                            <div className="w-80 space-y-3">
+                              <div className="flex justify-between text-lg bg-gray-50 rounded-lg p-4 border border-gray-200">
+                                <span className="text-gray-600 font-bold">Subtotal:</span>
                                 <span className="font-bold text-gray-900">${formatNumber(totalVenta)}</span>
                               </div>
-                              <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white p-3 rounded-xl shadow-lg flex justify-between font-bold text-base">
+                              <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white p-4 rounded-xl shadow-lg flex justify-between font-bold text-xl">
                                 <span>TOTAL</span>
                                 <span>${formatNumber(totalVenta)}</span>
                               </div>
                             </div>
                           </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-5 pb-4 text-center">
+                          <p className="text-sm text-gray-500 italic">¡Gracias por elegirnos!</p>
                         </div>
                       </div>
                     </div>
