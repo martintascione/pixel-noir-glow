@@ -301,6 +301,149 @@ export type Database = {
           },
         ]
       }
+      sec_configuracion_venta: {
+        Row: {
+          created_at: string
+          id: string
+          iva: number
+          margen_ganancia: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          iva?: number
+          margen_ganancia?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          iva?: number
+          margen_ganancia?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sec_estribo_pesos: {
+        Row: {
+          created_at: string
+          estribo_id: string
+          id: string
+          peso: number
+          proveedor_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          estribo_id: string
+          id?: string
+          peso: number
+          proveedor_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          estribo_id?: string
+          id?: string
+          peso?: number
+          proveedor_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sec_estribo_pesos_estribo_id_fkey"
+            columns: ["estribo_id"]
+            isOneToOne: false
+            referencedRelation: "sec_estribos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sec_estribo_pesos_proveedor_id_fkey"
+            columns: ["proveedor_id"]
+            isOneToOne: false
+            referencedRelation: "sec_proveedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sec_estribos: {
+        Row: {
+          created_at: string
+          id: string
+          medida: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          medida: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          medida?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sec_precios_por_unidad: {
+        Row: {
+          created_at: string
+          estribo_id: string
+          id: string
+          precio_unitario: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          estribo_id: string
+          id?: string
+          precio_unitario?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          estribo_id?: string
+          id?: string
+          precio_unitario?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sec_precios_por_unidad_estribo_id_fkey"
+            columns: ["estribo_id"]
+            isOneToOne: false
+            referencedRelation: "sec_estribos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sec_proveedores: {
+        Row: {
+          created_at: string
+          id: string
+          nombre: string
+          precio_por_kg: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nombre: string
+          precio_por_kg: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nombre?: string
+          precio_por_kg?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
