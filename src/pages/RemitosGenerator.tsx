@@ -658,15 +658,14 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
 
               {/* Preview del Remito */}
               {items.length > 0 && (
-                <div className="w-screen max-w-full -mx-3 sm:-mx-6 overflow-hidden">
-                  <div className="bg-white border-t border-gray-200">
-                    <div className="px-3 py-2 bg-gray-50 border-b border-gray-200">
-                      <h3 className="text-sm font-medium text-gray-900">Preview del Remito</h3>
-                    </div>
-                    <div className="w-full overflow-hidden">
-                      {/* Container responsivo para la preview */}
-                      <div className="flex justify-center items-center w-full">
-                        <div className="transform-gpu scale-[0.35] sm:scale-[0.45] md:scale-[0.6] lg:scale-[0.75] xl:scale-[0.85] origin-center">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Preview del Remito</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                     {/* Container responsivo para la preview */}
+                    <div className="flex justify-center items-center w-full overflow-x-auto">
+                      <div className="transform-gpu scale-[0.65] sm:scale-[0.75] md:scale-[0.85] lg:scale-[0.95] xl:scale-100 origin-center">
                           <div id="remito-preview" ref={remitoRef} className="w-full bg-white shadow-xl border border-gray-200" style={{width: '420px', minWidth: '420px', height: 'auto'}}>
                           {/* Header Section */}
                           <div className="bg-slate-900 text-white p-6">
@@ -763,7 +762,7 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                       </div>
 
                       {/* Botón de Acción */}
-                      <div className="flex justify-center py-3 bg-gray-50">
+                      <div className="flex justify-center py-4">
                         <Button 
                           onClick={handleSendWhatsApp} 
                           disabled={items.length === 0 || !getCurrentClientData().whatsapp_number}
@@ -774,8 +773,8 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                         </Button>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               )}
 
               {/* Panel de Administración */}
