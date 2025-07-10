@@ -663,9 +663,10 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                     <CardTitle>Preview del Remito</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {/* Remito Visual */}
-                    <div className="flex justify-center">
-                      <div id="remito-preview" ref={remitoRef} className="w-full bg-white shadow-xl border border-gray-200" style={{width: '420px', minWidth: '420px', height: 'auto'}}>
+                    {/* Container responsivo para la preview */}
+                    <div className="flex justify-center overflow-x-auto">
+                      <div className="transform-gpu transition-transform duration-300 scale-75 md:scale-90 lg:scale-100 origin-top">
+                        <div id="remito-preview" ref={remitoRef} className="w-full bg-white shadow-xl border border-gray-200" style={{width: '420px', minWidth: '420px', height: 'auto'}}>
                         {/* Header Section */}
                         <div className="bg-slate-900 text-white p-6">
                           <div className="flex justify-between items-start">
@@ -755,6 +756,7 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                         {/* Footer */}
                         <div className="p-6 pt-4 text-center border-t border-slate-200">
                           <p className="text-xs text-slate-500">Precios con IVA incluido</p>
+                        </div>
                         </div>
                       </div>
                     </div>
