@@ -74,11 +74,6 @@ const AdminDashboard = () => {
             Generar Remito
           </Button>
         </Link>
-        <Link to="/admin/costos">
-          <Button variant="outline">
-            Análisis de Costos
-          </Button>
-        </Link>
       </div>
 
       {/* Estadísticas */}
