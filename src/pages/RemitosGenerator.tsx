@@ -384,6 +384,46 @@ const RemitosGenerator = () => {
       });
     }
   };
+
+  const handleSaveRemito = async () => {
+    if (!selectedClient) {
+      toast({
+        title: "Error",
+        description: "Debes seleccionar un cliente para guardar el remito",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (items.length === 0) {
+      toast({
+        title: "Error",
+        description: "Agrega al menos un producto al remito",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const remitoData = generateRemitoData();
+      console.log('Saving remito manually:', { remitoData, selectedClient });
+      
+      const remitoId = await saveRemitoToDatabase(remitoData, selectedClient.id);
+      console.log('Remito saved with ID:', remitoId);
+      
+      toast({
+        title: "Éxito",
+        description: "Remito guardado correctamente en el historial",
+      });
+    } catch (error) {
+      console.error('Error saving remito:', error);
+      toast({
+        title: "Error",
+        description: "Error al guardar el remito: " + (error as Error).message,
+        variant: "destructive",
+      });
+    }
+  };
   return <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <div className="container mx-auto px-3 py-6 max-w-6xl">
       <div className="mb-6 flex items-center">
@@ -756,8 +796,13 @@ const RemitosGenerator = () => {
                       </div>
                     </div>
 
-                    {/* Botón de Acción */}
-                    <div className="flex justify-center py-4">
+                    {/* Botones de Acción */}
+                    <div className="flex flex-col gap-3 py-4">
+                      <Button onClick={handleSaveRemito} disabled={items.length === 0 || !selectedClient} className="bg-blue-600 hover:bg-blue-700 text-white">
+                        <Calculator className="h-4 w-4 mr-2" />
+                        Guardar Remito
+                      </Button>
+                      
                       <Button onClick={handleSendWhatsApp} disabled={items.length === 0 || !getCurrentClientData().whatsapp_number} className="bg-green-600 hover:bg-green-700 text-white px-6 py-2">
                         <MessageCircle className="h-4 w-4 mr-2" />
                         Enviar por WhatsApp
