@@ -663,10 +663,10 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                     <CardTitle>Preview del Remito</CardTitle>
                   </CardHeader>
                   <CardContent className="p-4">
-                     {/* Container responsivo para la preview */}
+                    {/* Container responsivo para la preview */}
                     <div className="flex justify-center items-center w-full overflow-x-auto">
                       <div className="transform-gpu scale-[0.65] sm:scale-[0.75] md:scale-[0.85] lg:scale-[0.95] xl:scale-100 origin-center">
-                          <div id="remito-preview" ref={remitoRef} className="w-full bg-white shadow-xl border border-gray-200" style={{width: '420px', minWidth: '420px', height: 'auto'}}>
+                        <div id="remito-preview" ref={remitoRef} className="w-full bg-white shadow-xl border border-gray-200" style={{width: '420px', minWidth: '420px', height: 'auto'}}>
                           {/* Header Section */}
                           <div className="bg-slate-900 text-white p-6">
                             <div className="flex justify-between items-start">
@@ -757,21 +757,20 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                           <div className="p-6 pt-4 text-center border-t border-slate-200">
                             <p className="text-xs text-slate-500">Precios con IVA incluido</p>
                           </div>
-                          </div>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Botón de Acción */}
-                      <div className="flex justify-center py-4">
-                        <Button 
-                          onClick={handleSendWhatsApp} 
-                          disabled={items.length === 0 || !getCurrentClientData().whatsapp_number}
-                          className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
-                        >
-                          <MessageCircle className="h-4 w-4 mr-2" />
-                          Enviar por WhatsApp
-                        </Button>
-                      </div>
+                    {/* Botón de Acción */}
+                    <div className="flex justify-center py-4">
+                      <Button 
+                        onClick={handleSendWhatsApp} 
+                        disabled={items.length === 0 || !getCurrentClientData().whatsapp_number}
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
+                      >
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Enviar por WhatsApp
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
