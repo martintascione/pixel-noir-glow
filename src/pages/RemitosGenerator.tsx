@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getProducts } from '@/services/supabaseService';
 import { getClients, createClient, deleteClient, type Client } from '@/services/clientsService';
 import { generateRemitoPDF, generateRemitoJPG, sendToWhatsApp, downloadFile, type RemitoData } from '@/services/remitoService';
+import { saveRemitoToDatabase } from '@/services/remitosHistoryService';
 import { saveImageToGallery, isNativeApp } from '@/services/galleryService';
 import { formatCurrency, formatNumber, formatPrice } from '@/utils/formatters';
 interface RemitoItem {
@@ -238,9 +239,29 @@ const RemitosGenerator = () => {
       return;
     }
     try {
+      const remitoData = generateRemitoData();
+      
+      // Guardar remito en la base de datos automáticamente
+      let remitoId: string | undefined;
+      if (selectedClient) {
+        try {
+          remitoId = await saveRemitoToDatabase(remitoData, selectedClient.id);
+          toast({
+            title: "Remito guardado",
+            description: "El remito se guardó correctamente en el historial",
+          });
+        } catch (error) {
+          console.error('Error saving remito:', error);
+          toast({
+            title: "Advertencia",
+            description: "El remito se generará pero no se guardó en el historial",
+            variant: "destructive",
+          });
+        }
+      }
+
       // Generar JPG del remito
       const jpgBlob = await generateRemitoJPG('remito-preview');
-      const remitoData = generateRemitoData();
 
       // Verificar si estamos en una app nativa (iOS/Android)
       if (isNativeApp()) {
