@@ -44,10 +44,10 @@ export const RemitoDetailView = () => {
         .from('product_costs')
         .select('*');
 
-      // Obtener todos los productos para mapear por medida (size)
+      // Obtener todos los productos para mapear por medida (size) y diámetro
       const { data: productsData } = await supabase
         .from('products')
-        .select('id, name, size');
+        .select('id, name, size, diameter');
 
       setCostData({
         ivaRate: configData?.iva_rate || 21,
@@ -75,27 +75,49 @@ export const RemitoDetailView = () => {
 
     // Calcular el costo total del pedido y IVA débito
     remito.items.forEach(item => {
-      // Buscar TODOS los productos por medida (size) y nombre
-      const matchingProducts = costData.products.filter((p: any) => 
-        p.size === item.medida && p.name === item.producto
-      );
+      // Extraer size y diameter de la medida
+      let productSize: string;
+      let productDiameter: string | null = null;
       
-      // Buscar el costo en cualquiera de los productos que coincidan
-      let productCost = null;
-      for (const product of matchingProducts) {
-        productCost = costData.productCosts.find((cost: any) => 
-          cost.product_id === product.id
-        );
-        if (productCost) break; // Si encontramos un costo, salimos del loop
+      if (item.medida.includes('-Ø')) {
+        // Formato: "12x12-Ø6mm" -> extraer size y diameter
+        const [size, diameterPart] = item.medida.split('-Ø');
+        productSize = size;
+        productDiameter = diameterPart.replace('mm', '');
+      } else {
+        // Para productos sin diámetro (clavos, etc.)
+        productSize = item.medida;
       }
       
-      if (productCost) {
-        const costoTotalItem = productCost.production_cost * item.cantidad;
-        costoTotal += costoTotalItem;
+      // Buscar producto por size, diameter y nombre
+      let matchingProduct;
+      if (productDiameter) {
+        matchingProduct = costData.products.find((p: any) => 
+          p.size === productSize && 
+          p.diameter === productDiameter && 
+          p.name === item.producto
+        );
+      } else {
+        matchingProduct = costData.products.find((p: any) => 
+          p.size === productSize && 
+          p.name === item.producto
+        );
+      }
+      
+      if (matchingProduct) {
+        // Buscar el costo del producto
+        const productCost = costData.productCosts.find((cost: any) => 
+          cost.product_id === matchingProduct.id
+        );
         
-        // Calcular IVA débito (IVA contenido en el costo)
-        const ivaDebitoItem = costoTotalItem * (costData.ivaRate / 100) / (1 + costData.ivaRate / 100);
-        ivaDebito += ivaDebitoItem;
+        if (productCost) {
+          const costoTotalItem = productCost.production_cost * item.cantidad;
+          costoTotal += costoTotalItem;
+          
+          // Calcular IVA débito (IVA contenido en el costo)
+          const ivaDebitoItem = costoTotalItem * (costData.ivaRate / 100) / (1 + costData.ivaRate / 100);
+          ivaDebito += ivaDebitoItem;
+        }
       }
     });
 
