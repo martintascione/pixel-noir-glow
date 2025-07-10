@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { formatCurrency } from '@/utils/formatters';
+import { saveRemitoToDatabase } from './remitosHistoryService';
 
 export interface RemitoData {
   cliente: {
@@ -19,6 +20,11 @@ export interface RemitoData {
   total: number;
   fecha: string;
   numero: string;
+}
+
+export interface GenerateRemitoOptions {
+  saveToDatabase?: boolean;
+  clientId?: string;
 }
 
 export const generateRemitoPDF = async (remitoData: RemitoData): Promise<Blob> => {
@@ -75,6 +81,29 @@ export const generateRemitoPDF = async (remitoData: RemitoData): Promise<Blob> =
   pdf.text(`TOTAL: ${formatCurrency(remitoData.total)}`, 150, currentY + 15);
   
   return pdf.output('blob');
+};
+
+export const generateRemitoWithSave = async (
+  remitoData: RemitoData, 
+  options: GenerateRemitoOptions = {}
+): Promise<{ blob: Blob; remitoId?: string }> => {
+  const { saveToDatabase = false, clientId } = options;
+  
+  let remitoId: string | undefined;
+  
+  // Guardar en base de datos si se solicita
+  if (saveToDatabase && clientId) {
+    try {
+      remitoId = await saveRemitoToDatabase(remitoData, clientId);
+    } catch (error) {
+      console.error('Error saving to database:', error);
+      // Continúa generando el PDF aunque falle el guardado
+    }
+  }
+  
+  const blob = await generateRemitoJPG('remito-preview');
+  
+  return { blob, remitoId };
 };
 
 export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {

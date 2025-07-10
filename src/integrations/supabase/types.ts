@@ -219,6 +219,88 @@ export type Database = {
         }
         Relationships: []
       }
+      remito_items: {
+        Row: {
+          cantidad: number
+          created_at: string
+          id: string
+          medida: string
+          precio_total: number
+          precio_unitario: number
+          producto: string
+          remito_id: string
+        }
+        Insert: {
+          cantidad: number
+          created_at?: string
+          id?: string
+          medida: string
+          precio_total: number
+          precio_unitario: number
+          producto: string
+          remito_id: string
+        }
+        Update: {
+          cantidad?: number
+          created_at?: string
+          id?: string
+          medida?: string
+          precio_total?: number
+          precio_unitario?: number
+          producto?: string
+          remito_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "remito_items_remito_id_fkey"
+            columns: ["remito_id"]
+            isOneToOne: false
+            referencedRelation: "remitos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      remitos: {
+        Row: {
+          client_id: string
+          created_at: string
+          fecha: string
+          id: string
+          numero: string
+          total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          fecha: string
+          id?: string
+          numero: string
+          total: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          fecha?: string
+          id?: string
+          numero?: string
+          total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "remitos_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

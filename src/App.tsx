@@ -12,6 +12,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ProfileEdit from "./pages/ProfileEdit";
 import Auth from "./pages/Auth";
 import RemitosGenerator from "./pages/RemitosGenerator";
+import { ClientRemitoHistory } from "@/components/admin/ClientRemitoHistory";
+import { RemitoDetailView } from "@/components/admin/RemitoDetailView";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +49,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <RemitosGenerator />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/clientes/:clientId/remitos" 
+              element={
+                <ProtectedRoute>
+                  <ClientRemitoHistory />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/remitos/view/:remitoId" 
+              element={
+                <ProtectedRoute>
+                  <RemitoDetailView />
                 </ProtectedRoute>
               } 
             />

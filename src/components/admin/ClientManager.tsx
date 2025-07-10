@@ -1,36 +1,35 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Users, Eye, Phone, Mail, Building, FileText, Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { Users, Eye, Phone, Building, Calendar, History } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Client {
   id: string;
   user_id: string;
-  first_name: string;
-  last_name: string;
+  name: string;
   company_name: string;
-  company_legal_name: string;
-  company_cuit: string;
-  whatsapp_number: string;
-  requires_invoice_a: boolean;
-  accepts_notifications: boolean;
+  company_legal_name?: string;
+  cuit: string;
+  whatsapp_number?: string;
   created_at: string;
   updated_at: string;
 }
 
 const ClientManager = () => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const navigate = useNavigate();
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ['clients'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('clients')
         .select('*')
         .order('created_at', { ascending: false });
       
@@ -49,17 +48,26 @@ const ClientManager = () => {
     });
   };
 
+  const handleViewHistory = (clientId: string) => {
+    navigate(`/admin/clientes/${clientId}/remitos`);
+  };
+
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Clientes Registrados
+            Gestión de Clientes
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8">Cargando clientes...</div>
+          <div className="flex items-center justify-center h-40">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-2 text-muted-foreground">Cargando clientes...</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
@@ -68,87 +76,84 @@ const ClientManager = () => {
   return (
     <Card>
       <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Clientes Registrados
-          </CardTitle>
-          <Badge variant="secondary" className="w-fit">
-            {clients.length} cliente{clients.length !== 1 ? 's' : ''}
-          </Badge>
-        </div>
+        <CardTitle className="flex items-center gap-2">
+          <Users className="h-5 w-5" />
+          Gestión de Clientes
+        </CardTitle>
+        <p className="text-muted-foreground">
+          Total de clientes registrados: {clients.length}
+        </p>
       </CardHeader>
       <CardContent>
         {clients.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No hay clientes registrados aún
+          <div className="text-center py-8">
+            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No hay clientes registrados</h3>
+            <p className="text-muted-foreground">
+              Los clientes aparecerán aquí cuando se registren nuevos usuarios en el sistema.
+            </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {clients.map((client) => (
-              <div key={client.id} className="border rounded-lg p-4 hover:bg-muted/30 transition-colors">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div key={client.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div className="flex justify-between items-start mb-3">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-lg">
-                        {client.first_name} {client.last_name}
-                      </h3>
-                      {client.requires_invoice_a && (
-                        <Badge variant="outline" className="text-xs">
-                          Factura A
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <Building className="h-4 w-4" />
-                        {client.company_name}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4" />
-                        CUIT: {client.company_cuit}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4" />
-                        {client.whatsapp_number || 'No especificado'}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        Registrado: {formatDate(client.created_at)}
-                      </div>
-                    </div>
+                    <h3 className="font-semibold text-lg">{client.name}</h3>
+                    <p className="text-sm text-muted-foreground">{client.company_name}</p>
                   </div>
-                  
+                  <Badge variant="secondary" className="text-xs">
+                    Cliente
+                  </Badge>
+                </div>
+                
+                <div className="space-y-2 text-sm mb-4">
+                  <div className="flex items-center gap-2">
+                    <Building className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-muted-foreground">CUIT: {client.cuit}</span>
+                  </div>
+                  {client.whatsapp_number && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">{client.whatsapp_number}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-muted-foreground">
+                      Registrado: {formatDate(client.created_at)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                        <Eye className="h-4 w-4 mr-2" />
-                        Ver Detalles
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => setSelectedClient(client)}
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        Ver Detalle
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto w-[95vw] sm:w-full rounded-2xl">
+                    <DialogContent className="max-w-2xl">
                       <DialogHeader>
-                        <DialogTitle className="text-lg sm:text-xl text-center">
-                          Información Completa del Cliente
-                        </DialogTitle>
+                        <DialogTitle>Detalles del Cliente</DialogTitle>
                       </DialogHeader>
-                      
-                      <div className="space-y-6">
-                        {/* Datos Personales */}
+                      <div className="space-y-6 max-h-[70vh] overflow-y-auto">
+                        {/* Información Personal */}
                         <div>
                           <h4 className="font-semibold mb-3 flex items-center gap-2">
                             <Users className="h-4 w-4" />
-                            Datos Personales
+                            Información Personal
                           </h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
                               <span className="font-medium">Nombre:</span>
-                              <p className="text-muted-foreground">{client.first_name}</p>
-                            </div>
-                            <div>
-                              <span className="font-medium">Apellido:</span>
-                              <p className="text-muted-foreground">{client.last_name}</p>
+                              <p className="text-muted-foreground">{client.name}</p>
                             </div>
                           </div>
                         </div>
@@ -166,13 +171,15 @@ const ClientManager = () => {
                               <span className="font-medium">Nombre de la Empresa:</span>
                               <p className="text-muted-foreground">{client.company_name}</p>
                             </div>
-                            <div>
-                              <span className="font-medium">Razón Social:</span>
-                              <p className="text-muted-foreground">{client.company_legal_name}</p>
-                            </div>
+                            {client.company_legal_name && (
+                              <div>
+                                <span className="font-medium">Razón Social:</span>
+                                <p className="text-muted-foreground">{client.company_legal_name}</p>
+                              </div>
+                            )}
                             <div>
                               <span className="font-medium">CUIT:</span>
-                              <p className="text-muted-foreground font-mono">{client.company_cuit}</p>
+                              <p className="text-muted-foreground font-mono">{client.cuit}</p>
                             </div>
                           </div>
                         </div>
@@ -191,44 +198,6 @@ const ClientManager = () => {
                               <p className="text-muted-foreground">
                                 {client.whatsapp_number || 'No especificado'}
                               </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <Separator />
-
-                        {/* Preferencias */}
-                        <div>
-                          <h4 className="font-semibold mb-3 flex items-center gap-2">
-                            <FileText className="h-4 w-4" />
-                            Preferencias y Configuración
-                          </h4>
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2">
-                              {client.requires_invoice_a ? (
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                              ) : (
-                                <XCircle className="h-4 w-4 text-red-600" />
-                              )}
-                              <span className="text-sm">
-                                {client.requires_invoice_a 
-                                  ? 'Requiere factura A' 
-                                  : 'No requiere factura A'
-                                }
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {client.accepts_notifications ? (
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                              ) : (
-                                <XCircle className="h-4 w-4 text-red-600" />
-                              )}
-                              <span className="text-sm">
-                                {client.accepts_notifications 
-                                  ? 'Acepta notificaciones' 
-                                  : 'No acepta notificaciones'
-                                }
-                              </span>
                             </div>
                           </div>
                         </div>
@@ -255,6 +224,16 @@ const ClientManager = () => {
                       </div>
                     </DialogContent>
                   </Dialog>
+                  
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleViewHistory(client.id)}
+                  >
+                    <History className="h-3 w-3 mr-1" />
+                    Historial
+                  </Button>
                 </div>
               </div>
             ))}
