@@ -629,7 +629,7 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                                     <p className="text-xs text-slate-600">{item.producto}</p>
                                   </div>
                                   <div className="col-span-2 text-center">
-                                    <span className="inline-block bg-slate-100 text-slate-900 px-2 py-1 rounded text-sm font-medium">
+                                    <span className="inline-block bg-slate-100 text-slate-900 py-1 rounded text-sm font-medium px-[15px]">
                                       {item.cantidad}
                                     </span>
                                   </div>
