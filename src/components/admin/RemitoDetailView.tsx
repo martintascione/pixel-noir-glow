@@ -85,115 +85,136 @@ export const RemitoDetailView = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(`/admin/clientes/${remito.client_id}/remitos`)}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Detalle del Remito</h1>
-            <p className="text-muted-foreground">Remito N° {remito.numero}</p>
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-6">
+      <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate(`/admin/clientes/${remito.client_id}/remitos`)}
+              className="flex-shrink-0"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl font-bold">Detalle del Remito</h1>
+              <p className="text-muted-foreground text-sm sm:text-base truncate">Remito N° {remito.numero}</p>
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleDownloadImage}
+              disabled={generatingImage}
+              size="sm"
+              className="whitespace-nowrap"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              {generatingImage ? 'Generando...' : 'Descargar'}
+            </Button>
           </div>
         </div>
-        
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={handleDownloadImage}
-            disabled={generatingImage}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            {generatingImage ? 'Generando...' : 'Descargar'}
-          </Button>
-        </div>
-      </div>
 
-      {/* Remito Preview - Misma estructura que en RemitosGenerator */}
-      <div className="flex justify-center">
-        <div className="w-full max-w-[420px] mx-auto">
-          <div id="remito-detail-view" className="w-[420px] bg-white shadow-xl border border-gray-200" style={{
-            width: '420px',
-            maxWidth: '420px',
-            minWidth: '420px'
-          }}>
-            {/* Header Section */}
-            <div className="bg-slate-900 text-white p-6">
-              <div className="flex justify-between items-start gap-6">
-                <div className="flex-1">
-                  <h1 className="text-2xl font-light tracking-widest mb-3">REMITO</h1>
-                  <div className="space-y-1">
-                    <p className="text-slate-300 text-xs">Nro de remito: <span className="text-white font-medium">{remito.numero}</span></p>
-                    <p className="text-sm text-slate-300">Fecha: <span className="text-white font-medium">{new Date(remito.fecha).toLocaleDateString('es-AR')}</span></p>
-                  </div>
-                </div>
-                <div className="border-l border-slate-500 h-20"></div>
-                <div className="flex-1 text-left text-xs text-slate-300 whitespace-nowrap">
-                  <p className="font-bold text-white mb-1 whitespace-nowrap">HIERROS TASCIONE</p>
-                  <p className="mb-1 whitespace-nowrap">LUIS MARIA TASCIONE</p>
-                  <p className="mb-1 whitespace-nowrap">CUIT: 20-21856308-3</p>
-                  <p className="mb-1 whitespace-nowrap">TUCUMAN 396</p>
-                  <p className="whitespace-nowrap">30 DE AGOSTO</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Client Section */}
-            <div className="p-6 border-b border-slate-200">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Cliente:</h3>
-              <div className="space-y-1">
-                <h4 className="text-lg font-semibold text-slate-900">{remito.client?.name}</h4>
-                <p className="text-sm text-slate-600">{remito.client?.company_name}</p>
-                <p className="text-sm text-slate-500">CUIT: {remito.client?.cuit}</p>
-              </div>
-            </div>
-
-            {/* Products Section */}
-            <div className="p-6">
-              {/* Table Header */}
-              <div className="grid grid-cols-10 gap-6 mb-4 pb-3 border-b-2 border-slate-900">
-                <div className="col-span-4 text-xs font-bold text-slate-900 uppercase text-left">DESCRIPCIÓN</div>
-                <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">CANT.</div>
-                <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">PRECIO UNIT.</div>
-                <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">TOTAL</div>
-              </div>
-
-              {/* Products List */}
-              <div className="space-y-3">
-                {remito.items.map((item, index) => (
-                  <div key={index} className="grid grid-cols-10 gap-6 py-3 border-b border-slate-100">
-                    <div className="col-span-4 text-left">
-                      <p className="text-sm font-semibold text-slate-900 mb-1">{item.medida}</p>
-                      <p className="text-xs text-slate-600">{item.producto}</p>
-                    </div>
-                    <div className="col-span-2 flex items-center justify-center">
-                      <span className="text-sm font-medium text-slate-900">
-                        {item.cantidad}
-                      </span>
-                    </div>
-                    <div className="col-span-2 flex items-center justify-center">
-                      <p className="text-sm font-medium text-slate-900">${item.precio_unitario.toFixed(2)}</p>
-                    </div>
-                    <div className="col-span-2 flex items-center justify-center">
-                      <p className="text-sm font-bold text-slate-900">${item.precio_total.toFixed(2)}</p>
+        {/* Remito Preview - Responsive */}
+        <div className="w-full overflow-hidden">
+          <div className="w-full max-w-md mx-auto">
+            <div id="remito-detail-view" className="w-full bg-white shadow-xl border border-gray-200 text-xs sm:text-sm">
+              {/* Header Section */}
+              <div className="bg-slate-900 text-white p-3 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-6">
+                  <div className="flex-1">
+                    <h1 className="text-lg sm:text-2xl font-light tracking-widest mb-2 sm:mb-3">REMITO</h1>
+                    <div className="space-y-1">
+                      <p className="text-slate-300 text-xs">Nro de remito: <span className="text-white font-medium">{remito.numero}</span></p>
+                      <p className="text-xs sm:text-sm text-slate-300">Fecha: <span className="text-white font-medium">{new Date(remito.fecha).toLocaleDateString('es-AR')}</span></p>
                     </div>
                   </div>
-                ))}
+                  <div className="hidden sm:block border-l border-slate-500 h-20"></div>
+                  <div className="text-left text-xs text-slate-300">
+                    <p className="font-bold text-white mb-1">HIERROS TASCIONE</p>
+                    <p className="mb-1">LUIS MARIA TASCIONE</p>
+                    <p className="mb-1">CUIT: 20-21856308-3</p>
+                    <p className="mb-1">TUCUMAN 396</p>
+                    <p>30 DE AGOSTO</p>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            {/* Total Section */}
-            <div className="p-6 pt-4 bg-slate-50">
-              <div className="flex justify-center">
-                <div className="w-72">
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between items-center py-2 border-t-2 border-slate-900">
-                      <span className="text-base font-bold text-slate-900">TOTAL:</span>
-                      <span className="text-xl font-bold text-slate-900">${remito.total.toFixed(2)}</span>
+              {/* Client Section */}
+              <div className="p-3 sm:p-6 border-b border-slate-200">
+                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 sm:mb-3">Cliente:</h3>
+                <div className="space-y-1">
+                  <h4 className="text-sm sm:text-lg font-semibold text-slate-900">{remito.client?.name}</h4>
+                  <p className="text-xs sm:text-sm text-slate-600">{remito.client?.company_name}</p>
+                  <p className="text-xs sm:text-sm text-slate-500">CUIT: {remito.client?.cuit}</p>
+                </div>
+              </div>
+
+              {/* Products Section */}
+              <div className="p-3 sm:p-6">
+                {/* Table Header - Hidden on mobile, using cards instead */}
+                <div className="hidden sm:grid sm:grid-cols-10 gap-6 mb-4 pb-3 border-b-2 border-slate-900">
+                  <div className="col-span-4 text-xs font-bold text-slate-900 uppercase text-left">DESCRIPCIÓN</div>
+                  <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">CANT.</div>
+                  <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">PRECIO UNIT.</div>
+                  <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">TOTAL</div>
+                </div>
+
+                {/* Products List */}
+                <div className="space-y-2 sm:space-y-3">
+                  {remito.items.map((item, index) => (
+                    <div key={index}>
+                      {/* Desktop view */}
+                      <div className="hidden sm:grid sm:grid-cols-10 gap-6 py-3 border-b border-slate-100">
+                        <div className="col-span-4 text-left">
+                          <p className="text-sm font-semibold text-slate-900 mb-1">{item.medida}</p>
+                          <p className="text-xs text-slate-600">{item.producto}</p>
+                        </div>
+                        <div className="col-span-2 flex items-center justify-center">
+                          <span className="text-sm font-medium text-slate-900">
+                            {item.cantidad}
+                          </span>
+                        </div>
+                        <div className="col-span-2 flex items-center justify-center">
+                          <p className="text-sm font-medium text-slate-900">${item.precio_unitario.toFixed(2)}</p>
+                        </div>
+                        <div className="col-span-2 flex items-center justify-center">
+                          <p className="text-sm font-bold text-slate-900">${item.precio_total.toFixed(2)}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Mobile view */}
+                      <div className="sm:hidden border-b border-slate-100 pb-2 mb-2">
+                        <div className="flex justify-between items-start mb-1">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-slate-900 truncate">{item.medida}</p>
+                            <p className="text-xs text-slate-600 truncate">{item.producto}</p>
+                          </div>
+                          <div className="text-right ml-2 flex-shrink-0">
+                            <p className="text-xs font-bold text-slate-900">${item.precio_total.toFixed(2)}</p>
+                          </div>
+                        </div>
+                        <div className="flex justify-between text-xs text-slate-500">
+                          <span>Cant: {item.cantidad}</span>
+                          <span>Unit: ${item.precio_unitario.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Total Section */}
+              <div className="p-3 sm:p-6 pt-2 sm:pt-4 bg-slate-50">
+                <div className="flex justify-center">
+                  <div className="w-full max-w-xs sm:w-72">
+                    <div className="space-y-2 mb-2 sm:mb-4">
+                      <div className="flex justify-between items-center py-2 border-t-2 border-slate-900">
+                        <span className="text-sm sm:text-base font-bold text-slate-900">TOTAL:</span>
+                        <span className="text-lg sm:text-xl font-bold text-slate-900">${remito.total.toFixed(2)}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
