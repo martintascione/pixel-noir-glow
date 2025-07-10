@@ -770,43 +770,54 @@ const RemitosGenerator = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid gap-3">
-                    <div className="flex justify-between">
-                      <span className="font-medium">Valor Total de la Venta:</span>
+                  <div className="space-y-3">
+                    {/* Valor Total de la Venta */}
+                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                      <span className="font-medium text-sm sm:text-base">Valor Total de la Venta:</span>
                       <span className="font-bold text-lg">{formatCurrency(totalVenta)}</span>
                     </div>
                     
                     <div className="border-t pt-3 space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium text-red-600">Costo Total del Pedido:</span>
-                        <span className="font-bold text-red-600">{formatCurrency(businessAnalysis.costoTotal)}</span>
+                      {/* Costo Total del Pedido */}
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                        <span className="font-medium text-red-600 text-sm sm:text-base">Costo Total del Pedido:</span>
+                        <span className="font-bold text-red-600 text-lg sm:text-base">{formatCurrency(businessAnalysis.costoTotal)}</span>
                       </div>
                       
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium text-green-600">Ganancia Real:</span>
-                        <span className="font-bold text-green-600">{formatCurrency(businessAnalysis.gananciaReal)}</span>
+                      {/* Ganancia Real */}
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                        <span className="font-medium text-green-600 text-sm sm:text-base">Ganancia Real:</span>
+                        <span className="font-bold text-green-600 text-lg sm:text-base">{formatCurrency(businessAnalysis.gananciaReal)}</span>
                       </div>
                       
                       <Separator />
                       
-                      <div className="space-y-2 text-sm">
-                        <h4 className="font-medium text-blue-600">Análisis de IVA:</h4>
-                        <div className="flex justify-between">
-                          <span className="pl-2">IVA Crédito (venta):</span>
-                          <span className="text-blue-600">{formatCurrency(businessAnalysis.ivaCredito)}</span>
+                      {/* Análisis de IVA */}
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-blue-600 text-sm sm:text-base">Análisis de IVA:</h4>
+                        
+                        {/* IVA Crédito */}
+                        <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                          <span className="pl-2 text-xs sm:text-sm">IVA Crédito (venta):</span>
+                          <span className="text-blue-600 text-sm font-medium">{formatCurrency(businessAnalysis.ivaCredito)}</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="pl-2">IVA Débito (costo):</span>
-                          <span className="text-orange-600">{formatCurrency(businessAnalysis.ivaDebito)}</span>
+                        
+                        {/* IVA Débito */}
+                        <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                          <span className="pl-2 text-xs sm:text-sm">IVA Débito (costo):</span>
+                          <span className="text-orange-600 text-sm font-medium">{formatCurrency(businessAnalysis.ivaDebito)}</span>
                         </div>
-                        <div className="flex justify-between border-t pt-2">
-                          <span className="font-medium">IVA Neto (Crédito - Débito):</span>
-                          <span className={`font-bold ${businessAnalysis.ivaNeto >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        
+                        {/* IVA Neto */}
+                        <div className="flex flex-col sm:flex-row sm:justify-between border-t pt-2 gap-1 sm:gap-0">
+                          <span className="font-medium text-xs sm:text-sm">IVA Neto (Crédito - Débito):</span>
+                          <span className={`font-bold text-sm ${businessAnalysis.ivaNeto >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                             {formatCurrency(businessAnalysis.ivaNeto)}
                           </span>
                         </div>
                       </div>
                       
+                      {/* Nota informativa */}
                       {(!costData || businessAnalysis.costoTotal === 0) && (
                         <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                           <p className="text-xs text-yellow-700">
