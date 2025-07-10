@@ -310,11 +310,15 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
                   Costos
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Gestión de Costos de Productos</DialogTitle>
-                </DialogHeader>
-                <CostManager products={products} />
+              <DialogContent className="max-w-[95vw] sm:max-w-4xl lg:max-w-6xl max-h-[85vh] sm:max-h-[90vh] overflow-hidden rounded-xl border-0 p-0">
+                <div className="flex flex-col h-full">
+                  <DialogHeader className="px-4 sm:px-6 py-4 border-b bg-background rounded-t-xl">
+                    <DialogTitle className="text-lg sm:text-xl">Gestión de Costos de Productos</DialogTitle>
+                  </DialogHeader>
+                  <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-4">
+                    <CostManager products={products} />
+                  </div>
+                </div>
               </DialogContent>
             </Dialog>
             
