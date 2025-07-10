@@ -634,10 +634,10 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                                     </span>
                                   </div>
                                   <div className="col-span-3 text-right">
-                                    <p className="text-sm font-medium text-slate-900 truncate">${formatPrice(item.precioUnitario)}</p>
+                                    <p className="text-sm font-medium text-slate-900">${formatPrice(item.precioUnitario)}</p>
                                   </div>
                                   <div className="col-span-3 text-right">
-                                    <p className="text-sm font-bold text-slate-900 truncate">${formatPrice(item.precioTotal)}</p>
+                                    <p className="text-sm font-bold text-slate-900">${formatPrice(item.precioTotal)}</p>
                                   </div>
                                 </div>)}
                             </div>
