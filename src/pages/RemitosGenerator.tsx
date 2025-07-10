@@ -662,11 +662,12 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                   <CardHeader>
                     <CardTitle>Preview del Remito</CardTitle>
                   </CardHeader>
-                  <CardContent className="p-4">
+                  <CardContent className="p-2 sm:p-4">
                     {/* Container responsivo para la preview */}
-                    <div className="flex justify-center items-center w-full overflow-x-auto">
-                      <div className="transform-gpu scale-[0.65] sm:scale-[0.75] md:scale-[0.85] lg:scale-[0.95] xl:scale-100 origin-center">
-                        <div id="remito-preview" ref={remitoRef} className="w-full bg-white shadow-xl border border-gray-200" style={{width: '420px', minWidth: '420px', height: 'auto'}}>
+                    <div className="w-full overflow-hidden">
+                      <div className="flex justify-center">
+                        <div className="w-full max-w-[95vw] sm:max-w-[420px] mx-auto transform-gpu scale-[0.8] sm:scale-[0.9] md:scale-100 origin-center">
+                          <div id="remito-preview" ref={remitoRef} className="w-full bg-white shadow-xl border border-gray-200 mx-auto" style={{maxWidth: '100%', width: '100%'}}>
                           {/* Header Section */}
                           <div className="bg-slate-900 text-white p-6">
                             <div className="flex justify-between items-start">
