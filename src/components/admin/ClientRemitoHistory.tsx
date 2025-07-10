@@ -65,7 +65,9 @@ export const ClientRemitoHistory = () => {
   const loadRemitos = async () => {
     try {
       setLoading(true);
+      console.log('Loading remitos for clientId:', clientId);
       const data = await getRemitosByClientId(clientId!);
+      console.log('Loaded remitos data:', data);
       setRemitos(data);
       if (data.length > 0 && data[0].client) {
         setClientName(data[0].client.name);
