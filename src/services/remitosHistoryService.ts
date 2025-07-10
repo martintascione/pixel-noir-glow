@@ -68,8 +68,6 @@ export const saveRemitoToDatabase = async (remitoData: RemitoData, clientId: str
 };
 
 export const getRemitosByClientId = async (clientId: string): Promise<SavedRemito[]> => {
-  console.log('Querying remitos for clientId:', clientId);
-  
   const { data, error } = await supabase
     .from('remitos')
     .select(`
@@ -80,18 +78,13 @@ export const getRemitosByClientId = async (clientId: string): Promise<SavedRemit
     .eq('client_id', clientId)
     .order('created_at', { ascending: false });
 
-  console.log('Query result:', { data, error });
-
   if (error) throw error;
 
-  const mappedData = data.map(remito => ({
+  return data.map(remito => ({
     ...remito,
     items: remito.remito_items || [],
     client: remito.clients
   }));
-  
-  console.log('Mapped remitos:', mappedData);
-  return mappedData;
 };
 
 export const getRemitoById = async (remitoId: string): Promise<SavedRemito | null> => {
