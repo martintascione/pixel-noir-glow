@@ -136,6 +136,8 @@ export const CostManager = ({ products }: Props) => {
           product_id: productId,
           production_cost: cost.production_cost,
           profit_margin: cost.profit_margin
+        }, {
+          onConflict: 'product_id'
         });
 
       if (error) throw error;
@@ -253,7 +255,9 @@ export const CostManager = ({ products }: Props) => {
                     try {
                       const { error } = await supabase
                         .from('general_config')
-                        .upsert({ iva_rate: ivaRate });
+                        .upsert({ iva_rate: ivaRate }, {
+                          onConflict: 'id'
+                        });
                       
                       if (error) throw error;
                       
@@ -325,6 +329,8 @@ export const CostManager = ({ products }: Props) => {
                               .upsert({
                                 category_name: categoryName,
                                 profit_margin: categoryMargins[categoryName] || 0
+                              }, {
+                                onConflict: 'category_name'
                               });
                             
                             if (error) throw error;
