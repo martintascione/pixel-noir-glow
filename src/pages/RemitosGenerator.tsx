@@ -662,60 +662,65 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                     <CardTitle>Preview del Remito</CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <div id="remito-preview" ref={remitoRef} className="w-80 h-80 bg-white border-2 border-black p-3 mx-auto" style={{width: '400px', height: '400px'}}>
-                      {/* Header compacto */}
-                      <div className="text-center mb-3 pb-2 border-b-2 border-black">
-                        <h2 className="text-lg font-bold text-black mb-1">REMITO</h2>
-                        <p className="text-xs text-black font-semibold">Hierros Tascione</p>
-                        <div className="flex justify-between text-xs mt-1">
+                    <div id="remito-preview" ref={remitoRef} className="w-96 h-96 bg-gradient-to-br from-slate-50 to-blue-50 p-4 shadow-lg mx-auto" style={{width: '500px', height: '500px'}}>
+                      {/* Header */}
+                      <div className="text-center mb-4 pb-3 border-b-2 border-blue-600">
+                        <h2 className="text-xl font-bold text-blue-900 mb-1">REMITO</h2>
+                        <div className="bg-blue-600 text-white px-3 py-1 rounded-full inline-block">
+                          <p className="text-xs font-medium">Hierros Tascione</p>
+                        </div>
+                        <div className="flex justify-between text-xs mt-2 text-blue-800">
                           <span><strong>#{Date.now().toString().slice(-6)}</strong></span>
                           <span><strong>{new Date().toLocaleDateString('es-AR')}</strong></span>
                         </div>
                       </div>
                       
                       {/* Cliente */}
-                      <div className="bg-gray-100 p-2 mb-3 border border-black">
-                        <p className="text-xs font-bold text-black truncate">{getCurrentClientData().name}</p>
-                        <p className="text-xs text-black truncate">{getCurrentClientData().company_name}</p>
-                        <p className="text-xs text-gray-700">CUIT: {getCurrentClientData().cuit}</p>
+                      <div className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-blue-600 mb-4">
+                        <h3 className="text-xs font-semibold text-gray-600 mb-1">CLIENTE</h3>
+                        <p className="text-sm font-medium text-gray-900 truncate">{getCurrentClientData().name}</p>
+                        <p className="text-xs text-gray-600 truncate">{getCurrentClientData().company_name}</p>
+                        <p className="text-xs text-gray-500">CUIT: {getCurrentClientData().cuit}</p>
                       </div>
 
-                      {/* Productos - Tabla compacta */}
-                      <div className="mb-3">
-                        <div className="bg-black text-white px-2 py-1 mb-1">
-                          <p className="text-xs font-bold">PRODUCTOS</p>
+                      {/* Productos */}
+                      <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-4">
+                        <div className="bg-gray-50 px-3 py-2 border-b">
+                          <h3 className="text-xs font-semibold text-gray-700">PRODUCTOS</h3>
                         </div>
-                        <div className="border border-black">
-                          {items.slice(0, 4).map((item, index) => (
-                            <div key={item.id} className={`px-2 py-1 text-xs border-b border-gray-400 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                              <div className="flex justify-between items-center">
-                                <div className="flex-1">
-                                  <p className="font-semibold text-black truncate">{item.cantidad}x {item.medida}</p>
-                                  <p className="text-xs text-gray-700 truncate">{item.producto}</p>
+                        <div className="max-h-32 overflow-y-auto">
+                          {items.slice(0, 5).map((item, index) => (
+                            <div key={item.id} className={`px-3 py-2 border-b border-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium text-gray-900 truncate">{item.cantidad}x {item.medida}</p>
+                                  <p className="text-xs text-gray-600 truncate">{item.producto}</p>
                                 </div>
                                 <div className="text-right ml-2">
-                                  <p className="font-bold text-black">{formatCurrency(item.precioTotal)}</p>
+                                  <p className="text-xs text-green-600 font-bold">{formatCurrency(item.precioTotal)}</p>
                                 </div>
                               </div>
                             </div>
                           ))}
-                          {items.length > 4 && (
-                            <div className="px-2 py-1 text-xs bg-gray-100 text-center border-b border-gray-400">
-                              <p className="text-gray-700">... y {items.length - 4} productos más</p>
+                          {items.length > 5 && (
+                            <div className="px-3 py-2 bg-gray-100 text-center">
+                              <p className="text-xs text-gray-600">+ {items.length - 5} productos más</p>
                             </div>
                           )}
                         </div>
                       </div>
 
-                      {/* Total destacado */}
-                      <div className="bg-black text-white p-2 text-center mb-2">
-                        <p className="text-xs">TOTAL</p>
-                        <p className="text-lg font-bold">{formatCurrency(totalVenta)}</p>
+                      {/* Total */}
+                      <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4 rounded-lg shadow-lg mb-3">
+                        <div className="text-center">
+                          <p className="text-xs opacity-90">TOTAL</p>
+                          <p className="text-lg font-bold">{formatCurrency(totalVenta)}</p>
+                        </div>
                       </div>
 
                       {/* Footer */}
-                      <div className="text-center border-t border-black pt-1">
-                        <p className="text-xs text-black font-semibold">¡Gracias por elegirnos!</p>
+                      <div className="text-center border-t border-gray-200 pt-2">
+                        <p className="text-xs text-gray-500">¡Gracias por elegirnos!</p>
                       </div>
                     </div>
 

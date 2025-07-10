@@ -86,14 +86,18 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
     scale: 2,
     useCORS: true,
     allowTaint: true,
-    width: 400,
-    height: 400,
-    // Forzar tamaño cuadrado
+    width: 500,
+    height: 500,
+    // Optimizado para html2canvas
+    removeContainer: true,
+    foreignObjectRendering: false,
     onclone: (clonedDoc) => {
       const clonedElement = clonedDoc.getElementById(elementId);
       if (clonedElement) {
-        clonedElement.style.width = '400px';
-        clonedElement.style.height = '400px';
+        clonedElement.style.width = '500px';
+        clonedElement.style.height = '500px';
+        clonedElement.style.transform = 'none';
+        clonedElement.style.position = 'static';
       }
     }
   });
@@ -101,7 +105,7 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
   return new Promise((resolve) => {
     canvas.toBlob((blob) => {
       if (blob) resolve(blob);
-    }, 'image/jpeg', 0.8); // Reducir calidad para menor tamaño
+    }, 'image/jpeg', 0.9); // Mejor calidad
   });
 };
 
