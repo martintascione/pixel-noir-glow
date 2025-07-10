@@ -14,7 +14,7 @@ import { getProducts } from '@/services/supabaseService';
 import { getClients, createClient, deleteClient, type Client } from '@/services/clientsService';
 import { generateRemitoPDF, generateRemitoJPG, sendToWhatsApp, downloadFile, type RemitoData } from '@/services/remitoService';
 import { saveImageToGallery, isNativeApp } from '@/services/galleryService';
-import { formatCurrency, formatNumber } from '@/utils/formatters';
+import { formatCurrency, formatNumber, formatPrice } from '@/utils/formatters';
 
 interface RemitoItem {
   id: string;
@@ -732,10 +732,10 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                                   </span>
                                 </div>
                                 <div className="col-span-2 text-center">
-                                  <p className="text-sm font-medium text-slate-900">${formatNumber(item.precioUnitario)}</p>
+                                  <p className="text-sm font-medium text-slate-900">${formatPrice(item.precioUnitario)}</p>
                                 </div>
                                 <div className="col-span-2 text-right">
-                                  <p className="text-sm font-bold text-slate-900">${formatNumber(item.precioTotal)}</p>
+                                  <p className="text-sm font-bold text-slate-900">${formatPrice(item.precioTotal)}</p>
                                 </div>
                               </div>
                             ))}
@@ -749,13 +749,13 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                               <div className="space-y-2 mb-4">
                                 <div className="flex justify-between py-2">
                                   <span className="text-sm text-slate-600">Subtotal:</span>
-                                  <span className="text-sm font-medium text-slate-900">${formatNumber(totalVenta)}</span>
+                                  <span className="text-sm font-medium text-slate-900">${formatPrice(totalVenta)}</span>
                                 </div>
                               </div>
                               <div className="border-t-2 border-slate-900 pt-4">
                                 <div className="flex justify-between items-center">
                                   <span className="text-lg font-bold text-slate-900 uppercase">Total:</span>
-                                  <span className="text-xl font-bold text-slate-900">${formatNumber(totalVenta)}</span>
+                                  <span className="text-xl font-bold text-slate-900">${formatPrice(totalVenta)}</span>
                                 </div>
                               </div>
                             </div>
