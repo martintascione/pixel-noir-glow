@@ -670,25 +670,16 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                         <div className="bg-slate-900 text-white p-6">
                           <div className="flex justify-between items-start">
                             <div>
-                              <h1 className="text-2xl font-light tracking-widest mb-1">REMITO</h1>
-                            </div>
-                            <div className="text-right">
-                              <div className="bg-white text-slate-900 px-3 py-2 rounded">
-                                <p className="text-xs font-medium">NÚMERO</p>
-                                <p className="text-lg font-bold">{generateRemitoData().numero}</p>
+                              <h1 className="text-2xl font-light tracking-widest mb-3">REMITO</h1>
+                              <div className="space-y-1">
+                                <p className="text-sm text-slate-300">Nro de remito: <span className="text-white font-medium">{generateRemitoData().numero}</span></p>
+                                <p className="text-sm text-slate-300">Fecha: <span className="text-white font-medium">{generateRemitoData().fecha}</span></p>
                               </div>
-                              <p className="text-sm mt-2 text-slate-300">{generateRemitoData().fecha}</p>
                             </div>
-                          </div>
-                        </div>
-
-                        {/* Company Section */}
-                        <div className="bg-slate-50 border-b border-slate-200 p-6">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <h2 className="text-xl font-bold text-slate-800 mb-1">HIERROS TASCIONE</h2>
-                              <p className="text-sm text-slate-600 mb-1">LUIS MARIA TASCIONE</p>
-                              <p className="text-sm text-slate-500">CUIT: 20-21856308-3</p>
+                            <div className="text-right text-xs text-slate-300">
+                              <p className="font-bold text-white text-sm mb-1">HIERROS TASCIONE</p>
+                              <p className="mb-1">LUIS MARIA TASCIONE</p>
+                              <p>CUIT: 20-21856308-3</p>
                             </div>
                           </div>
                         </div>
