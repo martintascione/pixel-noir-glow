@@ -665,82 +665,83 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                   <CardContent className="space-y-4">
                     {/* Remito Visual */}
                     <div className="flex justify-center">
-                      <div id="remito-preview" ref={remitoRef} className="w-80 h-80 bg-white shadow-2xl rounded-2xl overflow-hidden relative" style={{width: '300px', height: '300px', minWidth: '300px', minHeight: '300px'}}>
-                        {/* Background Pattern */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-transparent to-green-600/5"></div>
-                        
+                      <div id="remito-preview" ref={remitoRef} className="w-80 h-80 bg-white shadow-2xl rounded-lg overflow-hidden relative" style={{width: '320px', height: '450px', minWidth: '320px', minHeight: '450px'}}>
                         {/* Header */}
-                        <div className="relative bg-gradient-to-r from-blue-600 to-blue-700 text-white p-3 text-center">
-                          <h1 className="text-lg font-bold tracking-wide">REMITO</h1>
-                          <div className="flex justify-between items-center mt-2 text-xs">
-                            <span className="bg-white/20 px-2 py-1 rounded-full">
-                              #{Date.now().toString().slice(-6)}
-                            </span>
-                            <span className="bg-white/20 px-2 py-1 rounded-full">
-                              {new Date().toLocaleDateString('es-AR')}
-                            </span>
-                          </div>
-                          <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white rotate-45"></div>
-                        </div>
-
-                        {/* Company */}
-                        <div className="px-3 pt-4 pb-2 text-center">
-                          <h2 className="text-sm font-bold text-gray-800">Hierros Tascione</h2>
-                          <div className="w-16 h-0.5 bg-gradient-to-r from-blue-600 to-green-600 mx-auto mt-1"></div>
-                        </div>
-
-                        {/* Client Info */}
-                        <div className="px-3 py-2">
-                          <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg p-2 border-l-3 border-blue-600">
-                            <p className="text-xs font-semibold text-blue-600 mb-1">CLIENTE</p>
-                            <p className="text-xs font-bold text-gray-800 truncate">{getCurrentClientData().name}</p>
-                            <p className="text-xs text-gray-600 truncate">{getCurrentClientData().company_name}</p>
-                            <p className="text-xs text-gray-500 truncate">CUIT: {getCurrentClientData().cuit}</p>
+                        <div className="bg-gray-800 text-white p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h1 className="text-xl font-bold tracking-wider">REMITO</h1>
+                              <p className="text-xs opacity-90 mt-1">Documento de Entrega</p>
+                            </div>
+                            <div className="text-right text-xs">
+                              <p className="font-bold">N° {generateRemitoData().numero}</p>
+                              <p className="opacity-90">{generateRemitoData().fecha}</p>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Products */}
-                        <div className="px-3 py-1">
-                          <div className="bg-gray-900 text-white px-2 py-1 rounded-t-lg">
-                            <p className="text-xs font-bold text-center">PRODUCTOS</p>
+                        {/* Company Info */}
+                        <div className="p-4 border-b border-gray-200">
+                          <h2 className="text-sm font-bold text-gray-800 mb-1">HIERROS TASCIONE</h2>
+                          <p className="text-xs text-gray-600">LUIS MARIA TASCIONE</p>
+                          <p className="text-xs text-gray-600">CUIT: 20-21856308-3</p>
+                        </div>
+
+                        {/* Client Section */}
+                        <div className="p-4 border-b border-gray-200">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <h3 className="text-xs font-bold text-gray-800 mb-2">REMITO PARA:</h3>
+                              <p className="text-xs font-semibold text-gray-900">{getCurrentClientData().name}</p>
+                              <p className="text-xs text-gray-600">{getCurrentClientData().company_name}</p>
+                              <p className="text-xs text-gray-600">CUIT: {getCurrentClientData().cuit}</p>
+                            </div>
                           </div>
-                          <div className="bg-white border border-gray-200 rounded-b-lg max-h-16 overflow-y-auto">
-                            {items.slice(0, 3).map((item, index) => (
-                              <div key={item.id} className={`px-2 py-1 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${index !== items.slice(0, 3).length - 1 ? 'border-b border-gray-100' : ''}`}>
-                                <div className="flex justify-between items-center">
-                                  <div className="flex-1 min-w-0 pr-1">
-                                    <p className="text-xs font-medium text-gray-900 truncate">
-                                      {item.cantidad}x {item.medida}
-                                    </p>
-                                    <p className="text-xs text-gray-600 truncate">{item.producto}</p>
-                                  </div>
-                                  <div className="text-right">
-                                    <p className="text-xs font-bold text-green-600">{formatCurrency(item.precioTotal)}</p>
-                                  </div>
+                        </div>
+
+                        {/* Products Table */}
+                        <div className="p-4">
+                          <div className="bg-gray-800 text-white text-xs font-bold grid grid-cols-12 p-2">
+                            <div className="col-span-1">#</div>
+                            <div className="col-span-6">DESCRIPCIÓN</div>
+                            <div className="col-span-2 text-center">CANT.</div>
+                            <div className="col-span-3 text-right">PRECIO</div>
+                          </div>
+                          
+                          <div className="max-h-32 overflow-y-auto">
+                            {items.slice(0, 6).map((item, index) => (
+                              <div key={item.id} className={`text-xs grid grid-cols-12 p-2 border-b border-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                                <div className="col-span-1 font-medium">{String(index + 1).padStart(2, '0')}</div>
+                                <div className="col-span-6">
+                                  <p className="font-medium text-gray-900 truncate">{item.medida}</p>
+                                  <p className="text-gray-600 truncate text-xs">{item.producto}</p>
                                 </div>
+                                <div className="col-span-2 text-center font-medium">{item.cantidad}</div>
+                                <div className="col-span-3 text-right font-bold text-gray-900">${formatNumber(item.precioTotal)}</div>
                               </div>
                             ))}
-                            {items.length > 3 && (
-                              <div className="px-2 py-1 bg-blue-50 text-center">
-                                <p className="text-xs text-blue-600 font-medium">+{items.length - 3} más</p>
+                            {items.length > 6 && (
+                              <div className="text-xs p-2 bg-blue-50 text-center text-blue-600">
+                                +{items.length - 6} productos más
                               </div>
                             )}
                           </div>
                         </div>
 
-                        {/* Total */}
-                        <div className="px-3 py-2">
-                          <div className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl p-3 text-center shadow-lg">
-                            <p className="text-xs opacity-90 font-medium">TOTAL</p>
-                            <p className="text-sm font-bold">{formatCurrency(totalVenta)}</p>
-                          </div>
-                        </div>
-
-                        {/* Footer */}
-                        <div className="absolute bottom-2 left-0 right-0 text-center">
-                          <p className="text-xs text-gray-500 italic">¡Gracias por elegirnos!</p>
-                          <div className="flex justify-center mt-1">
-                            <div className="w-8 h-0.5 bg-gradient-to-r from-blue-600 to-green-600 rounded-full"></div>
+                        {/* Total Section */}
+                        <div className="absolute bottom-4 left-4 right-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div></div>
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-xs">
+                                <span>Subtotal:</span>
+                                <span>${formatNumber(totalVenta)}</span>
+                              </div>
+                              <div className="bg-gray-800 text-white p-2 flex justify-between font-bold text-sm">
+                                <span>TOTAL</span>
+                                <span>${formatNumber(totalVenta)}</span>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
