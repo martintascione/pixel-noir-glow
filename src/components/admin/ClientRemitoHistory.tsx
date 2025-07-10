@@ -42,14 +42,23 @@ export const ClientRemitoHistory = () => {
         .select('iva_rate')
         .maybeSingle();
 
-      // Obtener costos de productos
+      // Obtener costos de productos con información del producto
       const { data: costsData } = await supabase
         .from('product_costs')
-        .select('*');
+        .select(`
+          *,
+          products!inner(id, name, size)
+        `);
+
+      // Obtener todos los productos para mapear por nombre
+      const { data: productsData } = await supabase
+        .from('products')
+        .select('id, name, size');
 
       setCostData({
         ivaRate: configData?.iva_rate || 21,
-        productCosts: costsData || []
+        productCosts: costsData || [],
+        products: productsData || []
       });
     } catch (error) {
       console.error('Error fetching config:', error);
@@ -136,12 +145,20 @@ export const ClientRemitoHistory = () => {
       // Calcular costo por remito
       let costoRemito = 0;
       remito.items.forEach(item => {
-        const productCost = costData.productCosts.find((cost: any) => 
-          cost.product_id === item.producto
-        );
+        // Buscar el producto por nombre y medida
+        const product = costData.products.find((product: any) => {
+          return product.name === item.producto && product.size === item.medida;
+        });
         
-        if (productCost) {
-          costoRemito += productCost.production_cost * item.cantidad;
+        if (product) {
+          // Buscar el costo usando el ID del producto encontrado
+          const productCost = costData.productCosts.find((cost: any) => 
+            cost.product_id === product.id
+          );
+          
+          if (productCost) {
+            costoRemito += productCost.production_cost * item.cantidad;
+          }
         }
       });
       
