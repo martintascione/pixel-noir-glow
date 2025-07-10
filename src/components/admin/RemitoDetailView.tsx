@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Download, Share2 } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { ArrowLeft, Download, Calculator } from 'lucide-react';
 import { getRemitoById, SavedRemito } from '@/services/remitosHistoryService';
 import { formatCurrency } from '@/utils/formatters';
 import { useToast } from '@/hooks/use-toast';
 import { generateRemitoJPG, downloadFile } from '@/services/remitoService';
+import { supabase } from '@/integrations/supabase/client';
 
 export const RemitoDetailView = () => {
   const { remitoId } = useParams<{ remitoId: string }>();
@@ -15,12 +17,88 @@ export const RemitoDetailView = () => {
   const [remito, setRemito] = useState<SavedRemito | null>(null);
   const [loading, setLoading] = useState(true);
   const [generatingImage, setGeneratingImage] = useState(false);
+  const [costData, setCostData] = useState<any>(null);
 
   useEffect(() => {
     if (remitoId) {
       loadRemito();
     }
   }, [remitoId]);
+
+  useEffect(() => {
+    if (remito) {
+      fetchConfig();
+    }
+  }, [remito]);
+
+  const fetchConfig = async () => {
+    try {
+      // Obtener configuración de IVA
+      const { data: configData } = await supabase
+        .from('general_config')
+        .select('iva_rate')
+        .maybeSingle();
+
+      // Obtener costos de productos
+      const { data: costsData } = await supabase
+        .from('product_costs')
+        .select('*');
+
+      setCostData({
+        ivaRate: configData?.iva_rate || 21,
+        productCosts: costsData || []
+      });
+    } catch (error) {
+      console.error('Error fetching config:', error);
+    }
+  };
+
+  const calculateBusinessAnalysis = () => {
+    if (!remito || !costData) {
+      return {
+        costoTotal: 0,
+        gananciaReal: 0,
+        ivaCredito: 0,
+        ivaDebito: 0,
+        ivaNeto: 0
+      };
+    }
+
+    let costoTotal = 0;
+
+    // Calcular el costo total del pedido
+    remito.items.forEach(item => {
+      const productCost = costData.productCosts.find((cost: any) => 
+        cost.product_id === item.producto // Esto podría necesitar ajuste según la estructura
+      );
+      
+      if (productCost) {
+        costoTotal += productCost.production_cost * item.cantidad;
+      }
+    });
+
+    const totalVenta = remito.total;
+    const gananciaReal = totalVenta - costoTotal;
+    
+    // Calcular IVA Crédito (IVA contenido en la venta)
+    const ivaCredito = totalVenta * (costData.ivaRate / 100) / (1 + costData.ivaRate / 100);
+    
+    // Calcular IVA Débito (IVA del costo)
+    const ivaDebito = costoTotal * (costData.ivaRate / 100);
+    
+    // IVA Neto = IVA Crédito - IVA Débito
+    const ivaNeto = ivaCredito - ivaDebito;
+
+    return {
+      costoTotal,
+      gananciaReal,
+      ivaCredito,
+      ivaDebito,
+      ivaNeto
+    };
+  };
+
+  const businessAnalysis = calculateBusinessAnalysis();
 
   const loadRemito = async () => {
     try {
@@ -222,6 +300,75 @@ export const RemitoDetailView = () => {
             </div>
           </div>
         </div>
+
+        {/* Panel de Administración */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center text-sm sm:text-base">
+              <Calculator className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              Panel de Administración
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              {/* Valor Total de la Venta */}
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                <span className="font-medium text-sm sm:text-base">Valor Total de la Venta:</span>
+                <span className="font-bold text-lg">{formatCurrency(remito.total)}</span>
+              </div>
+              
+              <div className="border-t pt-3 space-y-3">
+                {/* Costo Total del Pedido */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                  <span className="font-medium text-red-600 text-sm sm:text-base">Costo Total del Pedido:</span>
+                  <span className="font-bold text-red-600 text-lg sm:text-base">{formatCurrency(businessAnalysis.costoTotal)}</span>
+                </div>
+                
+                {/* Ganancia Real */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                  <span className="font-medium text-green-600 text-sm sm:text-base">Ganancia Real:</span>
+                  <span className="font-bold text-green-600 text-lg sm:text-base">{formatCurrency(businessAnalysis.gananciaReal)}</span>
+                </div>
+                
+                <Separator />
+                
+                {/* Análisis de IVA */}
+                <div className="space-y-2">
+                  <h4 className="font-medium text-blue-600 text-sm sm:text-base">Análisis de IVA:</h4>
+                  
+                  {/* IVA Crédito */}
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                    <span className="pl-2 text-xs sm:text-sm">IVA Crédito (venta):</span>
+                    <span className="text-blue-600 text-sm font-medium">{formatCurrency(businessAnalysis.ivaCredito)}</span>
+                  </div>
+                  
+                  {/* IVA Débito */}
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                    <span className="pl-2 text-xs sm:text-sm">IVA Débito (costo):</span>
+                    <span className="text-orange-600 text-sm font-medium">{formatCurrency(businessAnalysis.ivaDebito)}</span>
+                  </div>
+                  
+                  {/* IVA Neto */}
+                  <div className="flex flex-col sm:flex-row sm:justify-between border-t pt-2 gap-1 sm:gap-0">
+                    <span className="font-medium text-xs sm:text-sm">IVA Neto (Crédito - Débito):</span>
+                    <span className={`font-bold text-sm ${businessAnalysis.ivaNeto >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(businessAnalysis.ivaNeto)}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Nota informativa */}
+                {(!costData || businessAnalysis.costoTotal === 0) && (
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-xs text-yellow-700">
+                      <strong>Nota:</strong> Para ver cálculos precisos, asegúrate de haber configurado los costos de producción en la sección "Gestión de Costos" del panel de administración.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

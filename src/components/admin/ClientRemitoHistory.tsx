@@ -4,11 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Eye, Trash2, Calendar, DollarSign } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { ArrowLeft, Eye, Trash2, Calendar, DollarSign, Calculator } from 'lucide-react';
 import { getRemitosByClientId, deleteMultipleRemitos, SavedRemito } from '@/services/remitosHistoryService';
 import { formatCurrency } from '@/utils/formatters';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { supabase } from '@/integrations/supabase/client';
 
 export const ClientRemitoHistory = () => {
   const { clientId } = useParams<{ clientId: string }>();
@@ -18,12 +20,41 @@ export const ClientRemitoHistory = () => {
   const [loading, setLoading] = useState(true);
   const [selectedRemitos, setSelectedRemitos] = useState<string[]>([]);
   const [clientName, setClientName] = useState<string>('');
+  const [costData, setCostData] = useState<any>(null);
 
   useEffect(() => {
     if (clientId) {
       loadRemitos();
     }
   }, [clientId]);
+
+  useEffect(() => {
+    if (remitos.length > 0) {
+      fetchConfig();
+    }
+  }, [remitos]);
+
+  const fetchConfig = async () => {
+    try {
+      // Obtener configuración de IVA
+      const { data: configData } = await supabase
+        .from('general_config')
+        .select('iva_rate')
+        .maybeSingle();
+
+      // Obtener costos de productos
+      const { data: costsData } = await supabase
+        .from('product_costs')
+        .select('*');
+
+      setCostData({
+        ivaRate: configData?.iva_rate || 21,
+        productCosts: costsData || []
+      });
+    } catch (error) {
+      console.error('Error fetching config:', error);
+    }
+  };
 
   const loadRemitos = async () => {
     try {
@@ -83,6 +114,60 @@ export const ClientRemitoHistory = () => {
   const handleViewRemito = (remito: SavedRemito) => {
     navigate(`/admin/remitos/view/${remito.id}`);
   };
+
+  const calculateTotalBusinessAnalysis = () => {
+    if (!costData || remitos.length === 0) {
+      return {
+        costoTotalGeneral: 0,
+        gananciaTotalReal: 0,
+        ivaCreditoTotal: 0,
+        ivaDebitoTotal: 0,
+        ivaNetoTotal: 0,
+        totalVentasGeneral: remitos.reduce((sum, remito) => sum + remito.total, 0)
+      };
+    }
+
+    let costoTotalGeneral = 0;
+    let ivaCreditoTotal = 0;
+    let ivaDebitoTotal = 0;
+    const totalVentasGeneral = remitos.reduce((sum, remito) => sum + remito.total, 0);
+
+    remitos.forEach(remito => {
+      // Calcular costo por remito
+      let costoRemito = 0;
+      remito.items.forEach(item => {
+        const productCost = costData.productCosts.find((cost: any) => 
+          cost.product_id === item.producto
+        );
+        
+        if (productCost) {
+          costoRemito += productCost.production_cost * item.cantidad;
+        }
+      });
+      
+      costoTotalGeneral += costoRemito;
+      
+      // Calcular IVA Crédito del remito
+      ivaCreditoTotal += remito.total * (costData.ivaRate / 100) / (1 + costData.ivaRate / 100);
+      
+      // Calcular IVA Débito del remito
+      ivaDebitoTotal += costoRemito * (costData.ivaRate / 100);
+    });
+
+    const gananciaTotalReal = totalVentasGeneral - costoTotalGeneral;
+    const ivaNetoTotal = ivaCreditoTotal - ivaDebitoTotal;
+
+    return {
+      costoTotalGeneral,
+      gananciaTotalReal,
+      ivaCreditoTotal,
+      ivaDebitoTotal,
+      ivaNetoTotal,
+      totalVentasGeneral
+    };
+  };
+
+  const totalAnalysis = calculateTotalBusinessAnalysis();
 
   if (loading) {
     return (
@@ -250,6 +335,82 @@ export const ClientRemitoHistory = () => {
             </Card>
           ))}
         </div>
+      )}
+
+      {/* Panel de Resumen Total */}
+      {remitos.length > 0 && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center text-sm sm:text-base">
+              <Calculator className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              Resumen Total del Cliente
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              {/* Total de Remitos y Valor Total */}
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                <span className="font-medium text-sm sm:text-base">Total de Remitos:</span>
+                <span className="font-bold text-lg">{remitos.length}</span>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                <span className="font-medium text-sm sm:text-base">Valor Total de Ventas:</span>
+                <span className="font-bold text-lg">{formatCurrency(totalAnalysis.totalVentasGeneral)}</span>
+              </div>
+              
+              <div className="border-t pt-3 space-y-3">
+                {/* Costo Total General */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                  <span className="font-medium text-red-600 text-sm sm:text-base">Costo Total General:</span>
+                  <span className="font-bold text-red-600 text-lg sm:text-base">{formatCurrency(totalAnalysis.costoTotalGeneral)}</span>
+                </div>
+                
+                {/* Ganancia Total Real */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                  <span className="font-medium text-green-600 text-sm sm:text-base">Ganancia Total Real:</span>
+                  <span className="font-bold text-green-600 text-lg sm:text-base">{formatCurrency(totalAnalysis.gananciaTotalReal)}</span>
+                </div>
+                
+                <Separator />
+                
+                {/* Análisis de IVA Total */}
+                <div className="space-y-2">
+                  <h4 className="font-medium text-blue-600 text-sm sm:text-base">Análisis de IVA Total:</h4>
+                  
+                  {/* IVA Crédito Total */}
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                    <span className="pl-2 text-xs sm:text-sm">IVA Crédito Total (ventas):</span>
+                    <span className="text-blue-600 text-sm font-medium">{formatCurrency(totalAnalysis.ivaCreditoTotal)}</span>
+                  </div>
+                  
+                  {/* IVA Débito Total */}
+                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                    <span className="pl-2 text-xs sm:text-sm">IVA Débito Total (costos):</span>
+                    <span className="text-orange-600 text-sm font-medium">{formatCurrency(totalAnalysis.ivaDebitoTotal)}</span>
+                  </div>
+                  
+                  {/* IVA Neto Total */}
+                  <div className="flex flex-col sm:flex-row sm:justify-between border-t pt-2 gap-1 sm:gap-0">
+                    <span className="font-medium text-xs sm:text-sm">IVA Neto Total (Crédito - Débito):</span>
+                    <span className={`font-bold text-sm ${totalAnalysis.ivaNetoTotal >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {formatCurrency(totalAnalysis.ivaNetoTotal)}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Nota informativa */}
+                {(!costData || totalAnalysis.costoTotalGeneral === 0) && (
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-xs text-yellow-700">
+                      <strong>Nota:</strong> Para ver cálculos precisos, asegúrate de haber configurado los costos de producción en la sección "Gestión de Costos" del panel de administración.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
       </div>
     </div>
