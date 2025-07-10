@@ -14,6 +14,7 @@ interface Product {
   id: string;
   name: string;
   size: string;
+  diameter?: string;
   price: number;
   category?: {
     name: string;
@@ -375,7 +376,14 @@ export const CostManager = ({ products }: Props) => {
                             {/* Header con información del producto y botón guardar */}
                             <div className="flex justify-between items-start">
                               <div className="space-y-2">
-                                <h3 className="font-semibold text-lg">{product.name}</h3>
+                                <h3 className="font-semibold text-lg">
+                                  {product.name}
+                                  {product.diameter && (
+                                    <span className="text-blue-600 font-medium ml-2">
+                                      Ø{product.diameter}
+                                    </span>
+                                  )}
+                                </h3>
                                 <div className="text-sm text-muted-foreground">
                                   Tamaño: {product.size}
                                 </div>
