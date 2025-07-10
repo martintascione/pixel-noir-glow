@@ -81,12 +81,12 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
   const element = document.getElementById(elementId);
   if (!element) throw new Error('Elemento no encontrado');
   
-  // Configurar dimensiones estándar para el remito
-  const fixedWidth = 420;
+  // Configurar dimensiones Full HD para el remito
+  const fixedWidth = 1920; // Full HD width
   
   const canvas = await html2canvas(element, {
     backgroundColor: '#ffffff',
-    scale: 3, // Escala alta para mejor calidad
+    scale: 5, // Escala muy alta para Full HD
     useCORS: true,
     allowTaint: true,
     width: fixedWidth,
