@@ -100,7 +100,14 @@ const RemitosGenerator = () => {
       diameter: product.diameter || '',
       shape: product.shape || ''
     }));
-    const uniqueMedidas = allMedidas.filter((medida, index, self) => index === self.findIndex(m => m.size === medida.size));
+    // Filtrar únicos por combinación de size + diameter + shape
+    const uniqueMedidas = allMedidas.filter((medida, index, self) => 
+      index === self.findIndex(m => 
+        m.size === medida.size && 
+        m.diameter === medida.diameter && 
+        m.shape === medida.shape
+      )
+    );
     const grouped = {
       '4mm': uniqueMedidas.filter(m => m.diameter && (m.diameter.startsWith('4') || m.diameter === '4.2')),
       '6mm': uniqueMedidas.filter(m => m.diameter && (m.diameter.startsWith('6') || m.diameter === '6')),
