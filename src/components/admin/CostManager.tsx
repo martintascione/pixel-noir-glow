@@ -40,7 +40,40 @@ export const CostManager = ({ products }: Props) => {
 
   useEffect(() => {
     fetchCosts();
+    fetchConfig();
   }, []);
+
+  const fetchConfig = async () => {
+    try {
+      // Cargar configuración de IVA
+      const { data: generalConfig, error: generalError } = await supabase
+        .from('general_config')
+        .select('iva_rate')
+        .limit(1)
+        .single();
+
+      if (generalError && generalError.code !== 'PGRST116') throw generalError;
+
+      if (generalConfig) {
+        setIvaRate(generalConfig.iva_rate);
+      }
+
+      // Cargar márgenes por categoría
+      const { data: marginsData, error: marginsError } = await supabase
+        .from('category_margins')
+        .select('*');
+
+      if (marginsError) throw marginsError;
+
+      const margins: Record<string, number> = {};
+      marginsData?.forEach(margin => {
+        margins[margin.category_name] = margin.profit_margin;
+      });
+      setCategoryMargins(margins);
+    } catch (error) {
+      console.error('Error fetching config:', error);
+    }
+  };
 
   const fetchCosts = async () => {
     try {
@@ -208,7 +241,31 @@ export const CostManager = ({ products }: Props) => {
                 type="number"
                 step="0.1"
                 value={ivaRate}
-                onChange={(e) => setIvaRate(parseFloat(e.target.value) || 21)}
+                onChange={async (e) => {
+                  const newRate = parseFloat(e.target.value) || 21;
+                  setIvaRate(newRate);
+                  
+                  // Guardar en base de datos
+                  try {
+                    const { error } = await supabase
+                      .from('general_config')
+                      .upsert({ iva_rate: newRate });
+                    
+                    if (error) throw error;
+                    
+                    toast({
+                      title: "Éxito",
+                      description: "IVA actualizado correctamente",
+                    });
+                  } catch (error) {
+                    console.error('Error saving IVA rate:', error);
+                    toast({
+                      title: "Error",
+                      description: "No se pudo guardar el IVA",
+                      variant: "destructive",
+                    });
+                  }
+                }}
                 placeholder="21.0"
                 className="w-32"
               />
@@ -238,9 +295,33 @@ export const CostManager = ({ products }: Props) => {
                       type="number"
                       step="0.1"
                       value={categoryMargins[categoryName] || 0}
-                      onChange={(e) => {
+                      onChange={async (e) => {
                         const newMargin = parseFloat(e.target.value) || 0;
                         setCategoryMargins(prev => ({ ...prev, [categoryName]: newMargin }));
+                        
+                        // Guardar en base de datos
+                        try {
+                          const { error } = await supabase
+                            .from('category_margins')
+                            .upsert({
+                              category_name: categoryName,
+                              profit_margin: newMargin
+                            });
+                          
+                          if (error) throw error;
+                          
+                          toast({
+                            title: "Éxito",
+                            description: `Margen para ${categoryName} actualizado correctamente`,
+                          });
+                        } catch (error) {
+                          console.error('Error saving category margin:', error);
+                          toast({
+                            title: "Error",
+                            description: "No se pudo guardar el margen",
+                            variant: "destructive",
+                          });
+                        }
                         
                         // Actualizar todos los productos de esta categoría
                         groupedProducts[categoryName].forEach(product => {
@@ -300,11 +381,11 @@ export const CostManager = ({ products }: Props) => {
                                 />
                               </div>
 
-                              {/* Mostrar IVA contenido */}
+                              {/* Mostrar IVA contenido de forma compacta */}
                               {cost.production_cost > 0 && (
-                                <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
-                                  <p className="text-sm font-medium text-orange-600">IVA contenido</p>
-                                  <p className="text-lg font-bold text-orange-700">{formatCurrency(calculateContainedIVA(cost.production_cost))}</p>
+                                <div className="flex items-center gap-2 text-sm text-orange-600">
+                                  <span>IVA contenido:</span>
+                                  <span className="font-medium">{formatCurrency(calculateContainedIVA(cost.production_cost))}</span>
                                 </div>
                               )}
 
@@ -319,58 +400,6 @@ export const CostManager = ({ products }: Props) => {
                                 </Button>
                               </div>
                             </div>
-
-                            {/* Cálculos automáticos */}
-                            {cost.production_cost > 0 && (
-                              <>
-                                <Separator />
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                  <div className="text-center p-3 bg-muted/50 rounded-lg">
-                                    <p className="text-sm font-medium text-muted-foreground">Costo Neto</p>
-                                    <p className="text-lg font-bold">{formatCurrency(calculations.netCost)}</p>
-                                  </div>
-                                  
-                                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                                    <p className="text-sm font-medium text-blue-600">IVA Crédito</p>
-                                    <p className="text-lg font-bold text-blue-700">{formatCurrency(calculations.ivaCredit)}</p>
-                                  </div>
-                                  
-                                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                                    <p className="text-sm font-medium text-green-600">Con Margen</p>
-                                    <p className="text-lg font-bold text-green-700">{formatCurrency(calculations.costWithMargin)}</p>
-                                  </div>
-                                  
-                                  <div className="text-center p-3 bg-primary/10 rounded-lg">
-                                    <p className="text-sm font-medium text-primary">Precio Sugerido</p>
-                                    <p className="text-lg font-bold text-primary">{formatCurrency(calculations.finalPrice)}</p>
-                                  </div>
-                                </div>
-
-                                {/* Comparación con precio actual */}
-                                {product.price !== calculations.finalPrice && (
-                                  <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                                    <div className="flex items-center gap-2">
-                                      <Badge variant="outline" className="border-yellow-500 text-yellow-700">
-                                        Diferencia con precio actual
-                                      </Badge>
-                                      <span className="text-sm text-yellow-700">
-                                        {calculations.finalPrice > product.price ? '+' : ''}{formatCurrency(calculations.finalPrice - product.price)}
-                                      </span>
-                                    </div>
-                                    {calculations.finalPrice > product.price && (
-                                      <span className="text-sm text-green-600 font-medium">
-                                        Precio sugerido mayor
-                                      </span>
-                                    )}
-                                    {calculations.finalPrice < product.price && (
-                                      <span className="text-sm text-red-600 font-medium">
-                                        Precio sugerido menor
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
-                              </>
-                            )}
                           </div>
                         </CardContent>
                       </Card>

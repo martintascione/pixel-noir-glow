@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      category_margins: {
+        Row: {
+          category_name: string
+          created_at: string
+          id: string
+          profit_margin: number
+          updated_at: string
+        }
+        Insert: {
+          category_name: string
+          created_at?: string
+          id?: string
+          profit_margin?: number
+          updated_at?: string
+        }
+        Update: {
+          category_name?: string
+          created_at?: string
+          id?: string
+          profit_margin?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           company_legal_name: string | null
@@ -47,6 +71,27 @@ export type Database = {
           updated_at?: string
           user_id?: string
           whatsapp_number?: string | null
+        }
+        Relationships: []
+      }
+      general_config: {
+        Row: {
+          created_at: string
+          id: string
+          iva_rate: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          iva_rate?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          iva_rate?: number
+          updated_at?: string
         }
         Relationships: []
       }
