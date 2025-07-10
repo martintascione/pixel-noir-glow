@@ -38,11 +38,6 @@ export const CostManager = ({ products }: Props) => {
   const [ivaRate, setIvaRate] = useState(21);
   const [categoryMargins, setCategoryMargins] = useState<Record<string, number>>({});
 
-  useEffect(() => {
-    fetchCosts();
-    fetchConfig();
-  }, []);
-
   const fetchConfig = async () => {
     try {
       // Cargar configuración de IVA
@@ -74,6 +69,11 @@ export const CostManager = ({ products }: Props) => {
       console.error('Error fetching config:', error);
     }
   };
+
+  useEffect(() => {
+    fetchCosts();
+    fetchConfig();
+  }, []);
 
   const fetchCosts = async () => {
     try {
