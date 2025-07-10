@@ -665,112 +665,103 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                   <CardContent className="space-y-4">
                     {/* Remito Visual */}
                     <div className="flex justify-center">
-                      <div id="remito-preview" ref={remitoRef} className="w-full bg-white shadow-2xl rounded-2xl overflow-hidden border border-gray-100" style={{width: '400px', minWidth: '400px', height: 'auto', paddingBottom: '16px'}}>
-                        {/* Header */}
-                        <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white p-5 rounded-t-2xl">
+                      <div id="remito-preview" ref={remitoRef} className="w-full bg-white shadow-xl border border-gray-200" style={{width: '420px', minWidth: '420px', height: 'auto'}}>
+                        {/* Header Section */}
+                        <div className="bg-slate-900 text-white p-6">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h1 className="text-2xl font-light tracking-widest mb-1">REMITO</h1>
+                              <p className="text-sm text-slate-300">Documento de Entrega</p>
+                            </div>
+                            <div className="text-right">
+                              <div className="bg-white text-slate-900 px-3 py-2 rounded">
+                                <p className="text-xs font-medium">NÚMERO</p>
+                                <p className="text-lg font-bold">{generateRemitoData().numero}</p>
+                              </div>
+                              <p className="text-sm mt-2 text-slate-300">{generateRemitoData().fecha}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Company Section */}
+                        <div className="bg-slate-50 border-b border-slate-200 p-6">
                           <div className="flex justify-between items-center">
                             <div>
-                              <h1 className="text-3xl font-bold tracking-wider">REMITO</h1>
-                              <p className="text-sm opacity-80">Documento de Entrega</p>
-                            </div>
-                            <div className="text-right bg-white/10 rounded-lg p-3">
-                              <p className="text-lg font-bold">N° {generateRemitoData().numero}</p>
-                              <p className="text-sm opacity-90">{generateRemitoData().fecha}</p>
+                              <h2 className="text-xl font-bold text-slate-800 mb-1">HIERROS TASCIONE</h2>
+                              <p className="text-sm text-slate-600 mb-1">LUIS MARIA TASCIONE</p>
+                              <p className="text-sm text-slate-500">CUIT: 20-21856308-3</p>
                             </div>
                           </div>
                         </div>
 
-                        {/* Company & Client Info */}
-                        <div className="p-5 space-y-4">
-                          {/* Company Info */}
-                          <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200">
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <h2 className="text-lg font-bold text-gray-800">HIERROS TASCIONE</h2>
-                                <p className="text-sm text-gray-600">LUIS MARIA TASCIONE</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-sm text-gray-600 font-medium">CUIT: 20-21856308-3</p>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Client Info */}
-                          <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                            <h3 className="text-sm font-bold text-gray-500 mb-2 uppercase tracking-wider">Cliente:</h3>
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <p className="text-lg font-semibold text-gray-900">{getCurrentClientData().name}</p>
-                                <p className="text-sm text-gray-600">{getCurrentClientData().company_name}</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-sm text-gray-500 font-medium">CUIT: {getCurrentClientData().cuit}</p>
-                              </div>
-                            </div>
+                        {/* Client Section */}
+                        <div className="p-6 border-b border-slate-200">
+                          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Facturar a:</h3>
+                          <div className="space-y-1">
+                            <h4 className="text-lg font-semibold text-slate-900">{getCurrentClientData().name}</h4>
+                            <p className="text-sm text-slate-600">{getCurrentClientData().company_name}</p>
+                            <p className="text-sm text-slate-500">CUIT: {getCurrentClientData().cuit}</p>
                           </div>
                         </div>
 
-                        {/* Products Table */}
-                        <div className="px-5 pb-4">
-                          <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                            {/* Table Header */}
-                            <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white font-bold p-4">
-                              <div className="grid grid-cols-12 gap-3 text-sm">
-                                <div className="col-span-1 text-center">#</div>
-                                <div className="col-span-5">DESCRIPCIÓN</div>
-                                <div className="col-span-2 text-center">CANT.</div>
-                                <div className="col-span-2 text-center">PRECIO</div>
-                                <div className="col-span-2 text-right">TOTAL</div>
-                              </div>
-                            </div>
-                            
-                            {/* Table Body - NO SCROLL, todos los productos visibles */}
-                            <div>
-                              {items.map((item, index) => (
-                                <div key={item.id} className={`p-4 border-b border-gray-100 last:border-b-0 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                                  <div className="grid grid-cols-12 gap-3 items-center">
-                                    <div className="col-span-1 text-center font-medium text-gray-600 text-sm">
-                                      {String(index + 1).padStart(2, '0')}
-                                    </div>
-                                    <div className="col-span-5">
-                                      <p className="font-bold text-gray-900 text-sm">{item.medida}</p>
-                                      <p className="text-gray-600 text-sm">{item.producto}</p>
-                                    </div>
-                                    <div className="col-span-2 text-center">
-                                      <span className="bg-gray-100 rounded-lg px-3 py-2 font-bold text-sm">{item.cantidad}</span>
-                                    </div>
-                                    <div className="col-span-2 text-center font-bold text-sm">
-                                      ${formatNumber(item.precioUnitario)}
-                                    </div>
-                                    <div className="col-span-2 text-right font-bold text-sm text-gray-900">
-                                      ${formatNumber(item.precioTotal)}
-                                    </div>
-                                  </div>
+                        {/* Products Section */}
+                        <div className="p-6">
+                          {/* Table Header */}
+                          <div className="grid grid-cols-12 gap-4 mb-4 pb-3 border-b-2 border-slate-900">
+                            <div className="col-span-1 text-xs font-bold text-slate-900 uppercase">#</div>
+                            <div className="col-span-6 text-xs font-bold text-slate-900 uppercase">Descripción</div>
+                            <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">Cant.</div>
+                            <div className="col-span-3 text-xs font-bold text-slate-900 uppercase text-right">Total</div>
+                          </div>
+
+                          {/* Products List */}
+                          <div className="space-y-3">
+                            {items.map((item, index) => (
+                              <div key={item.id} className="grid grid-cols-12 gap-4 py-3 border-b border-slate-100">
+                                <div className="col-span-1 text-sm text-slate-600 font-medium">
+                                  {String(index + 1).padStart(2, '0')}
                                 </div>
-                              ))}
-                            </div>
+                                <div className="col-span-6">
+                                  <p className="text-sm font-semibold text-slate-900 mb-1">{item.medida}</p>
+                                  <p className="text-xs text-slate-600">{item.producto}</p>
+                                  <p className="text-xs text-slate-500">${formatNumber(item.precioUnitario)} c/u</p>
+                                </div>
+                                <div className="col-span-2 text-center">
+                                  <span className="inline-block bg-slate-100 text-slate-900 px-3 py-1 rounded text-sm font-medium">
+                                    {item.cantidad}
+                                  </span>
+                                </div>
+                                <div className="col-span-3 text-right">
+                                  <p className="text-sm font-bold text-slate-900">${formatNumber(item.precioTotal)}</p>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
 
                         {/* Total Section */}
-                        <div className="px-5 pb-5">
+                        <div className="p-6 pt-4 bg-slate-50">
                           <div className="flex justify-end">
-                            <div className="w-80 space-y-3">
-                              <div className="flex justify-between text-lg bg-gray-50 rounded-lg p-4 border border-gray-200">
-                                <span className="text-gray-600 font-bold">Subtotal:</span>
-                                <span className="font-bold text-gray-900">${formatNumber(totalVenta)}</span>
+                            <div className="w-64">
+                              <div className="space-y-2 mb-4">
+                                <div className="flex justify-between py-2">
+                                  <span className="text-sm text-slate-600">Subtotal:</span>
+                                  <span className="text-sm font-medium text-slate-900">${formatNumber(totalVenta)}</span>
+                                </div>
                               </div>
-                              <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white p-4 rounded-xl shadow-lg flex justify-between font-bold text-xl">
-                                <span>TOTAL</span>
-                                <span>${formatNumber(totalVenta)}</span>
+                              <div className="border-t-2 border-slate-900 pt-4">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-lg font-bold text-slate-900 uppercase">Total:</span>
+                                  <span className="text-2xl font-bold text-slate-900">${formatNumber(totalVenta)}</span>
+                                </div>
                               </div>
                             </div>
                           </div>
                         </div>
 
                         {/* Footer */}
-                        <div className="px-5 pb-4 text-center">
-                          <p className="text-sm text-gray-500 italic">¡Gracias por elegirnos!</p>
+                        <div className="p-6 pt-4 text-center border-t border-slate-200">
+                          <p className="text-xs text-slate-500">¡Gracias por confiar en nosotros!</p>
                         </div>
                       </div>
                     </div>
