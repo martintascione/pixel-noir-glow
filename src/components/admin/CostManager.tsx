@@ -129,6 +129,12 @@ export const CostManager = ({ products }: Props) => {
     }
   };
 
+  // Función para calcular IVA contenido en el costo (discriminar IVA de un precio que ya lo incluye)
+  const calculateContainedIVA = (costWithIVA: number): number => {
+    // Fórmula: IVA = Precio con IVA × (tasa_iva / (1 + tasa_iva))
+    return costWithIVA * (ivaRate / 100) / (1 + ivaRate / 100);
+  };
+
   // Función para calcular IVA crédito (discriminar IVA de un precio que ya lo incluye)
   const calculateIVACredit = (costWithIVA: number): { netCost: number; ivaAmount: number } => {
     const netCost = costWithIVA / (1 + ivaRate / 100);
@@ -263,19 +269,22 @@ export const CostManager = ({ products }: Props) => {
                         <CardContent className="p-6">
                           <div className="grid gap-6">
                             {/* Información del producto */}
-                            <div>
-                              <h3 className="font-semibold text-lg">{product.name}</h3>
-                              <div className="flex gap-4 text-sm text-muted-foreground">
-                                <span>Tamaño: {product.size}</span>
-                                <span>Categoría: {product.category?.name || 'Sin categoría'}</span>
-                                <span>Precio actual: {formatCurrency(product.price)}</span>
+                            <div className="grid grid-cols-3 gap-4">
+                              <div>
+                                <h3 className="font-semibold text-lg">{product.name}</h3>
+                              </div>
+                              <div>
+                                <span className="text-sm text-muted-foreground">Tamaño: {product.size}</span>
+                              </div>
+                              <div>
+                                <span className="text-sm text-muted-foreground">Precio actual: {formatCurrency(product.price)}</span>
                               </div>
                             </div>
 
                             <Separator />
 
                             {/* Inputs de costos */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-4">
                               <div className="space-y-2">
                                 <Label htmlFor={`cost-${product.id}`} className="flex items-center gap-2">
                                   <DollarSign className="w-4 h-4" />
@@ -291,11 +300,19 @@ export const CostManager = ({ products }: Props) => {
                                 />
                               </div>
 
-                              <div className="flex items-end">
+                              {/* Mostrar IVA contenido */}
+                              {cost.production_cost > 0 && (
+                                <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                                  <p className="text-sm font-medium text-orange-600">IVA contenido</p>
+                                  <p className="text-lg font-bold text-orange-700">{formatCurrency(calculateContainedIVA(cost.production_cost))}</p>
+                                </div>
+                              )}
+
+                              <div className="flex justify-end">
                                 <Button
                                   onClick={() => saveCost(product.id, categoryName)}
                                   disabled={isSaving}
-                                  className="w-full"
+                                  className="w-32"
                                 >
                                   <Save className="w-4 h-4 mr-2" />
                                   {isSaving ? 'Guardando...' : 'Guardar'}
