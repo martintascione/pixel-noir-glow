@@ -81,15 +81,16 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
   const element = document.getElementById(elementId);
   if (!element) throw new Error('Elemento no encontrado');
   
-  // Configurar dimensiones Full HD para el remito
-  const fixedWidth = 1920; // Full HD width
+  // Mantener forma original del remito con calidad Full HD
+  const originalWidth = 420; // Forma original del remito
+  const highQualityScale = 4.5; // Escala alta para Full HD manteniendo proporciones
   
   const canvas = await html2canvas(element, {
     backgroundColor: '#ffffff',
-    scale: 5, // Escala muy alta para Full HD
+    scale: highQualityScale,
     useCORS: true,
     allowTaint: true,
-    width: fixedWidth,
+    width: originalWidth, // Mantener ancho original
     removeContainer: true,
     foreignObjectRendering: false,
     scrollX: 0,
@@ -100,9 +101,9 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
         // Remover todas las transformaciones y contenedores responsivos
         clonedElement.style.transform = 'none';
         clonedElement.style.scale = '1';
-        clonedElement.style.width = `${fixedWidth}px`;
-        clonedElement.style.maxWidth = `${fixedWidth}px`;
-        clonedElement.style.minWidth = `${fixedWidth}px`;
+        clonedElement.style.width = `${originalWidth}px`;
+        clonedElement.style.maxWidth = `${originalWidth}px`;
+        clonedElement.style.minWidth = `${originalWidth}px`;
         clonedElement.style.position = 'static';
         clonedElement.style.overflow = 'visible';
         clonedElement.style.margin = '0';
