@@ -42,15 +42,12 @@ export const ClientRemitoHistory = () => {
         .select('iva_rate')
         .maybeSingle();
 
-      // Obtener costos de productos con información del producto
+      // Obtener costos de productos
       const { data: costsData } = await supabase
         .from('product_costs')
-        .select(`
-          *,
-          products!inner(id, name, size)
-        `);
+        .select('*');
 
-      // Obtener todos los productos para mapear por nombre
+      // Obtener todos los productos para mapear por medida (size)
       const { data: productsData } = await supabase
         .from('products')
         .select('id, name, size');
@@ -144,11 +141,11 @@ export const ClientRemitoHistory = () => {
     remitos.forEach(remito => {
       // Calcular costo por remito
       let costoRemito = 0;
+      let ivaDebitoRemito = 0;
+      
       remito.items.forEach(item => {
-        // Buscar el producto por nombre y medida
-        const product = costData.products.find((product: any) => {
-          return product.name === item.producto && product.size === item.medida;
-        });
+        // Buscar el producto por medida (size) como lo hace RemitosGenerator
+        const product = costData.products.find((p: any) => p.size === item.medida);
         
         if (product) {
           // Buscar el costo usando el ID del producto encontrado
@@ -157,18 +154,21 @@ export const ClientRemitoHistory = () => {
           );
           
           if (productCost) {
-            costoRemito += productCost.production_cost * item.cantidad;
+            const costoTotalItem = productCost.production_cost * item.cantidad;
+            costoRemito += costoTotalItem;
+            
+            // Calcular IVA débito para este remito
+            const ivaDebitoItem = costoTotalItem * (costData.ivaRate / 100) / (1 + costData.ivaRate / 100);
+            ivaDebitoRemito += ivaDebitoItem;
           }
         }
       });
       
       costoTotalGeneral += costoRemito;
+      ivaDebitoTotal += ivaDebitoRemito;
       
       // Calcular IVA Crédito del remito
       ivaCreditoTotal += remito.total * (costData.ivaRate / 100) / (1 + costData.ivaRate / 100);
-      
-      // Calcular IVA Débito del remito
-      ivaDebitoTotal += costoRemito * (costData.ivaRate / 100);
     });
 
     const gananciaTotalReal = totalVentasGeneral - costoTotalGeneral;

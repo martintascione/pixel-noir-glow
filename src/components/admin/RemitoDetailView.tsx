@@ -39,15 +39,12 @@ export const RemitoDetailView = () => {
         .select('iva_rate')
         .maybeSingle();
 
-      // Obtener costos de productos con información del producto
+      // Obtener costos de productos
       const { data: costsData } = await supabase
         .from('product_costs')
-        .select(`
-          *,
-          products!inner(id, name, size)
-        `);
+        .select('*');
 
-      // Obtener todos los productos para mapear por nombre
+      // Obtener todos los productos para mapear por medida (size)
       const { data: productsData } = await supabase
         .from('products')
         .select('id, name, size');
@@ -74,14 +71,12 @@ export const RemitoDetailView = () => {
     }
 
     let costoTotal = 0;
+    let ivaDebito = 0;
 
-    // Calcular el costo total del pedido
+    // Calcular el costo total del pedido y IVA débito
     remito.items.forEach(item => {
-      // Buscar el producto por nombre y medida
-      const product = costData.products.find((product: any) => {
-        // Buscar por nombre del producto y medida (size)
-        return product.name === item.producto && product.size === item.medida;
-      });
+      // Buscar el producto por medida (size) como lo hace RemitosGenerator
+      const product = costData.products.find((p: any) => p.size === item.medida);
       
       if (product) {
         // Buscar el costo usando el ID del producto encontrado
@@ -90,7 +85,12 @@ export const RemitoDetailView = () => {
         );
         
         if (productCost) {
-          costoTotal += productCost.production_cost * item.cantidad;
+          const costoTotalItem = productCost.production_cost * item.cantidad;
+          costoTotal += costoTotalItem;
+          
+          // Calcular IVA débito (IVA contenido en el costo)
+          const ivaDebitoItem = costoTotalItem * (costData.ivaRate / 100) / (1 + costData.ivaRate / 100);
+          ivaDebito += ivaDebitoItem;
         }
       }
     });
@@ -100,9 +100,6 @@ export const RemitoDetailView = () => {
     
     // Calcular IVA Crédito (IVA contenido en la venta)
     const ivaCredito = totalVenta * (costData.ivaRate / 100) / (1 + costData.ivaRate / 100);
-    
-    // Calcular IVA Débito (IVA del costo)
-    const ivaDebito = costoTotal * (costData.ivaRate / 100);
     
     // IVA Neto = IVA Crédito - IVA Débito
     const ivaNeto = ivaCredito - ivaDebito;
