@@ -85,13 +85,23 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
     backgroundColor: '#ffffff',
     scale: 2,
     useCORS: true,
-    allowTaint: true
+    allowTaint: true,
+    width: 400,
+    height: 400,
+    // Forzar tamaño cuadrado
+    onclone: (clonedDoc) => {
+      const clonedElement = clonedDoc.getElementById(elementId);
+      if (clonedElement) {
+        clonedElement.style.width = '400px';
+        clonedElement.style.height = '400px';
+      }
+    }
   });
   
   return new Promise((resolve) => {
     canvas.toBlob((blob) => {
       if (blob) resolve(blob);
-    }, 'image/jpeg', 0.95);
+    }, 'image/jpeg', 0.8); // Reducir calidad para menor tamaño
   });
 };
 
