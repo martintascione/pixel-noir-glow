@@ -658,13 +658,13 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
 
               {/* Preview del Remito */}
               {items.length > 0 && (
-                <Card>
-                  <CardHeader>
+                <Card className="mx-0 overflow-hidden">
+                  <CardHeader className="p-4">
                     <CardTitle>Preview del Remito</CardTitle>
                   </CardHeader>
-                  <CardContent className="p-0">
+                  <CardContent className="p-0 m-0">
                     {/* Container responsivo para la preview */}
-                    <div className="flex justify-center items-center w-full overflow-hidden">
+                    <div className="flex justify-center items-center w-full h-auto">
                       <div className="transform-gpu transition-transform duration-300 scale-[0.5] sm:scale-[0.6] md:scale-[0.7] lg:scale-[0.8] xl:scale-[0.9] origin-center">
                         <div id="remito-preview" ref={remitoRef} className="w-full bg-white shadow-xl border border-gray-200" style={{width: '420px', minWidth: '420px', height: 'auto'}}>
                         {/* Header Section */}
@@ -762,7 +762,7 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                     </div>
 
                     {/* Botón de Acción */}
-                    <div className="flex justify-center p-4">
+                    <div className="flex justify-center py-4">
                       <Button 
                         onClick={handleSendWhatsApp} 
                         disabled={items.length === 0 || !getCurrentClientData().whatsapp_number}
