@@ -236,7 +236,7 @@ const RemitosGenerator = () => {
     }
   };
 
-  const handleSendWhatsApp = () => {
+  const handleSendWhatsApp = async () => {
     const clientData = getCurrentClientData();
     if (!clientData.whatsapp_number) {
       toast({
@@ -247,10 +247,41 @@ const RemitosGenerator = () => {
       return;
     }
 
-    const remitoData = generateRemitoData();
-    const message = `Hola ${clientData.name}, te envío el remito N° ${remitoData.numero} por un total de $${remitoData.total.toFixed(2)}. ¡Gracias por tu compra!`;
-    
-    sendToWhatsApp(clientData.whatsapp_number, message);
+    try {
+      // Generar JPG del remito
+      const jpgBlob = await generateRemitoJPG('remito-preview');
+      const remitoData = generateRemitoData();
+      
+      // Descargar la imagen automáticamente
+      downloadFile(jpgBlob, `remito_${remitoData.numero}.jpg`);
+      
+      // Preparar mensaje
+      const message = `Hola ${clientData.name}, te envío el remito N° ${remitoData.numero} por un total de $${remitoData.total.toFixed(2)}. 
+
+📋 *DETALLE DEL PEDIDO:*
+${remitoData.items.map(item => `• ${item.cantidad} x ${item.medida} - ${item.producto} - $${item.precioTotal.toFixed(2)}`).join('\n')}
+
+💰 *TOTAL: $${remitoData.total.toFixed(2)}*
+
+La imagen del remito se descargó automáticamente. Por favor adjúntala a este mensaje.
+
+¡Gracias por tu compra! 🙏`;
+      
+      // Abrir WhatsApp con el mensaje
+      sendToWhatsApp(clientData.whatsapp_number, message);
+      
+      toast({
+        title: "Éxito",
+        description: "Imagen descargada y WhatsApp abierto. Adjunta manualmente la imagen descargada.",
+        duration: 5000
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Error al generar la imagen del remito",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
