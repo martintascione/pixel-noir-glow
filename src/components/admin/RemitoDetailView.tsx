@@ -275,10 +275,10 @@ export const RemitoDetailView = () => {
                           </span>
                         </div>
                         <div className="col-span-2 flex items-center justify-center">
-                          <p className="text-sm font-medium text-slate-900">${item.precio_unitario.toFixed(2)}</p>
+                          <p className="text-sm font-medium text-slate-900">{formatCurrency(item.precio_unitario)}</p>
                         </div>
                         <div className="col-span-2 flex items-center justify-center">
-                          <p className="text-sm font-bold text-slate-900">${item.precio_total.toFixed(2)}</p>
+                          <p className="text-sm font-bold text-slate-900">{formatCurrency(item.precio_total)}</p>
                         </div>
                       </div>
                       
@@ -290,12 +290,12 @@ export const RemitoDetailView = () => {
                             <p className="text-xs text-slate-600 truncate">{item.producto}</p>
                           </div>
                           <div className="text-right ml-2 flex-shrink-0">
-                            <p className="text-xs font-bold text-slate-900">${item.precio_total.toFixed(2)}</p>
+                            <p className="text-xs font-bold text-slate-900">{formatCurrency(item.precio_total)}</p>
                           </div>
                         </div>
                         <div className="flex justify-between text-xs text-slate-500">
                           <span>Cant: {item.cantidad}</span>
-                          <span>Unit: ${item.precio_unitario.toFixed(2)}</span>
+                          <span>Unit: {formatCurrency(item.precio_unitario)}</span>
                         </div>
                       </div>
                     </div>
@@ -310,7 +310,7 @@ export const RemitoDetailView = () => {
                     <div className="space-y-2 mb-2 sm:mb-4">
                       <div className="flex justify-between items-center py-2 border-t-2 border-slate-900">
                         <span className="text-sm sm:text-base font-bold text-slate-900">TOTAL:</span>
-                        <span className="text-lg sm:text-xl font-bold text-slate-900">${remito.total.toFixed(2)}</span>
+                        <span className="text-lg sm:text-xl font-bold text-slate-900">{formatCurrency(remito.total)}</span>
                       </div>
                     </div>
                   </div>

@@ -320,12 +320,9 @@ const RemitosGenerator = () => {
       
       // Guardar remito en la base de datos automáticamente
       let remitoId: string | undefined;
-      console.log('selectedClient:', selectedClient);
       if (selectedClient) {
         try {
-          console.log('Attempting to save remito to database...');
           remitoId = await saveRemitoToDatabase(remitoData, selectedClient.id);
-          console.log('Remito saved with ID:', remitoId);
           toast({
             title: "Remito guardado",
             description: "El remito se guardó correctamente en el historial",
@@ -338,8 +335,6 @@ const RemitosGenerator = () => {
             variant: "destructive",
           });
         }
-      } else {
-        console.log('No selectedClient, cannot save to database');
       }
 
       // Generar JPG del remito
