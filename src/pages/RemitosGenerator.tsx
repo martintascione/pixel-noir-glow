@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Plus, Calculator, Download, MessageCircle, UserPlus, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Calculator, Download, MessageCircle, UserPlus, Edit, Trash2, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -24,9 +24,8 @@ interface RemitoItem {
   precioTotal: number;
 }
 const RemitosGenerator = () => {
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const remitoRef = useRef<HTMLDivElement>(null);
 
@@ -738,6 +737,14 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                           {client.whatsapp_number && <p className="text-xs text-muted-foreground">WhatsApp: {client.whatsapp_number}</p>}
                         </div>
                         <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => navigate(`/admin/clientes/${client.id}/remitos`)}
+                          >
+                            <History className="h-4 w-4 mr-1" />
+                            Historial
+                          </Button>
                           <Button variant="outline" size="sm">
                             <Edit className="h-4 w-4" />
                           </Button>
