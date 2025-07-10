@@ -81,10 +81,9 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
   const element = document.getElementById(elementId);
   if (!element) throw new Error('Elemento no encontrado');
   
-  // Configuración simple y básica
+  // Configuración que respeta el tamaño natural del elemento
   const canvas = await html2canvas(element, {
     backgroundColor: '#ffffff',
-    scale: 2,
     useCORS: true,
     allowTaint: true
   });
