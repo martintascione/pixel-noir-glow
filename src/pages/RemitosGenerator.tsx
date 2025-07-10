@@ -15,7 +15,6 @@ import { getClients, createClient, deleteClient, type Client } from '@/services/
 import { generateRemitoPDF, generateRemitoJPG, sendToWhatsApp, downloadFile, type RemitoData } from '@/services/remitoService';
 import { saveImageToGallery, isNativeApp } from '@/services/galleryService';
 import { formatCurrency, formatNumber, formatPrice } from '@/utils/formatters';
-
 interface RemitoItem {
   id: string;
   cantidad: number;
@@ -24,12 +23,13 @@ interface RemitoItem {
   precioUnitario: number;
   precioTotal: number;
 }
-
 const RemitosGenerator = () => {
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const queryClient = useQueryClient();
   const remitoRef = useRef<HTMLDivElement>(null);
-  
+
   // Estados del remito
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [manualClient, setManualClient] = useState({
@@ -45,7 +45,7 @@ const RemitosGenerator = () => {
     producto: '',
     precioUnitario: 0
   });
-  
+
   // Estados para nuevo cliente
   const [showNewClientDialog, setShowNewClientDialog] = useState(false);
   const [newClient, setNewClient] = useState({
@@ -55,15 +55,17 @@ const RemitosGenerator = () => {
     cuit: '',
     whatsapp_number: ''
   });
-
-  const { data: products = [] } = useQuery({
+  const {
+    data: products = []
+  } = useQuery({
     queryKey: ['products'],
-    queryFn: () => getProducts(),
+    queryFn: () => getProducts()
   });
-
-  const { data: clients = [] } = useQuery({
+  const {
+    data: clients = []
+  } = useQuery({
     queryKey: ['clients'],
-    queryFn: getClients,
+    queryFn: getClients
   });
 
   // Obtener medidas únicas agrupadas por tipo
@@ -73,18 +75,13 @@ const RemitosGenerator = () => {
       diameter: product.diameter || '',
       shape: product.shape || ''
     }));
-    
-    const uniqueMedidas = allMedidas.filter((medida, index, self) => 
-      index === self.findIndex(m => m.size === medida.size)
-    );
-    
+    const uniqueMedidas = allMedidas.filter((medida, index, self) => index === self.findIndex(m => m.size === medida.size));
     const grouped = {
       '4mm': uniqueMedidas.filter(m => m.diameter && (m.diameter.startsWith('4') || m.diameter === '4.2')),
       '6mm': uniqueMedidas.filter(m => m.diameter && m.diameter.startsWith('6')),
       'triangular': uniqueMedidas.filter(m => m.shape?.toLowerCase().includes('triangular')),
-      'otros': uniqueMedidas.filter(m => !m.diameter || (!m.diameter.startsWith('4') && !m.diameter.startsWith('6') && !m.shape?.toLowerCase().includes('triangular')))
+      'otros': uniqueMedidas.filter(m => !m.diameter || !m.diameter.startsWith('4') && !m.diameter.startsWith('6') && !m.shape?.toLowerCase().includes('triangular'))
     };
-    
     return grouped;
   }, [products]);
 
@@ -92,7 +89,9 @@ const RemitosGenerator = () => {
   const createClientMutation = useMutation({
     mutationFn: createClient,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({
+        queryKey: ['clients']
+      });
       setShowNewClientDialog(false);
       setNewClient({
         name: '',
@@ -106,7 +105,7 @@ const RemitosGenerator = () => {
         description: "Cliente creado correctamente"
       });
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: "Error",
         description: "Error al crear cliente: " + error.message,
@@ -119,7 +118,9 @@ const RemitosGenerator = () => {
   const deleteClientMutation = useMutation({
     mutationFn: deleteClient,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({
+        queryKey: ['clients']
+      });
       toast({
         title: "Éxito",
         description: "Cliente eliminado correctamente"
@@ -140,7 +141,6 @@ const RemitosGenerator = () => {
       }
     }
   }, [currentItem.medida, products]);
-
   const addItem = () => {
     if (!currentItem.cantidad || !currentItem.medida || !currentItem.producto) {
       toast({
@@ -150,7 +150,6 @@ const RemitosGenerator = () => {
       });
       return;
     }
-
     const newItem: RemitoItem = {
       id: Date.now().toString(),
       cantidad: parseInt(currentItem.cantidad),
@@ -159,7 +158,6 @@ const RemitosGenerator = () => {
       precioUnitario: currentItem.precioUnitario,
       precioTotal: parseInt(currentItem.cantidad) * currentItem.precioUnitario
     };
-
     setItems([...items, newItem]);
     setCurrentItem({
       cantidad: '',
@@ -167,19 +165,15 @@ const RemitosGenerator = () => {
       producto: '',
       precioUnitario: 0
     });
-
     toast({
       title: "Éxito",
       description: "Producto agregado al remito"
     });
   };
-
   const removeItem = (id: string) => {
     setItems(items.filter(item => item.id !== id));
   };
-
   const totalVenta = items.reduce((sum, item) => sum + item.precioTotal, 0);
-
   const getCurrentClientData = () => {
     if (selectedClient) {
       return {
@@ -191,7 +185,6 @@ const RemitosGenerator = () => {
     }
     return manualClient;
   };
-
   const generateRemitoData = (): RemitoData => {
     return {
       cliente: getCurrentClientData(),
@@ -201,7 +194,6 @@ const RemitosGenerator = () => {
       numero: `R${Date.now().toString().slice(-6)}`
     };
   };
-
   const handleGeneratePDF = async () => {
     try {
       const remitoData = generateRemitoData();
@@ -219,7 +211,6 @@ const RemitosGenerator = () => {
       });
     }
   };
-
   const handleGenerateJPG = async () => {
     try {
       const jpgBlob = await generateRemitoJPG('remito-preview');
@@ -237,7 +228,6 @@ const RemitosGenerator = () => {
       });
     }
   };
-
   const handleSendWhatsApp = async () => {
     const clientData = getCurrentClientData();
     if (!clientData.whatsapp_number) {
@@ -248,17 +238,16 @@ const RemitosGenerator = () => {
       });
       return;
     }
-
     try {
       // Generar JPG del remito
       const jpgBlob = await generateRemitoJPG('remito-preview');
       const remitoData = generateRemitoData();
-      
+
       // Verificar si estamos en una app nativa (iOS/Android)
       if (isNativeApp()) {
         // Guardar en galería del dispositivo
         await saveImageToGallery(jpgBlob);
-        
+
         // Preparar mensaje para app nativa
         const nativeMessage = `Hola ${clientData.name}, te envío el remito N° ${remitoData.numero} por un total de ${formatCurrency(remitoData.total)}. 
 
@@ -270,10 +259,9 @@ ${remitoData.items.map(item => `• ${item.cantidad} x ${item.medida} - ${item.p
 La imagen del remito se guardó en tu galería. Adjúntala desde ahí.
 
 ¡Gracias por tu compra! 🙏`;
-        
+
         // Abrir WhatsApp con el mensaje
         sendToWhatsApp(clientData.whatsapp_number, nativeMessage);
-        
         toast({
           title: "¡Éxito! 📱",
           description: "Imagen guardada en galería. WhatsApp abierto con mensaje.",
@@ -282,7 +270,7 @@ La imagen del remito se guardó en tu galería. Adjúntala desde ahí.
       } else {
         // Descargar para navegador web
         downloadFile(jpgBlob, `remito_${remitoData.numero}.jpg`);
-        
+
         // Preparar mensaje para navegador
         const webMessage = `Hola ${clientData.name}, te envío el remito N° ${remitoData.numero} por un total de ${formatCurrency(remitoData.total)}. 
 
@@ -294,17 +282,15 @@ ${remitoData.items.map(item => `• ${item.cantidad} x ${item.medida} - ${item.p
 La imagen del remito se descargó automáticamente. Por favor adjúntala a este mensaje.
 
 ¡Gracias por tu compra! 🙏`;
-        
+
         // Abrir WhatsApp con el mensaje
         sendToWhatsApp(clientData.whatsapp_number, webMessage);
-        
         toast({
           title: "Éxito",
           description: "Imagen descargada y WhatsApp abierto. Adjunta manualmente la imagen descargada.",
           duration: 5000
         });
       }
-      
     } catch (error) {
       console.error('Error:', error);
       toast({
@@ -314,9 +300,7 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
       });
     }
   };
-
-  return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+  return <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <div className="container mx-auto px-3 py-6 max-w-6xl">
       <div className="mb-6 flex items-center">
         <Link to="/admin" className="mr-4">
@@ -345,27 +329,22 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                 <div>
                   <Label>Cliente</Label>
                   <div className="flex gap-2">
-                    <Select
-                      value={selectedClient?.id || 'manual'}
-                      onValueChange={(value) => {
-                        if (value === 'manual') {
-                          setSelectedClient(null);
-                        } else {
-                          const client = clients.find(c => c.id === value);
-                          setSelectedClient(client || null);
-                        }
-                      }}
-                    >
+                    <Select value={selectedClient?.id || 'manual'} onValueChange={value => {
+                      if (value === 'manual') {
+                        setSelectedClient(null);
+                      } else {
+                        const client = clients.find(c => c.id === value);
+                        setSelectedClient(client || null);
+                      }
+                    }}>
                       <SelectTrigger className="flex-1">
                         <SelectValue placeholder="Seleccionar cliente" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="manual">Ingresar manualmente</SelectItem>
-                        {clients.map((client) => (
-                          <SelectItem key={client.id} value={client.id}>
+                        {clients.map(client => <SelectItem key={client.id} value={client.id}>
                             {client.name} - {client.company_name}
-                          </SelectItem>
-                        ))}
+                          </SelectItem>)}
                       </SelectContent>
                     </Select>
                     <Dialog open={showNewClientDialog} onOpenChange={setShowNewClientDialog}>
@@ -381,50 +360,40 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                         <div className="space-y-4">
                           <div>
                             <Label htmlFor="new-name">Nombre</Label>
-                            <Input
-                              id="new-name"
-                              value={newClient.name}
-                              onChange={(e) => setNewClient(prev => ({ ...prev, name: e.target.value }))}
-                            />
+                            <Input id="new-name" value={newClient.name} onChange={e => setNewClient(prev => ({
+                              ...prev,
+                              name: e.target.value
+                            }))} />
                           </div>
                           <div>
                             <Label htmlFor="new-company">Empresa</Label>
-                            <Input
-                              id="new-company"
-                              value={newClient.company_name}
-                              onChange={(e) => setNewClient(prev => ({ ...prev, company_name: e.target.value }))}
-                            />
+                            <Input id="new-company" value={newClient.company_name} onChange={e => setNewClient(prev => ({
+                              ...prev,
+                              company_name: e.target.value
+                            }))} />
                           </div>
                           <div>
                             <Label htmlFor="new-legal">Razón Social</Label>
-                            <Input
-                              id="new-legal"
-                              value={newClient.company_legal_name}
-                              onChange={(e) => setNewClient(prev => ({ ...prev, company_legal_name: e.target.value }))}
-                            />
+                            <Input id="new-legal" value={newClient.company_legal_name} onChange={e => setNewClient(prev => ({
+                              ...prev,
+                              company_legal_name: e.target.value
+                            }))} />
                           </div>
                           <div>
                             <Label htmlFor="new-cuit">CUIT</Label>
-                            <Input
-                              id="new-cuit"
-                              value={newClient.cuit}
-                              onChange={(e) => setNewClient(prev => ({ ...prev, cuit: e.target.value }))}
-                            />
+                            <Input id="new-cuit" value={newClient.cuit} onChange={e => setNewClient(prev => ({
+                              ...prev,
+                              cuit: e.target.value
+                            }))} />
                           </div>
                           <div>
                             <Label htmlFor="new-whatsapp">WhatsApp</Label>
-                            <Input
-                              id="new-whatsapp"
-                              value={newClient.whatsapp_number}
-                              onChange={(e) => setNewClient(prev => ({ ...prev, whatsapp_number: e.target.value }))}
-                              placeholder="+54 9 11 1234-5678"
-                            />
+                            <Input id="new-whatsapp" value={newClient.whatsapp_number} onChange={e => setNewClient(prev => ({
+                              ...prev,
+                              whatsapp_number: e.target.value
+                            }))} placeholder="+54 9 11 1234-5678" />
                           </div>
-                          <Button 
-                            onClick={() => createClientMutation.mutate(newClient)}
-                            disabled={!newClient.name || !newClient.company_name || !newClient.cuit}
-                            className="w-full"
-                          >
+                          <Button onClick={() => createClientMutation.mutate(newClient)} disabled={!newClient.name || !newClient.company_name || !newClient.cuit} className="w-full">
                             Guardar Cliente
                           </Button>
                         </div>
@@ -434,55 +403,41 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                 </div>
 
                 {/* Datos del Cliente (Manual o Seleccionado) */}
-                {!selectedClient ? (
-                  <div className="grid gap-4">
+                {!selectedClient ? <div className="grid gap-4">
                     <div>
                       <Label htmlFor="manual-name">Nombre del Cliente</Label>
-                      <Input
-                        id="manual-name"
-                        value={manualClient.name}
-                        onChange={(e) => setManualClient(prev => ({ ...prev, name: e.target.value }))}
-                        placeholder="Ingrese el nombre del cliente"
-                      />
+                      <Input id="manual-name" value={manualClient.name} onChange={e => setManualClient(prev => ({
+                      ...prev,
+                      name: e.target.value
+                    }))} placeholder="Ingrese el nombre del cliente" />
                     </div>
                     <div>
                       <Label htmlFor="manual-company">Empresa</Label>
-                      <Input
-                        id="manual-company"
-                        value={manualClient.company_name}
-                        onChange={(e) => setManualClient(prev => ({ ...prev, company_name: e.target.value }))}
-                        placeholder="Nombre de la empresa"
-                      />
+                      <Input id="manual-company" value={manualClient.company_name} onChange={e => setManualClient(prev => ({
+                      ...prev,
+                      company_name: e.target.value
+                    }))} placeholder="Nombre de la empresa" />
                     </div>
                     <div>
                       <Label htmlFor="manual-cuit">CUIT</Label>
-                      <Input
-                        id="manual-cuit"
-                        value={manualClient.cuit}
-                        onChange={(e) => setManualClient(prev => ({ ...prev, cuit: e.target.value }))}
-                        placeholder="00-00000000-0"
-                      />
+                      <Input id="manual-cuit" value={manualClient.cuit} onChange={e => setManualClient(prev => ({
+                      ...prev,
+                      cuit: e.target.value
+                    }))} placeholder="00-00000000-0" />
                     </div>
                     <div>
                       <Label htmlFor="manual-whatsapp">WhatsApp</Label>
-                      <Input
-                        id="manual-whatsapp"
-                        value={manualClient.whatsapp_number}
-                        onChange={(e) => setManualClient(prev => ({ ...prev, whatsapp_number: e.target.value }))}
-                        placeholder="+54 9 11 1234-5678"
-                      />
+                      <Input id="manual-whatsapp" value={manualClient.whatsapp_number} onChange={e => setManualClient(prev => ({
+                      ...prev,
+                      whatsapp_number: e.target.value
+                    }))} placeholder="+54 9 11 1234-5678" />
                     </div>
-                  </div>
-                ) : (
-                  <div className="bg-muted p-4 rounded">
+                  </div> : <div className="bg-muted p-4 rounded">
                     <h4 className="font-medium">{selectedClient.name}</h4>
                     <p className="text-sm text-muted-foreground">{selectedClient.company_name}</p>
                     <p className="text-sm text-muted-foreground">CUIT: {selectedClient.cuit}</p>
-                    {selectedClient.whatsapp_number && (
-                      <p className="text-sm text-muted-foreground">WhatsApp: {selectedClient.whatsapp_number}</p>
-                    )}
-                  </div>
-                )}
+                    {selectedClient.whatsapp_number && <p className="text-sm text-muted-foreground">WhatsApp: {selectedClient.whatsapp_number}</p>}
+                  </div>}
 
                 {/* Agregar Productos */}
                 <div className="border-t pt-4">
@@ -491,121 +446,85 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="cantidad">Cantidad</Label>
-                        <Input
-                          id="cantidad"
-                          type="number"
-                          value={currentItem.cantidad}
-                          onChange={(e) => setCurrentItem(prev => ({ ...prev, cantidad: e.target.value }))}
-                          placeholder="0"
-                        />
+                        <Input id="cantidad" type="number" value={currentItem.cantidad} onChange={e => setCurrentItem(prev => ({
+                          ...prev,
+                          cantidad: e.target.value
+                        }))} placeholder="0" />
                       </div>
                       <div>
                         <Label htmlFor="medida">Medida del Estribo</Label>
-                        <Select
-                          value={currentItem.medida}
-                          onValueChange={(value) => setCurrentItem(prev => ({ ...prev, medida: value }))}
-                        >
+                        <Select value={currentItem.medida} onValueChange={value => setCurrentItem(prev => ({
+                          ...prev,
+                          medida: value
+                        }))}>
                           <SelectTrigger className="bg-background">
                             <SelectValue placeholder="Seleccionar medida" />
                           </SelectTrigger>
                           <SelectContent className="bg-background border shadow-lg z-50 max-h-80 overflow-y-auto">
                             {/* Medidas 4mm */}
-                            {medidasGrouped['4mm'].length > 0 && (
-                              <>
+                            {medidasGrouped['4mm'].length > 0 && <>
                                 <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
                                   Ø4.2mm
                                 </div>
-                                {medidasGrouped['4mm'].map((medida) => (
-                                  <SelectItem key={`4mm-${medida.size}`} value={medida.size} className="pl-4">
+                                {medidasGrouped['4mm'].map(medida => <SelectItem key={`4mm-${medida.size}`} value={medida.size} className="pl-4">
                                     {medida.size} (Ø4.2mm)
-                                  </SelectItem>
-                                ))}
-                              </>
-                            )}
+                                  </SelectItem>)}
+                              </>}
                             
                             {/* Separador */}
-                            {medidasGrouped['4mm'].length > 0 && medidasGrouped['6mm'].length > 0 && (
-                              <div className="border-t my-1" />
-                            )}
+                            {medidasGrouped['4mm'].length > 0 && medidasGrouped['6mm'].length > 0 && <div className="border-t my-1" />}
                             
                             {/* Medidas 6mm */}
-                            {medidasGrouped['6mm'].length > 0 && (
-                              <>
+                            {medidasGrouped['6mm'].length > 0 && <>
                                 <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
                                   Ø6mm
                                 </div>
-                                {medidasGrouped['6mm'].map((medida) => (
-                                  <SelectItem key={`6mm-${medida.size}`} value={medida.size} className="pl-4">
+                                {medidasGrouped['6mm'].map(medida => <SelectItem key={`6mm-${medida.size}`} value={medida.size} className="pl-4">
                                     {medida.size} (Ø6mm)
-                                  </SelectItem>
-                                ))}
-                              </>
-                            )}
+                                  </SelectItem>)}
+                              </>}
                             
                             {/* Separador */}
-                            {(medidasGrouped['4mm'].length > 0 || medidasGrouped['6mm'].length > 0) && medidasGrouped['triangular'].length > 0 && (
-                              <div className="border-t my-1" />
-                            )}
+                            {(medidasGrouped['4mm'].length > 0 || medidasGrouped['6mm'].length > 0) && medidasGrouped['triangular'].length > 0 && <div className="border-t my-1" />}
                             
                             {/* Medidas triangulares */}
-                            {medidasGrouped['triangular'].length > 0 && (
-                              <>
+                            {medidasGrouped['triangular'].length > 0 && <>
                                 <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
                                   Triangulares
                                 </div>
-                                {medidasGrouped['triangular'].map((medida) => (
-                                  <SelectItem key={`triangular-${medida.size}`} value={medida.size} className="pl-4">
+                                {medidasGrouped['triangular'].map(medida => <SelectItem key={`triangular-${medida.size}`} value={medida.size} className="pl-4">
                                     {medida.size}
-                                  </SelectItem>
-                                ))}
-                              </>
-                            )}
+                                  </SelectItem>)}
+                              </>}
                             
                             {/* Separador */}
-                            {(medidasGrouped['4mm'].length > 0 || medidasGrouped['6mm'].length > 0 || medidasGrouped['triangular'].length > 0) && medidasGrouped['otros'].length > 0 && (
-                              <div className="border-t my-1" />
-                            )}
+                            {(medidasGrouped['4mm'].length > 0 || medidasGrouped['6mm'].length > 0 || medidasGrouped['triangular'].length > 0) && medidasGrouped['otros'].length > 0 && <div className="border-t my-1" />}
                             
                             {/* Otros productos */}
-                            {medidasGrouped['otros'].length > 0 && (
-                              <>
+                            {medidasGrouped['otros'].length > 0 && <>
                                 <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
                                   Clavos y Otros
                                 </div>
-                                {medidasGrouped['otros'].map((medida) => (
-                                  <SelectItem key={`otros-${medida.size}`} value={medida.size} className="pl-4">
+                                {medidasGrouped['otros'].map(medida => <SelectItem key={`otros-${medida.size}`} value={medida.size} className="pl-4">
                                     {medida.size}
-                                  </SelectItem>
-                                ))}
-                              </>
-                            )}
+                                  </SelectItem>)}
+                              </>}
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
                     <div>
                       <Label>Producto (autocompletado)</Label>
-                      <Input
-                        value={currentItem.producto}
-                        disabled
-                        placeholder="Se autocompletará al seleccionar medida"
-                        className="bg-muted"
-                      />
+                      <Input value={currentItem.producto} disabled placeholder="Se autocompletará al seleccionar medida" className="bg-muted" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label>Precio Unitario</Label>
-                        <Input
-                          value={formatCurrency(currentItem.precioUnitario)}
-                          disabled
-                        />
+                        <Input value={formatCurrency(currentItem.precioUnitario)} disabled />
                       </div>
                       <div>
                         <Label>Precio Total</Label>
-                        <Input
-                          value={formatCurrency(parseInt(currentItem.cantidad || '0') * currentItem.precioUnitario)}
-                          disabled
-                        />
+                        <Input value={formatCurrency(parseInt(currentItem.cantidad || '0') * currentItem.precioUnitario)} disabled />
                       </div>
                     </div>
                     <Button onClick={addItem} className="w-full">
@@ -625,14 +544,10 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                   <CardTitle>Productos en el Remito</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {items.length === 0 ? (
-                    <p className="text-muted-foreground text-center py-4">
+                  {items.length === 0 ? <p className="text-muted-foreground text-center py-4">
                       No hay productos agregados
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {items.map((item) => (
-                        <div key={item.id} className="flex justify-between items-center p-3 border rounded-lg bg-card">
+                    </p> : <div className="space-y-2">
+                      {items.map(item => <div key={item.id} className="flex justify-between items-center p-3 border rounded-lg bg-card">
                           <div className="flex-1">
                             <p className="font-medium">{item.producto}</p>
                             <p className="text-sm text-muted-foreground">
@@ -641,24 +556,17 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="font-bold">{formatCurrency(item.precioTotal)}</span>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => removeItem(item.id)}
-                            >
+                            <Button variant="destructive" size="sm" onClick={() => removeItem(item.id)}>
                               ×
                             </Button>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        </div>)}
+                    </div>}
                 </CardContent>
               </Card>
 
               {/* Preview del Remito */}
-              {items.length > 0 && (
-                <Card>
+              {items.length > 0 && <Card>
                   <CardHeader>
                     <CardTitle>Preview del Remito</CardTitle>
                   </CardHeader>
@@ -667,7 +575,10 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                     <div className="w-full overflow-hidden">
                       <div className="flex justify-center">
                         <div className="w-full max-w-[95vw] sm:max-w-[420px] mx-auto transform-gpu scale-[0.8] sm:scale-[0.9] md:scale-100 origin-center">
-                          <div id="remito-preview" ref={remitoRef} className="w-full bg-white shadow-xl border border-gray-200 mx-auto" style={{maxWidth: '100%', width: '100%'}}>
+                          <div id="remito-preview" ref={remitoRef} className="w-full bg-white shadow-xl border border-gray-200 mx-auto" style={{
+                          maxWidth: '100%',
+                          width: '100%'
+                        }}>
                           {/* Header Section */}
                           <div className="bg-slate-900 text-white p-6">
                             <div className="flex justify-between items-start">
@@ -679,7 +590,7 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                                 </div>
                               </div>
                               <div className="text-right text-xs text-slate-300">
-                                <p className="font-bold text-white text-sm mb-1">HIERROS TASCIONE</p>
+                                <p className="font-bold text-white mb-1 text-xs">HIERROS TASCIONE</p>
                                 <p className="mb-1">LUIS MARIA TASCIONE</p>
                                 <p>CUIT: 20-21856308-3</p>
                               </div>
@@ -709,8 +620,7 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
 
                             {/* Products List */}
                             <div className="space-y-3">
-                              {items.map((item, index) => (
-                                <div key={item.id} className="grid grid-cols-12 gap-2 py-3 border-b border-slate-100">
+                              {items.map((item, index) => <div key={item.id} className="grid grid-cols-12 gap-2 py-3 border-b border-slate-100">
                                   <div className="col-span-1 text-sm text-slate-600 font-medium text-center">
                                     {String(index + 1).padStart(2, '0')}
                                   </div>
@@ -729,8 +639,7 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                                   <div className="col-span-3 text-center">
                                     <p className="text-sm font-bold text-slate-900">${formatPrice(item.precioTotal)}</p>
                                   </div>
-                                </div>
-                              ))}
+                                </div>)}
                             </div>
                           </div>
 
@@ -765,18 +674,13 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
 
                     {/* Botón de Acción */}
                     <div className="flex justify-center py-4">
-                      <Button 
-                        onClick={handleSendWhatsApp} 
-                        disabled={items.length === 0 || !getCurrentClientData().whatsapp_number}
-                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
-                      >
+                      <Button onClick={handleSendWhatsApp} disabled={items.length === 0 || !getCurrentClientData().whatsapp_number} className="bg-green-600 hover:bg-green-700 text-white px-6 py-2">
                         <MessageCircle className="h-4 w-4 mr-2" />
                         Enviar por WhatsApp
                       </Button>
                     </div>
                   </CardContent>
-                </Card>
-              )}
+                </Card>}
 
               {/* Panel de Administración */}
               <Card>
@@ -823,46 +727,32 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {clients.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
+                {clients.length === 0 ? <p className="text-center text-muted-foreground py-8">
                     No hay clientes registrados
-                  </p>
-                ) : (
-                  <div className="grid gap-4">
-                    {clients.map((client) => (
-                      <div key={client.id} className="flex justify-between items-center p-4 border rounded">
+                  </p> : <div className="grid gap-4">
+                    {clients.map(client => <div key={client.id} className="flex justify-between items-center p-4 border rounded">
                         <div>
                           <h4 className="font-medium">{client.name}</h4>
                           <p className="text-sm text-muted-foreground">{client.company_name}</p>
                           <p className="text-xs text-muted-foreground">CUIT: {client.cuit}</p>
-                          {client.whatsapp_number && (
-                            <p className="text-xs text-muted-foreground">WhatsApp: {client.whatsapp_number}</p>
-                          )}
+                          {client.whatsapp_number && <p className="text-xs text-muted-foreground">WhatsApp: {client.whatsapp_number}</p>}
                         </div>
                         <div className="flex gap-2">
                           <Button variant="outline" size="sm">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="destructive" 
-                            size="sm"
-                            onClick={() => deleteClientMutation.mutate(client.id)}
-                          >
+                          <Button variant="destructive" size="sm" onClick={() => deleteClientMutation.mutate(client.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      </div>)}
+                  </div>}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default RemitosGenerator;
