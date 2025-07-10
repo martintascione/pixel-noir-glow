@@ -144,23 +144,27 @@ export const ClientRemitoHistory = () => {
       let ivaDebitoRemito = 0;
       
       remito.items.forEach(item => {
-        // Buscar el producto por medida (size) como lo hace RemitosGenerator
-        const product = costData.products.find((p: any) => p.size === item.medida);
+        // Buscar TODOS los productos por medida (size) y nombre
+        const matchingProducts = costData.products.filter((p: any) => 
+          p.size === item.medida && p.name === item.producto
+        );
         
-        if (product) {
-          // Buscar el costo usando el ID del producto encontrado
-          const productCost = costData.productCosts.find((cost: any) => 
+        // Buscar el costo en cualquiera de los productos que coincidan
+        let productCost = null;
+        for (const product of matchingProducts) {
+          productCost = costData.productCosts.find((cost: any) => 
             cost.product_id === product.id
           );
+          if (productCost) break; // Si encontramos un costo, salimos del loop
+        }
+        
+        if (productCost) {
+          const costoTotalItem = productCost.production_cost * item.cantidad;
+          costoRemito += costoTotalItem;
           
-          if (productCost) {
-            const costoTotalItem = productCost.production_cost * item.cantidad;
-            costoRemito += costoTotalItem;
-            
-            // Calcular IVA débito para este remito
-            const ivaDebitoItem = costoTotalItem * (costData.ivaRate / 100) / (1 + costData.ivaRate / 100);
-            ivaDebitoRemito += ivaDebitoItem;
-          }
+          // Calcular IVA débito para este remito
+          const ivaDebitoItem = costoTotalItem * (costData.ivaRate / 100) / (1 + costData.ivaRate / 100);
+          ivaDebitoRemito += ivaDebitoItem;
         }
       });
       
