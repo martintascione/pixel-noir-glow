@@ -585,7 +585,7 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                               <div>
                                 <h1 className="text-2xl font-light tracking-widest mb-3">REMITO</h1>
                                 <div className="space-y-1">
-                                  <p className="text-sm text-slate-300">Nro de remito: <span className="text-white font-medium">{generateRemitoData().numero}</span></p>
+                                  <p className="text-slate-300 mx-0 my-0 text-xs">Nro de remito: <span className="text-white font-medium">{generateRemitoData().numero}</span></p>
                                   <p className="text-sm text-slate-300">Fecha: <span className="text-white font-medium">{generateRemitoData().fecha}</span></p>
                                 </div>
                               </div>
