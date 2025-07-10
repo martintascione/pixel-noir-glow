@@ -590,7 +590,7 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                                 </div>
                               </div>
                               {/* Línea separatoria minimalista */}
-                              <div className="h-full w-px bg-slate-600 mx-4 my-2"></div>
+                              <div className="border-l border-slate-500 h-16 mx-6"></div>
                               <div className="text-right text-xs text-slate-300 my-[20px]">
                                 <p className="font-bold text-white mb-1 text-xs my-0">HIERROS TASCIONE</p>
                                 <p className="mb-1">LUIS MARIA TASCIONE</p>
