@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { formatCurrency } from '@/utils/formatters';
 
 export interface RemitoData {
   cliente: {
@@ -63,15 +64,15 @@ export const generateRemitoPDF = async (remitoData: RemitoData): Promise<Blob> =
     pdf.text(item.cantidad.toString(), 20, currentY);
     pdf.text(item.medida, 50, currentY);
     pdf.text(item.producto, 100, currentY);
-    pdf.text(`$${item.precioUnitario.toFixed(2)}`, 150, currentY);
-    pdf.text(`$${item.precioTotal.toFixed(2)}`, 175, currentY);
+    pdf.text(formatCurrency(item.precioUnitario), 150, currentY);
+    pdf.text(formatCurrency(item.precioTotal), 175, currentY);
     currentY += 10;
   });
   
   // Total
   pdf.line(20, currentY + 5, 190, currentY + 5);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(`TOTAL: $${remitoData.total.toFixed(2)}`, 150, currentY + 15);
+  pdf.text(`TOTAL: ${formatCurrency(remitoData.total)}`, 150, currentY + 15);
   
   return pdf.output('blob');
 };
