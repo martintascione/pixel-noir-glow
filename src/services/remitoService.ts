@@ -81,27 +81,37 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
   const element = document.getElementById(elementId);
   if (!element) throw new Error('Elemento no encontrado');
   
+  // Obtener las dimensiones reales del elemento
+  const rect = element.getBoundingClientRect();
+  const actualWidth = element.offsetWidth;
+  const actualHeight = element.offsetHeight;
+  
   const canvas = await html2canvas(element, {
     backgroundColor: '#ffffff',
-    scale: 3, // Aumentar escala para mejor calidad
+    scale: 2, // Escala moderada para buena calidad
     useCORS: true,
     allowTaint: true,
-    width: 300,
-    height: 300,
+    width: actualWidth,
+    height: actualHeight,
     removeContainer: true,
     foreignObjectRendering: false,
+    scrollX: 0,
+    scrollY: 0,
     onclone: (clonedDoc) => {
       const clonedElement = clonedDoc.getElementById(elementId);
       if (clonedElement) {
-        clonedElement.style.width = '300px';
-        clonedElement.style.height = '300px';
-        clonedElement.style.minWidth = '300px';
-        clonedElement.style.minHeight = '300px';
-        clonedElement.style.maxWidth = '300px';
-        clonedElement.style.maxHeight = '300px';
+        // Mantener las dimensiones originales
+        clonedElement.style.width = `${actualWidth}px`;
+        clonedElement.style.height = `${actualHeight}px`;
+        clonedElement.style.minWidth = `${actualWidth}px`;
+        clonedElement.style.minHeight = `${actualHeight}px`;
+        clonedElement.style.maxWidth = `${actualWidth}px`;
+        clonedElement.style.maxHeight = `${actualHeight}px`;
         clonedElement.style.transform = 'none';
         clonedElement.style.position = 'static';
-        clonedElement.style.overflow = 'hidden';
+        clonedElement.style.overflow = 'visible';
+        clonedElement.style.margin = '0';
+        clonedElement.style.padding = '0';
       }
     }
   });

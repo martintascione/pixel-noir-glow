@@ -744,8 +744,8 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
 
                         {/* Total Section */}
                         <div className="p-6 pt-4 bg-slate-50">
-                          <div className="flex justify-end">
-                            <div className="w-64">
+                          <div className="flex justify-center">
+                            <div className="w-72">
                               <div className="space-y-2 mb-4">
                                 <div className="flex justify-between py-2">
                                   <span className="text-sm text-slate-600">Subtotal:</span>
@@ -755,7 +755,7 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                               <div className="border-t-2 border-slate-900 pt-4">
                                 <div className="flex justify-between items-center">
                                   <span className="text-lg font-bold text-slate-900 uppercase">Total:</span>
-                                  <span className="text-2xl font-bold text-slate-900">${formatNumber(totalVenta)}</span>
+                                  <span className="text-xl font-bold text-slate-900">${formatNumber(totalVenta)}</span>
                                 </div>
                               </div>
                             </div>
