@@ -316,7 +316,8 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl overflow-x-hidden">{/* Agregado overflow-x-hidden */}
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+      <div className="container mx-auto px-3 py-6 max-w-6xl">
       <div className="mb-6 flex items-center">
         <Link to="/admin" className="mr-4">
           <Button variant="outline" size="icon">
@@ -661,82 +662,100 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                   <CardHeader>
                     <CardTitle>Preview del Remito</CardTitle>
                   </CardHeader>
-                  <CardContent className="p-2">
-                    <div id="remito-preview" ref={remitoRef} className="w-full max-w-sm bg-gradient-to-br from-slate-50 to-blue-50 p-3 shadow-lg mx-auto aspect-square" style={{maxWidth: '320px', width: '320px', height: '320px'}}>
-                      {/* Header */}
-                      <div className="text-center mb-2 pb-2 border-b-2 border-blue-600">
-                        <h2 className="text-sm font-bold text-blue-900 mb-1">REMITO</h2>
-                        <div className="bg-blue-600 text-white px-2 py-1 rounded-full inline-block">
-                          <p className="text-xs font-medium">Hierros Tascione</p>
-                        </div>
-                        <div className="flex justify-between text-xs mt-1 text-blue-800">
-                          <span className="font-bold">#{Date.now().toString().slice(-6)}</span>
-                          <span className="font-bold">{new Date().toLocaleDateString('es-AR')}</span>
-                        </div>
-                      </div>
+                  <CardContent className="p-0 flex justify-center">
+                    <div id="remito-preview" ref={remitoRef} className="w-80 h-80 bg-white shadow-2xl rounded-2xl overflow-hidden relative" style={{width: '300px', height: '300px', minWidth: '300px', minHeight: '300px'}}>
+                      {/* Background Pattern */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-transparent to-green-600/5"></div>
                       
-                      {/* Cliente */}
-                      <div className="bg-white p-2 rounded-lg shadow-sm border-l-2 border-blue-600 mb-2">
-                        <p className="text-xs font-semibold text-gray-600 mb-1">CLIENTE</p>
-                        <p className="text-xs font-medium text-gray-900 truncate">{getCurrentClientData().name}</p>
-                        <p className="text-xs text-gray-600 truncate">{getCurrentClientData().company_name}</p>
-                        <p className="text-xs text-gray-500 truncate">CUIT: {getCurrentClientData().cuit}</p>
+                      {/* Header */}
+                      <div className="relative bg-gradient-to-r from-blue-600 to-blue-700 text-white p-3 text-center">
+                        <h1 className="text-lg font-bold tracking-wide">REMITO</h1>
+                        <div className="flex justify-between items-center mt-2 text-xs">
+                          <span className="bg-white/20 px-2 py-1 rounded-full">
+                            #{Date.now().toString().slice(-6)}
+                          </span>
+                          <span className="bg-white/20 px-2 py-1 rounded-full">
+                            {new Date().toLocaleDateString('es-AR')}
+                          </span>
+                        </div>
+                        <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white rotate-45"></div>
                       </div>
 
-                      {/* Productos */}
-                      <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-2">
-                        <div className="bg-gray-50 px-2 py-1 border-b">
-                          <p className="text-xs font-semibold text-gray-700">PRODUCTOS</p>
+                      {/* Company */}
+                      <div className="px-3 pt-4 pb-2 text-center">
+                        <h2 className="text-sm font-bold text-gray-800">Hierros Tascione</h2>
+                        <div className="w-16 h-0.5 bg-gradient-to-r from-blue-600 to-green-600 mx-auto mt-1"></div>
+                      </div>
+
+                      {/* Client Info */}
+                      <div className="px-3 py-2">
+                        <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg p-2 border-l-3 border-blue-600">
+                          <p className="text-xs font-semibold text-blue-600 mb-1">CLIENTE</p>
+                          <p className="text-xs font-bold text-gray-800 truncate">{getCurrentClientData().name}</p>
+                          <p className="text-xs text-gray-600 truncate">{getCurrentClientData().company_name}</p>
+                          <p className="text-xs text-gray-500 truncate">CUIT: {getCurrentClientData().cuit}</p>
                         </div>
-                        <div className="max-h-20 overflow-y-auto">
+                      </div>
+
+                      {/* Products */}
+                      <div className="px-3 py-1">
+                        <div className="bg-gray-900 text-white px-2 py-1 rounded-t-lg">
+                          <p className="text-xs font-bold text-center">PRODUCTOS</p>
+                        </div>
+                        <div className="bg-white border border-gray-200 rounded-b-lg max-h-16 overflow-y-auto">
                           {items.slice(0, 3).map((item, index) => (
-                            <div key={item.id} className={`px-2 py-1 border-b border-gray-100 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                              <div className="flex justify-between items-start">
+                            <div key={item.id} className={`px-2 py-1 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${index !== items.slice(0, 3).length - 1 ? 'border-b border-gray-100' : ''}`}>
+                              <div className="flex justify-between items-center">
                                 <div className="flex-1 min-w-0 pr-1">
-                                  <p className="text-xs font-medium text-gray-900 truncate">{item.cantidad}x {item.medida}</p>
+                                  <p className="text-xs font-medium text-gray-900 truncate">
+                                    {item.cantidad}x {item.medida}
+                                  </p>
                                   <p className="text-xs text-gray-600 truncate">{item.producto}</p>
                                 </div>
-                                <div className="text-right flex-shrink-0">
-                                  <p className="text-xs text-green-600 font-bold">{formatCurrency(item.precioTotal)}</p>
+                                <div className="text-right">
+                                  <p className="text-xs font-bold text-green-600">{formatCurrency(item.precioTotal)}</p>
                                 </div>
                               </div>
                             </div>
                           ))}
                           {items.length > 3 && (
-                            <div className="px-2 py-1 bg-gray-100 text-center">
-                              <p className="text-xs text-gray-600">+ {items.length - 3} más</p>
+                            <div className="px-2 py-1 bg-blue-50 text-center">
+                              <p className="text-xs text-blue-600 font-medium">+{items.length - 3} más</p>
                             </div>
                           )}
                         </div>
                       </div>
 
                       {/* Total */}
-                      <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-2 rounded-lg shadow-lg mb-2">
-                        <div className="text-center">
-                          <p className="text-xs opacity-90">TOTAL</p>
+                      <div className="px-3 py-2">
+                        <div className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl p-3 text-center shadow-lg">
+                          <p className="text-xs opacity-90 font-medium">TOTAL</p>
                           <p className="text-sm font-bold">{formatCurrency(totalVenta)}</p>
                         </div>
                       </div>
 
                       {/* Footer */}
-                      <div className="text-center border-t border-gray-200 pt-1">
-                        <p className="text-xs text-gray-500">¡Gracias por elegirnos!</p>
+                      <div className="absolute bottom-2 left-0 right-0 text-center">
+                        <p className="text-xs text-gray-500 italic">¡Gracias por elegirnos!</p>
+                        <div className="flex justify-center mt-1">
+                          <div className="w-8 h-0.5 bg-gradient-to-r from-blue-600 to-green-600 rounded-full"></div>
+                        </div>
                       </div>
                     </div>
 
                     <div className="flex gap-2 mt-4">
-                      <Button onClick={handleGeneratePDF} className="flex-1">
-                        <Download className="h-4 w-4 mr-2" />
-                        Generar PDF
+                      <Button onClick={handleGeneratePDF} className="flex-1 min-w-0">
+                        <Download className="h-4 w-4 mr-1" />
+                        PDF
                       </Button>
-                      <Button onClick={handleGenerateJPG} variant="outline" className="flex-1">
-                        <Download className="h-4 w-4 mr-2" />
-                        Generar JPG
+                      <Button onClick={handleGenerateJPG} variant="outline" className="flex-1 min-w-0">
+                        <Download className="h-4 w-4 mr-1" />
+                        JPG
                       </Button>
                       {getCurrentClientData().whatsapp_number && (
-                        <Button onClick={handleSendWhatsApp} variant="outline">
-                          <MessageCircle className="h-4 w-4 mr-2" />
-                          Enviar WhatsApp
+                        <Button onClick={handleSendWhatsApp} variant="outline" className="min-w-0">
+                          <MessageCircle className="h-4 w-4 mr-1" />
+                          WhatsApp
                         </Button>
                       )}
                     </div>
@@ -826,6 +845,7 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
           </Card>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 };
