@@ -81,30 +81,48 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
   const element = document.getElementById(elementId);
   if (!element) throw new Error('Elemento no encontrado');
   
-  // Configuración optimizada para generar imagen limpia
+  // Configuración Full HD con máxima calidad
   const canvas = await html2canvas(element, {
     backgroundColor: '#ffffff',
-    scale: 1,
+    scale: 4.5, // Scale alto para Full HD
+    width: 420,
+    height: 600,
     useCORS: true,
-    allowTaint: true,
+    allowTaint: false,
     foreignObjectRendering: false,
-    removeContainer: true,
+    imageTimeout: 0,
+    removeContainer: false,
+    logging: false,
     onclone: (clonedDoc) => {
-      // Asegurar que el elemento clonado tenga el tamaño correcto
       const clonedElement = clonedDoc.getElementById(elementId);
       if (clonedElement) {
+        // Forzar el fondo blanco y colores correctos
+        clonedElement.style.backgroundColor = '#ffffff';
         clonedElement.style.width = '420px';
-        clonedElement.style.maxWidth = '420px';
+        clonedElement.style.height = 'auto';
         clonedElement.style.transform = 'none';
         clonedElement.style.position = 'static';
         clonedElement.style.margin = '0';
         clonedElement.style.padding = '0';
         
-        // Asegurar que todos los textos se rendericen correctamente
+        // Forzar todos los elementos a renderizar con sus colores correctos
         const allElements = clonedElement.querySelectorAll('*');
         allElements.forEach((el: any) => {
+          const computedStyle = window.getComputedStyle(el);
           el.style.webkitFontSmoothing = 'antialiased';
           el.style.fontSmoothing = 'antialiased';
+          el.style.textRendering = 'optimizeLegibility';
+          
+          // Forzar colores de fondo blancos donde corresponde
+          if (el.classList.contains('bg-white')) {
+            el.style.backgroundColor = '#ffffff';
+          }
+          if (el.classList.contains('bg-slate-50')) {
+            el.style.backgroundColor = '#f8fafc';
+          }
+          if (el.classList.contains('bg-slate-900')) {
+            el.style.backgroundColor = '#0f172a';
+          }
         });
       }
     }
@@ -113,7 +131,7 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
   return new Promise((resolve) => {
     canvas.toBlob((blob) => {
       if (blob) resolve(blob);
-    }, 'image/jpeg', 0.95);
+    }, 'image/jpeg', 1.0); // Máxima calidad
   });
 };
 
