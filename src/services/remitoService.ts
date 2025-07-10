@@ -81,12 +81,16 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
   const element = document.getElementById(elementId);
   if (!element) throw new Error('Elemento no encontrado');
   
-  // Configuración Full HD con máxima calidad
+  // Calcular dimensiones dinámicas del contenido
+  const elementRect = element.getBoundingClientRect();
+  const elementHeight = element.scrollHeight || element.clientHeight;
+  
+  // Configuración Full HD con dimensiones dinámicas
   const canvas = await html2canvas(element, {
     backgroundColor: '#ffffff',
     scale: 4.5, // Scale alto para Full HD
     width: 420,
-    height: 600,
+    height: elementHeight,
     useCORS: true,
     allowTaint: false,
     foreignObjectRendering: false,
@@ -104,11 +108,11 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
         clonedElement.style.position = 'static';
         clonedElement.style.margin = '0';
         clonedElement.style.padding = '0';
+        clonedElement.style.overflow = 'visible';
         
         // Forzar todos los elementos a renderizar con sus colores correctos
         const allElements = clonedElement.querySelectorAll('*');
         allElements.forEach((el: any) => {
-          const computedStyle = window.getComputedStyle(el);
           el.style.webkitFontSmoothing = 'antialiased';
           el.style.fontSmoothing = 'antialiased';
           el.style.textRendering = 'optimizeLegibility';
