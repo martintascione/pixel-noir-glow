@@ -36,11 +36,6 @@ const RemitosGenerator = () => {
     queryFn: () => getProducts(),
   });
 
-  // Filtrar productos por medida seleccionada
-  const filteredProducts = products.filter(product => 
-    currentItem.medida ? product.size === currentItem.medida : true
-  );
-
   // Obtener medidas únicas agrupadas por tipo
   const medidasGrouped = React.useMemo(() => {
     const allMedidas = products.map(product => ({
@@ -68,26 +63,18 @@ const RemitosGenerator = () => {
 
   // Actualizar producto cuando cambia la medida
   useEffect(() => {
-    if (currentItem.medida && filteredProducts.length > 0) {
-      const firstProduct = filteredProducts[0];
-      setCurrentItem(prev => ({
-        ...prev,
-        producto: firstProduct.name,
-        precioUnitario: firstProduct.price
-      }));
+    if (currentItem.medida) {
+      // Buscar el primer producto que coincida con la medida seleccionada
+      const selectedProduct = products.find(p => p.size === currentItem.medida);
+      if (selectedProduct) {
+        setCurrentItem(prev => ({
+          ...prev,
+          producto: selectedProduct.name,
+          precioUnitario: selectedProduct.price
+        }));
+      }
     }
-  }, [currentItem.medida, filteredProducts]);
-
-  // Actualizar precio cuando cambia el producto
-  useEffect(() => {
-    const selectedProduct = products.find(p => p.name === currentItem.producto);
-    if (selectedProduct) {
-      setCurrentItem(prev => ({
-        ...prev,
-        precioUnitario: selectedProduct.price
-      }));
-    }
-  }, [currentItem.producto, products]);
+  }, [currentItem.medida, products]);
 
   const addItem = () => {
     if (!currentItem.cantidad || !currentItem.medida || !currentItem.producto) {
@@ -268,23 +255,13 @@ const RemitosGenerator = () => {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="producto">Producto</Label>
-                  <Select
+                  <Label>Producto (autocompletado)</Label>
+                  <Input
                     value={currentItem.producto}
-                    onValueChange={(value) => setCurrentItem(prev => ({ ...prev, producto: value }))}
-                    disabled={!currentItem.medida}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar producto" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredProducts.map((product) => (
-                        <SelectItem key={product.id} value={product.name}>
-                          {product.name} - ${product.price}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    disabled
+                    placeholder="Se autocompletará al seleccionar medida"
+                    className="bg-muted"
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
