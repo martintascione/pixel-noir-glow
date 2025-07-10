@@ -625,19 +625,19 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                                     {String(index + 1).padStart(2, '0')}
                                   </div>
                                   <div className="col-span-3">
-                                    <p className="text-sm font-semibold text-slate-900 mb-1">{item.medida}</p>
-                                    <p className="text-xs text-slate-600">{item.producto}</p>
+                                    <p className="text-sm font-semibold text-slate-900 mb-1 truncate">{item.medida}</p>
+                                    <p className="text-xs text-slate-600 truncate">{item.producto}</p>
                                   </div>
                                   <div className="col-span-2 text-center">
-                                    <span className="inline-block bg-slate-100 text-slate-900 py-1 rounded text-sm font-medium px-2">
+                                    <span className="text-sm font-medium text-slate-900">
                                       {item.cantidad}
                                     </span>
                                   </div>
-                                  <div className="col-span-3 text-right pr-2">
-                                    <p className="text-sm font-medium text-slate-900">${formatPrice(item.precioUnitario)}</p>
+                                  <div className="col-span-3 text-right">
+                                    <p className="text-sm font-medium text-slate-900 truncate">${formatPrice(item.precioUnitario)}</p>
                                   </div>
                                   <div className="col-span-3 text-right">
-                                    <p className="text-sm font-bold text-slate-900">${formatPrice(item.precioTotal)}</p>
+                                    <p className="text-sm font-bold text-slate-900 truncate">${formatPrice(item.precioTotal)}</p>
                                   </div>
                                 </div>)}
                             </div>
