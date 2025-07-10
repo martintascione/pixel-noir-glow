@@ -163,13 +163,34 @@ const RemitosGenerator = () => {
   // Actualizar producto cuando cambia la medida
   useEffect(() => {
     if (currentItem.medida) {
-      const selectedProduct = products.find(p => p.size === currentItem.medida);
-      if (selectedProduct) {
-        setCurrentItem(prev => ({
-          ...prev,
-          producto: selectedProduct.name,
-          precioUnitario: selectedProduct.price
-        }));
+      // Verificar si la medida incluye información de diámetro
+      if (currentItem.medida.includes('-Ø')) {
+        // Formato: "12x12-Ø6mm" -> extraer size y diameter
+        const [size, diameterPart] = currentItem.medida.split('-Ø');
+        const diameter = diameterPart.replace('mm', '');
+        
+        // Buscar producto por size y diameter exactos
+        const selectedProduct = products.find(p => 
+          p.size === size && p.diameter === diameter
+        );
+        
+        if (selectedProduct) {
+          setCurrentItem(prev => ({
+            ...prev,
+            producto: selectedProduct.name,
+            precioUnitario: selectedProduct.price
+          }));
+        }
+      } else {
+        // Para productos sin diámetro (clavos, etc.)
+        const selectedProduct = products.find(p => p.size === currentItem.medida);
+        if (selectedProduct) {
+          setCurrentItem(prev => ({
+            ...prev,
+            producto: selectedProduct.name,
+            precioUnitario: selectedProduct.price
+          }));
+        }
       }
     }
   }, [currentItem.medida, products]);
@@ -224,7 +245,17 @@ const RemitosGenerator = () => {
 
     items.forEach(item => {
       // Encontrar el producto correspondiente
-      const product = products.find(p => p.size === item.medida);
+      let product;
+      if (item.medida.includes('-Ø')) {
+        // Formato: "12x12-Ø6mm" -> extraer size y diameter
+        const [size, diameterPart] = item.medida.split('-Ø');
+        const diameter = diameterPart.replace('mm', '');
+        product = products.find(p => p.size === size && p.diameter === diameter);
+      } else {
+        // Para productos sin diámetro (clavos, etc.)
+        product = products.find(p => p.size === item.medida);
+      }
+      
       if (product) {
         // Obtener el costo de producción
         const productCost = costData.productCosts.find(c => c.product_id === product.id);
@@ -258,6 +289,15 @@ const RemitosGenerator = () => {
   };
 
   const businessAnalysis = calculateBusinessAnalysis();
+  
+  // Función para formatear la medida con diámetro
+  const formatMedidaWithDiameter = (medida: string) => {
+    if (medida.includes('-Ø')) {
+      // Formato: "12x12-Ø6mm" -> mostrar como "12x12 Ø6mm"
+      return medida.replace('-Ø', ' Ø');
+    }
+    return medida;
+  };
   const getCurrentClientData = () => {
     if (selectedClient) {
       return {
@@ -592,9 +632,14 @@ const RemitosGenerator = () => {
                                 <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
                                   Ø4.2mm
                                 </div>
-                                {medidasGrouped['4mm'].map(medida => <SelectItem key={`4mm-${medida.size}`} value={medida.size} className="pl-4">
-                                    {medida.size} (Ø4.2mm)
-                                  </SelectItem>)}
+                                {medidasGrouped['4mm'].map(medida => {
+                                  const displayValue = `${medida.size}-Ø${medida.diameter}mm`;
+                                  return (
+                                    <SelectItem key={`4mm-${medida.size}-${medida.diameter}`} value={displayValue} className="pl-4">
+                                      {medida.size} (Ø{medida.diameter}mm)
+                                    </SelectItem>
+                                  );
+                                })}
                               </>}
                             
                             {/* Separador */}
@@ -605,9 +650,14 @@ const RemitosGenerator = () => {
                                 <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
                                   Ø6mm
                                 </div>
-                                {medidasGrouped['6mm'].map(medida => <SelectItem key={`6mm-${medida.size}`} value={medida.size} className="pl-4">
-                                    {medida.size} (Ø6mm)
-                                  </SelectItem>)}
+                                {medidasGrouped['6mm'].map(medida => {
+                                  const displayValue = `${medida.size}-Ø${medida.diameter}mm`;
+                                  return (
+                                    <SelectItem key={`6mm-${medida.size}-${medida.diameter}`} value={displayValue} className="pl-4">
+                                      {medida.size} (Ø{medida.diameter}mm)
+                                    </SelectItem>
+                                  );
+                                })}
                               </>}
                             
                             {/* Separador */}
@@ -618,9 +668,14 @@ const RemitosGenerator = () => {
                                 <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
                                   Triangulares
                                 </div>
-                                {medidasGrouped['triangular'].map(medida => <SelectItem key={`triangular-${medida.size}`} value={medida.size} className="pl-4">
-                                    {medida.size}
-                                  </SelectItem>)}
+                                {medidasGrouped['triangular'].map(medida => {
+                                  const displayValue = medida.diameter ? `${medida.size}-Ø${medida.diameter}mm` : medida.size;
+                                  return (
+                                    <SelectItem key={`triangular-${medida.size}-${medida.diameter || 'no-diameter'}`} value={displayValue} className="pl-4">
+                                      {medida.size}{medida.diameter ? ` (Ø${medida.diameter}mm)` : ''}
+                                    </SelectItem>
+                                  );
+                                })}
                               </>}
                             
                             {/* Separador */}
@@ -677,7 +732,7 @@ const RemitosGenerator = () => {
                           <div className="flex-1">
                             <p className="font-medium">{item.producto}</p>
                             <p className="text-sm text-muted-foreground">
-                              {item.cantidad} x {item.medida} - {formatCurrency(item.precioUnitario)} c/u
+                              {item.cantidad} x {formatMedidaWithDiameter(item.medida)} - {formatCurrency(item.precioUnitario)} c/u
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
@@ -751,7 +806,7 @@ const RemitosGenerator = () => {
                             <div className="space-y-3">
                               {items.map((item, index) => <div key={item.id} className="grid grid-cols-10 gap-6 py-3 border-b border-slate-100">
                                   <div className="col-span-4 text-left">
-                                    <p className="text-sm font-semibold text-slate-900 mb-1">{item.medida}</p>
+                                    <p className="text-sm font-semibold text-slate-900 mb-1">{formatMedidaWithDiameter(item.medida)}</p>
                                     <p className="text-xs text-slate-600">{item.producto}</p>
                                   </div>
                                   <div className="col-span-2 flex items-center justify-center">
