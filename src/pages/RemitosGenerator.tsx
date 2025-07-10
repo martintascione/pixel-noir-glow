@@ -581,18 +581,17 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                         }}>
                           {/* Header Section */}
                           <div className="bg-slate-900 text-white p-6">
-                            <div className="flex justify-between items-start">
-                              <div>
+                            <div className="flex justify-between items-start gap-6">
+                              <div className="flex-1">
                                 <h1 className="text-2xl font-light tracking-widest mb-3">REMITO</h1>
                                 <div className="space-y-1">
-                                  <p className="text-slate-300 mx-0 my-0 text-xs">Nro de remito: <span className="text-white font-medium">{generateRemitoData().numero}</span></p>
+                                  <p className="text-slate-300 text-xs">Nro de remito: <span className="text-white font-medium">{generateRemitoData().numero}</span></p>
                                   <p className="text-sm text-slate-300">Fecha: <span className="text-white font-medium">{generateRemitoData().fecha}</span></p>
                                 </div>
                               </div>
-                              {/* Línea separatoria minimalista */}
-                              <div className="border-l border-slate-500 h-24 mx-6"></div>
-                              <div className="text-left text-xs text-slate-300">
-                                <p className="font-bold text-white mb-1 text-xs my-0">HIERROS TASCIONE</p>
+                              <div className="border-l border-slate-500 h-20"></div>
+                              <div className="flex-1 text-left text-xs text-slate-300">
+                                <p className="font-bold text-white mb-1">HIERROS TASCIONE</p>
                                 <p className="mb-1">LUIS MARIA TASCIONE</p>
                                 <p className="mb-1">CUIT: 20-21856308-3</p>
                                 <p className="mb-1">TUCUMAN 396</p>

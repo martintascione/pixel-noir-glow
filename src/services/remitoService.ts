@@ -81,22 +81,12 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
   const element = document.getElementById(elementId);
   if (!element) throw new Error('Elemento no encontrado');
   
-  // Configuración simple que respeta el tamaño natural del elemento
+  // Configuración simple y básica
   const canvas = await html2canvas(element, {
     backgroundColor: '#ffffff',
-    scale: 2, // Escala para buena calidad
+    scale: 2,
     useCORS: true,
-    allowTaint: true,
-    scrollX: 0,
-    scrollY: 0,
-    onclone: (clonedDoc) => {
-      const clonedElement = clonedDoc.getElementById(elementId);
-      if (clonedElement) {
-        // Solo asegurar que no haya transformaciones que distorsionen
-        clonedElement.style.transform = 'none';
-        clonedElement.style.overflow = 'visible';
-      }
-    }
+    allowTaint: true
   });
   
   return new Promise((resolve) => {
