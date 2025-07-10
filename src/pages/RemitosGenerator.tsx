@@ -269,16 +269,7 @@ const RemitosGenerator = () => {
         await saveImageToGallery(jpgBlob);
 
         // Preparar mensaje para app nativa
-        const nativeMessage = `Hola ${clientData.name}, te envío el remito N° ${remitoData.numero} por un total de ${formatCurrency(remitoData.total)}. 
-
-📋 *DETALLE DEL PEDIDO:*
-${remitoData.items.map(item => `• ${item.cantidad} x ${item.medida} - ${item.producto} - ${formatCurrency(item.precioTotal)}`).join('\n')}
-
-💰 *TOTAL: ${formatCurrency(remitoData.total)}*
-
-La imagen del remito se guardó en tu galería. Adjúntala desde ahí.
-
-¡Gracias por tu compra! 🙏`;
+        const nativeMessage = `Hola ${clientData.name}, te envío el remito N° ${remitoData.numero} por un total de ${formatCurrency(remitoData.total)}.`;
 
         // Abrir WhatsApp con el mensaje
         sendToWhatsApp(clientData.whatsapp_number, nativeMessage);
@@ -292,16 +283,7 @@ La imagen del remito se guardó en tu galería. Adjúntala desde ahí.
         downloadFile(jpgBlob, `remito_${remitoData.numero}.jpg`);
 
         // Preparar mensaje para navegador
-        const webMessage = `Hola ${clientData.name}, te envío el remito N° ${remitoData.numero} por un total de ${formatCurrency(remitoData.total)}. 
-
-📋 *DETALLE DEL PEDIDO:*
-${remitoData.items.map(item => `• ${item.cantidad} x ${item.medida} - ${item.producto} - ${formatCurrency(item.precioTotal)}`).join('\n')}
-
-💰 *TOTAL: ${formatCurrency(remitoData.total)}*
-
-La imagen del remito se descargó automáticamente. Por favor adjúntala a este mensaje.
-
-¡Gracias por tu compra! 🙏`;
+        const webMessage = `Hola ${clientData.name}, te envío el remito N° ${remitoData.numero} por un total de ${formatCurrency(remitoData.total)}.`;
 
         // Abrir WhatsApp con el mensaje
         sendToWhatsApp(clientData.whatsapp_number, webMessage);
