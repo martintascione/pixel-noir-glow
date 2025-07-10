@@ -36,6 +36,7 @@ export const CostManager = ({ products }: Props) => {
   const [loading, setLoading] = useState(true);
   const [savingCosts, setSavingCosts] = useState<Set<string>>(new Set());
   const [ivaRate, setIvaRate] = useState(21);
+  const [categoryMargins, setCategoryMargins] = useState<Record<string, number>>({});
 
   useEffect(() => {
     fetchCosts();
@@ -62,12 +63,14 @@ export const CostManager = ({ products }: Props) => {
     }
   };
 
-  const getCostForProduct = (productId: string): ProductCost => {
+  const getCostForProduct = (productId: string, categoryName: string): ProductCost => {
     const existingCost = costs.find(c => c.product_id === productId);
+    const categoryMargin = categoryMargins[categoryName] || 0;
+    
     return existingCost || {
       product_id: productId,
       production_cost: 0,
-      profit_margin: 0
+      profit_margin: categoryMargin
     };
   };
 
@@ -88,11 +91,11 @@ export const CostManager = ({ products }: Props) => {
     });
   };
 
-  const saveCost = async (productId: string) => {
+  const saveCost = async (productId: string, categoryName: string) => {
     setSavingCosts(prev => new Set(prev).add(productId));
     
     try {
-      const cost = getCostForProduct(productId);
+      const cost = getCostForProduct(productId, categoryName);
       
       const { error } = await supabase
         .from('product_costs')
@@ -212,15 +215,46 @@ export const CostManager = ({ products }: Props) => {
           <div className="space-y-8">
             {sortedCategories.map((categoryName) => (
               <div key={categoryName} className="space-y-4">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-4">
                   <h2 className="text-xl font-semibold text-primary">{categoryName}</h2>
                   <Badge variant="secondary">{groupedProducts[categoryName].length} productos</Badge>
                 </div>
+                
+                {/* Input de margen por categoría */}
+                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <div className="space-y-2">
+                    <Label htmlFor={`margin-${categoryName}`} className="flex items-center gap-2">
+                      <Percent className="w-4 h-4" />
+                      Margen de Ganancia para {categoryName} (%)
+                    </Label>
+                    <Input
+                      id={`margin-${categoryName}`}
+                      type="number"
+                      step="0.1"
+                      value={categoryMargins[categoryName] || 0}
+                      onChange={(e) => {
+                        const newMargin = parseFloat(e.target.value) || 0;
+                        setCategoryMargins(prev => ({ ...prev, [categoryName]: newMargin }));
+                        
+                        // Actualizar todos los productos de esta categoría
+                        groupedProducts[categoryName].forEach(product => {
+                          updateCost(product.id, 'profit_margin', newMargin);
+                        });
+                      }}
+                      placeholder="0.0"
+                      className="w-32"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Este margen se aplicará a todos los productos de la categoría {categoryName}.
+                    </p>
+                  </div>
+                </div>
+                
                 <Separator />
                 
                 <div className="space-y-4">
                   {groupedProducts[categoryName].map((product) => {
-                    const cost = getCostForProduct(product.id);
+                    const cost = getCostForProduct(product.id, categoryName);
                     const calculations = calculateSalePrice(cost);
                     const isSaving = savingCosts.has(product.id);
 
@@ -241,7 +275,7 @@ export const CostManager = ({ products }: Props) => {
                             <Separator />
 
                             {/* Inputs de costos */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div className="space-y-2">
                                 <Label htmlFor={`cost-${product.id}`} className="flex items-center gap-2">
                                   <DollarSign className="w-4 h-4" />
@@ -257,24 +291,9 @@ export const CostManager = ({ products }: Props) => {
                                 />
                               </div>
 
-                              <div className="space-y-2">
-                                <Label htmlFor={`margin-${product.id}`} className="flex items-center gap-2">
-                                  <Percent className="w-4 h-4" />
-                                  Margen de Ganancia (%)
-                                </Label>
-                                <Input
-                                  id={`margin-${product.id}`}
-                                  type="number"
-                                  step="0.1"
-                                  value={cost.profit_margin}
-                                  onChange={(e) => updateCost(product.id, 'profit_margin', parseFloat(e.target.value) || 0)}
-                                  placeholder="0.0"
-                                />
-                              </div>
-
                               <div className="flex items-end">
                                 <Button
-                                  onClick={() => saveCost(product.id)}
+                                  onClick={() => saveCost(product.id, categoryName)}
                                   disabled={isSaving}
                                   className="w-full"
                                 >
