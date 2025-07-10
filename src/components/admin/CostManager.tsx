@@ -362,15 +362,26 @@ export const CostManager = ({ products }: Props) => {
                       <Card key={product.id} className="border-l-4 border-l-primary/20">
                         <CardContent className="p-6">
                           <div className="grid gap-6">
-                            {/* Información del producto */}
-                            <div className="space-y-2">
-                              <h3 className="font-semibold text-lg">{product.name}</h3>
-                              <div className="text-sm text-muted-foreground">
-                                Tamaño: {product.size}
+                            {/* Header con información del producto y botón guardar */}
+                            <div className="flex justify-between items-start">
+                              <div className="space-y-2">
+                                <h3 className="font-semibold text-lg">{product.name}</h3>
+                                <div className="text-sm text-muted-foreground">
+                                  Tamaño: {product.size}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  Precio actual: {formatCurrency(product.price)}
+                                </div>
                               </div>
-                              <div className="text-sm text-muted-foreground">
-                                Precio actual: {formatCurrency(product.price)}
-                              </div>
+                              
+                              <Button
+                                onClick={() => saveCost(product.id, categoryName)}
+                                disabled={isSaving}
+                                size="sm"
+                              >
+                                <Save className="w-4 h-4 mr-2" />
+                                {isSaving ? 'Guardando...' : 'Guardar'}
+                              </Button>
                             </div>
 
                             <Separator />
@@ -399,17 +410,6 @@ export const CostManager = ({ products }: Props) => {
                                   <span className="font-medium">{formatCurrency(calculateContainedIVA(cost.production_cost))}</span>
                                 </div>
                               )}
-
-                              <div className="flex justify-end">
-                                <Button
-                                  onClick={() => saveCost(product.id, categoryName)}
-                                  disabled={isSaving}
-                                  className="w-32"
-                                >
-                                  <Save className="w-4 h-4 mr-2" />
-                                  {isSaving ? 'Guardando...' : 'Guardar'}
-                                </Button>
-                              </div>
                             </div>
                           </div>
                         </CardContent>
