@@ -81,50 +81,57 @@ export const generateRemitoJPG = async (elementId: string): Promise<Blob> => {
   const element = document.getElementById(elementId);
   if (!element) throw new Error('Elemento no encontrado');
   
-  // Mantener forma original del remito con calidad Full HD
-  const originalWidth = 420; // Forma original del remito
-  const highQualityScale = 4.5; // Escala alta para Full HD manteniendo proporciones
+  // Obtener dimensiones reales del elemento
+  const rect = element.getBoundingClientRect();
+  const actualWidth = rect.width;
+  const actualHeight = rect.height;
   
+  // Configuración mejorada para evitar textos cortados
   const canvas = await html2canvas(element, {
     backgroundColor: '#ffffff',
-    scale: highQualityScale,
+    scale: 3, // Escala más conservadora para mejor renderizado
     useCORS: true,
     allowTaint: true,
-    width: originalWidth, // Mantener ancho original
-    removeContainer: true,
+    width: actualWidth, // Usar el ancho real del elemento
+    height: actualHeight, // Usar la altura real del elemento
+    removeContainer: false, // No remover el contenedor
     foreignObjectRendering: false,
     scrollX: 0,
     scrollY: 0,
+    x: 0,
+    y: 0,
+    windowWidth: window.innerWidth,
+    windowHeight: window.innerHeight,
     onclone: (clonedDoc) => {
       const clonedElement = clonedDoc.getElementById(elementId);
       if (clonedElement) {
-        // Remover todas las transformaciones y contenedores responsivos
-        clonedElement.style.transform = 'none';
-        clonedElement.style.scale = '1';
-        clonedElement.style.width = `${originalWidth}px`;
-        clonedElement.style.maxWidth = `${originalWidth}px`;
-        clonedElement.style.minWidth = `${originalWidth}px`;
-        clonedElement.style.position = 'static';
-        clonedElement.style.overflow = 'visible';
+        // Asegurar que el elemento clonado mantenga sus dimensiones originales
+        clonedElement.style.position = 'relative';
+        clonedElement.style.left = '0';
+        clonedElement.style.top = '0';
         clonedElement.style.margin = '0';
         clonedElement.style.padding = '0';
+        clonedElement.style.transform = 'none';
+        clonedElement.style.scale = '1';
+        clonedElement.style.overflow = 'visible';
+        clonedElement.style.width = `${actualWidth}px`;
+        clonedElement.style.height = `${actualHeight}px`;
         clonedElement.style.boxSizing = 'border-box';
         
-        // Remover estilos responsivos del elemento padre si existen
-        const parentElements = clonedElement.closest('[class*="max-w"]');
-        if (parentElements) {
-          const parent = parentElements as HTMLElement;
-          parent.style.maxWidth = 'none';
-          parent.style.width = 'auto';
-          parent.style.transform = 'none';
-        }
-        
-        // Asegurar que todos los elementos internos mantengan su estilo
-        const allChildren = clonedElement.querySelectorAll('*');
-        allChildren.forEach((child) => {
+        // Asegurar que todos los textos y elementos internos sean visibles
+        const allElements = clonedElement.querySelectorAll('*');
+        allElements.forEach((child) => {
           const childElement = child as HTMLElement;
           childElement.style.transform = 'none';
           childElement.style.scale = '1';
+          childElement.style.overflow = 'visible';
+          childElement.style.whiteSpace = 'nowrap';
+          
+          // Asegurar que los textos no se corten
+          if (childElement.tagName === 'P' || childElement.tagName === 'SPAN') {
+            childElement.style.textOverflow = 'visible';
+            childElement.style.overflow = 'visible';
+          }
         });
       }
     }
