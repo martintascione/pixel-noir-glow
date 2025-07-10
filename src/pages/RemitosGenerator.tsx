@@ -709,9 +709,10 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                           {/* Table Header */}
                           <div className="grid grid-cols-12 gap-4 mb-4 pb-3 border-b-2 border-slate-900">
                             <div className="col-span-1 text-xs font-bold text-slate-900 uppercase">#</div>
-                            <div className="col-span-6 text-xs font-bold text-slate-900 uppercase">Descripción</div>
+                            <div className="col-span-5 text-xs font-bold text-slate-900 uppercase">Descripción</div>
                             <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">Cant.</div>
-                            <div className="col-span-3 text-xs font-bold text-slate-900 uppercase text-right">Total</div>
+                            <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-center">Precio Unit.</div>
+                            <div className="col-span-2 text-xs font-bold text-slate-900 uppercase text-right">Total</div>
                           </div>
 
                           {/* Products List */}
@@ -721,17 +722,19 @@ La imagen del remito se descargó automáticamente. Por favor adjúntala a este 
                                 <div className="col-span-1 text-sm text-slate-600 font-medium">
                                   {String(index + 1).padStart(2, '0')}
                                 </div>
-                                <div className="col-span-6">
+                                <div className="col-span-5">
                                   <p className="text-sm font-semibold text-slate-900 mb-1">{item.medida}</p>
                                   <p className="text-xs text-slate-600">{item.producto}</p>
-                                  <p className="text-xs text-slate-500">${formatNumber(item.precioUnitario)} c/u</p>
                                 </div>
                                 <div className="col-span-2 text-center">
                                   <span className="inline-block bg-slate-100 text-slate-900 px-3 py-1 rounded text-sm font-medium">
                                     {item.cantidad}
                                   </span>
                                 </div>
-                                <div className="col-span-3 text-right">
+                                <div className="col-span-2 text-center">
+                                  <p className="text-sm font-medium text-slate-900">${formatNumber(item.precioUnitario)}</p>
+                                </div>
+                                <div className="col-span-2 text-right">
                                   <p className="text-sm font-bold text-slate-900">${formatNumber(item.precioTotal)}</p>
                                 </div>
                               </div>
