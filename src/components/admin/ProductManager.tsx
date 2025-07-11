@@ -228,6 +228,14 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
     // Ordenar productos dentro de cada categoría por diámetro y medida
     Object.keys(grouped).forEach(categoryName => {
       grouped[categoryName].sort((a, b) => {
+        // Detectar si son medidas triangulares (3 dimensiones, ej: 10x10x10)
+        const isTriangularA = isTriangularMeasure(a.size);
+        const isTriangularB = isTriangularMeasure(b.size);
+        
+        // Las triangulares van al final
+        if (isTriangularA && !isTriangularB) return 1;
+        if (!isTriangularA && isTriangularB) return -1;
+        
         // Primero ordenar por diámetro (4.2 primero, luego 6, luego otros)
         const diameterA = a.diameter || '999'; // Sin diámetro al final
         const diameterB = b.diameter || '999';
@@ -255,6 +263,12 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
   const extractMeasureNumber = (size: string) => {
     const match = size.match(/(\d+(?:\.\d+)?)/);
     return match ? parseFloat(match[1]) : 0;
+  };
+
+  // Función para detectar medidas triangulares (3 dimensiones, ej: 10x10x10)
+  const isTriangularMeasure = (size: string) => {
+    const dimensionCount = (size.match(/x/gi) || []).length;
+    return dimensionCount >= 2; // 3 dimensiones = 2 "x"
   };
 
   const productsByCategory = getProductsByCategory();
