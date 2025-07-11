@@ -476,17 +476,30 @@ const RemitosGenerator = () => {
     }
 
     try {
+      // 1. Generar los datos del remito UNA SOLA VEZ
       const remitoData = generateRemitoData();
       console.log('Saving remito to database:', { remitoData, selectedClient });
       
-      // 1. Guardar remito en el historial de la base de datos
+      // 2. Actualizar temporalmente el preview con el número correcto
+      const previewElement = document.querySelector('#remito-preview .text-white.font-medium');
+      const originalNumber = previewElement?.textContent;
+      if (previewElement) {
+        previewElement.textContent = remitoData.numero;
+      }
+      
+      // 3. Guardar remito en el historial de la base de datos
       const remitoId = await saveRemitoToDatabase(remitoData, selectedClient.id);
       console.log('Remito saved with ID:', remitoId);
       
-      // 2. Generar imagen JPG
+      // 4. Generar imagen JPG (ahora con el número correcto)
       const jpgBlob = await generateRemitoJPG('remito-preview');
       
-      // 3. Intentar compartir la imagen directamente
+      // 5. Restaurar el preview original
+      if (previewElement && originalNumber) {
+        previewElement.textContent = originalNumber;
+      }
+      
+      // 6. Intentar compartir la imagen directamente
       const file = new File([jpgBlob], `remito_${remitoData.numero}.jpg`, { type: 'image/jpeg' });
       
       // Verificar si la Web Share API está disponible y soporta archivos
