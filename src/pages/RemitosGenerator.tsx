@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AdminPanel } from '@/components/admin/AdminPanel';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Plus, Calculator, Download, MessageCircle, UserPlus, Edit, Trash2, History } from 'lucide-react';
+import { ArrowLeft, Plus, Calculator, Download, MessageCircle, UserPlus, Edit, Trash2, History, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -383,6 +383,44 @@ const RemitosGenerator = () => {
       });
     }
   };
+  const handleShareRemito = async () => {
+    try {
+      const jpgBlob = await generateRemitoJPG('remito-preview');
+      const remitoData = generateRemitoData();
+      
+      // Convertir el blob a un archivo
+      const file = new File([jpgBlob], `remito_${remitoData.numero}.jpg`, { type: 'image/jpeg' });
+      
+      // Verificar si la Web Share API está disponible y soporta archivos
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: `Remito ${remitoData.numero}`,
+          text: `Remito para ${getCurrentClientData().name} - Total: ${formatCurrency(remitoData.total)}`,
+          files: [file]
+        });
+        
+        toast({
+          title: "Compartido exitosamente 📤",
+          description: "La imagen del remito ha sido compartida"
+        });
+      } else {
+        // Fallback: descargar si Web Share API no está disponible
+        downloadFile(jpgBlob, `remito_${remitoData.numero}.jpg`);
+        toast({
+          title: "Descarga iniciada 📁",
+          description: "La imagen se ha descargado (compartir no disponible en este navegador)"
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing remito:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo compartir la imagen del remito",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleSendWhatsApp = async () => {
     const clientData = getCurrentClientData();
     if (!clientData.whatsapp_number) {
@@ -876,6 +914,11 @@ const RemitosGenerator = () => {
                       <Button onClick={handleSaveRemito} disabled={items.length === 0 || !selectedClient} className="bg-blue-600 hover:bg-blue-700 text-white">
                         <Calculator className="h-4 w-4 mr-2" />
                         Guardar Remito
+                      </Button>
+                      
+                      <Button onClick={handleShareRemito} disabled={items.length === 0} className="bg-orange-600 hover:bg-orange-700 text-white">
+                        <Share2 className="h-4 w-4 mr-2" />
+                        Compartir Imagen
                       </Button>
                       
                       <Button onClick={handleSendWhatsApp} disabled={items.length === 0 || !getCurrentClientData().whatsapp_number} className="bg-green-600 hover:bg-green-700 text-white px-6 py-2">
