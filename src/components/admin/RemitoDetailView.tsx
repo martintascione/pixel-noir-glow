@@ -64,16 +64,13 @@ export const RemitoDetailView = () => {
       return {
         costoTotal: 0,
         gananciaReal: 0,
-        ivaCredito: 0,
-        ivaDebito: 0,
-        ivaNeto: 0
+        ivaVenta: 0
       };
     }
 
     let costoTotal = 0;
-    let ivaDebito = 0;
 
-    // Calcular el costo total del pedido y IVA débito
+    // Calcular el costo total del pedido
     remito.items.forEach(item => {
       // Extraer size y diameter de la medida
       let productSize: string;
@@ -113,10 +110,6 @@ export const RemitoDetailView = () => {
         if (productCost) {
           const costoTotalItem = productCost.production_cost * item.cantidad;
           costoTotal += costoTotalItem;
-          
-          // Calcular IVA débito (IVA contenido en el costo)
-          const ivaDebitoItem = costoTotalItem * (costData.ivaRate / 100) / (1 + costData.ivaRate / 100);
-          ivaDebito += ivaDebitoItem;
         }
       }
     });
@@ -124,18 +117,13 @@ export const RemitoDetailView = () => {
     const totalVenta = remito.total;
     const gananciaReal = totalVenta - costoTotal;
     
-    // Calcular IVA Crédito (IVA contenido en la venta)
-    const ivaCredito = totalVenta * (costData.ivaRate / 100) / (1 + costData.ivaRate / 100);
-    
-    // IVA Neto = IVA Crédito - IVA Débito
-    const ivaNeto = ivaCredito - ivaDebito;
+    // Calcular IVA de la venta
+    const ivaVenta = totalVenta * (costData.ivaRate / 100) / (1 + costData.ivaRate / 100);
 
     return {
       costoTotal,
       gananciaReal,
-      ivaCredito,
-      ivaDebito,
-      ivaNeto
+      ivaVenta
     };
   };
 
@@ -373,29 +361,10 @@ export const RemitoDetailView = () => {
                 
                 <Separator />
                 
-                {/* Análisis de IVA */}
-                <div className="space-y-2">
-                  <h4 className="font-medium text-blue-600 text-sm sm:text-base">Análisis de IVA:</h4>
-                  
-                  {/* IVA Crédito */}
-                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-                    <span className="pl-2 text-xs sm:text-sm">IVA Crédito (venta):</span>
-                    <span className="text-blue-600 text-sm font-medium">{formatCurrency(businessAnalysis.ivaCredito)}</span>
-                  </div>
-                  
-                  {/* IVA Débito */}
-                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-                    <span className="pl-2 text-xs sm:text-sm">IVA Débito (costo):</span>
-                    <span className="text-orange-600 text-sm font-medium">{formatCurrency(businessAnalysis.ivaDebito)}</span>
-                  </div>
-                  
-                  {/* IVA Neto */}
-                  <div className="flex flex-col sm:flex-row sm:justify-between border-t pt-2 gap-1 sm:gap-0">
-                    <span className="font-medium text-xs sm:text-sm">IVA Neto (Crédito - Débito):</span>
-                    <span className={`font-bold text-sm ${businessAnalysis.ivaNeto >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(businessAnalysis.ivaNeto)}
-                    </span>
-                  </div>
+                {/* IVA de la Venta */}
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                  <span className="font-medium text-blue-600 text-sm sm:text-base">IVA de la Venta:</span>
+                  <span className="font-bold text-blue-600 text-lg sm:text-base">{formatCurrency(businessAnalysis.ivaVenta)}</span>
                 </div>
                 
                 {/* Nota informativa */}
