@@ -477,21 +477,16 @@ const RemitosGenerator = () => {
 
     try {
       const remitoData = generateRemitoData();
-      console.log('Saving remito manually:', { remitoData, selectedClient });
+      console.log('Saving remito to database:', { remitoData, selectedClient });
       
-      // 1. Guardar remito en la base de datos
+      // 1. Guardar remito en el historial de la base de datos
       const remitoId = await saveRemitoToDatabase(remitoData, selectedClient.id);
       console.log('Remito saved with ID:', remitoId);
       
       // 2. Generar imagen JPG
       const jpgBlob = await generateRemitoJPG('remito-preview');
       
-      // 3. Guardar imagen en galería si es app nativa
-      if (isNativeApp()) {
-        await saveImageToGallery(jpgBlob);
-      }
-      
-      // 4. Intentar compartir la imagen
+      // 3. Intentar compartir la imagen directamente
       const file = new File([jpgBlob], `remito_${remitoData.numero}.jpg`, { type: 'image/jpeg' });
       
       // Verificar si la Web Share API está disponible y soporta archivos
@@ -504,26 +499,16 @@ const RemitosGenerator = () => {
         
         toast({
           title: "¡Éxito! 💾📤",
-          description: "Remito guardado y compartido exitosamente",
+          description: "Remito guardado en historial y compartido exitosamente",
           duration: 4000
         });
       } else {
-        // Si no se puede compartir, solo notificar que se guardó
-        if (isNativeApp()) {
-          toast({
-            title: "¡Éxito! 💾📸",
-            description: "Remito guardado en historial e imagen guardada en Fotos del iPhone.",
-            duration: 4000
-          });
-        } else {
-          // En navegador web, descargar la imagen
-          downloadFile(jpgBlob, `remito_${remitoData.numero}.jpg`);
-          toast({
-            title: "¡Éxito! 💾📁",
-            description: "Remito guardado en historial e imagen descargada.",
-            duration: 4000
-          });
-        }
+        // Si no se puede compartir, solo notificar que se guardó en el historial
+        toast({
+          title: "¡Éxito! 💾",
+          description: "Remito guardado en historial. Tu navegador no soporta compartir archivos.",
+          duration: 4000
+        });
       }
       
     } catch (error) {
