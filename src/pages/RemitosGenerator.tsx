@@ -404,11 +404,10 @@ const RemitosGenerator = () => {
           description: "La imagen del remito ha sido compartida"
         });
       } else {
-        // Fallback: descargar si Web Share API no está disponible
-        downloadFile(jpgBlob, `remito_${remitoData.numero}.jpg`);
         toast({
-          title: "Descarga iniciada 📁",
-          description: "La imagen se ha descargado (compartir no disponible en este navegador)"
+          title: "Compartir no disponible",
+          description: "Tu navegador no soporta compartir archivos",
+          variant: "destructive"
         });
       }
     } catch (error) {
