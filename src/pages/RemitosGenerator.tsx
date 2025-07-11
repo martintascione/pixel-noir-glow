@@ -786,7 +786,7 @@ const RemitosGenerator = () => {
                     {/* Container responsivo para la preview - Reducido visualmente */}
                     <div className="w-full overflow-hidden">
                       <div className="flex justify-center">
-                        <div className="w-full max-w-[300px] mx-auto" style={{ transformOrigin: 'center top' }}>
+                        <div className="w-full max-w-[300px] mx-auto flex justify-center">
                           <div 
                             id="remito-preview" 
                             ref={remitoRef} 
@@ -796,8 +796,8 @@ const RemitosGenerator = () => {
                               maxWidth: '420px',
                               minWidth: '420px',
                               transform: 'scale(0.71)',
-                              transformOrigin: 'center top',
-                              marginBottom: '-120px'
+                              transformOrigin: 'center center',
+                              margin: '-60px auto'
                             }}
                           >
                           {/* Header Section */}
