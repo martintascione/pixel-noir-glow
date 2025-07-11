@@ -225,7 +225,36 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
       return acc;
     }, {} as Record<string, Product[]>);
     
+    // Ordenar productos dentro de cada categoría por diámetro y medida
+    Object.keys(grouped).forEach(categoryName => {
+      grouped[categoryName].sort((a, b) => {
+        // Primero ordenar por diámetro (4.2 primero, luego 6, luego otros)
+        const diameterA = a.diameter || '999'; // Sin diámetro al final
+        const diameterB = b.diameter || '999';
+        
+        if (diameterA === '4.2' && diameterB !== '4.2') return -1;
+        if (diameterB === '4.2' && diameterA !== '4.2') return 1;
+        if (diameterA === '6' && diameterB !== '6' && diameterB !== '4.2') return -1;
+        if (diameterB === '6' && diameterA !== '6' && diameterA !== '4.2') return 1;
+        
+        // Si tienen el mismo diámetro, ordenar por medida
+        if (diameterA === diameterB) {
+          const sizeA = extractMeasureNumber(a.size);
+          const sizeB = extractMeasureNumber(b.size);
+          return sizeA - sizeB;
+        }
+        
+        return diameterA.localeCompare(diameterB);
+      });
+    });
+    
     return grouped;
+  };
+
+  // Función para extraer el número de la medida para ordenamiento
+  const extractMeasureNumber = (size: string) => {
+    const match = size.match(/(\d+(?:\.\d+)?)/);
+    return match ? parseFloat(match[1]) : 0;
   };
 
   const productsByCategory = getProductsByCategory();
