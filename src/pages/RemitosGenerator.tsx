@@ -493,7 +493,7 @@ const RemitosGenerator = () => {
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: `Remito ${remitoData.numero}`,
-          text: `Remito para ${getCurrentClientData().name} - Total: ${formatCurrency(remitoData.total)}`,
+          text: `Hola ${getCurrentClientData().name}, te envío el remito N° ${remitoData.numero} por un total de ${formatCurrency(remitoData.total)}.`,
           files: [file]
         });
         
