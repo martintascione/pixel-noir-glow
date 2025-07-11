@@ -48,6 +48,9 @@ export const ConfiguracionVenta = ({ configuracion, onActualizar }: Props) => {
               <p className="text-sm text-muted-foreground">
                 Porcentaje de ganancia sobre el costo base
               </p>
+              <p className="text-sm text-primary font-medium mt-2">
+                Su margen actual entre el valor de venta y el costo, es de {margenGanancia}% de ganancia
+              </p>
             </div>
 
             <div className="space-y-2">
