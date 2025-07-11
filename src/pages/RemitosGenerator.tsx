@@ -783,15 +783,23 @@ const RemitosGenerator = () => {
                     <CardTitle>Preview del Remito</CardTitle>
                   </CardHeader>
                   <CardContent className="p-2 sm:p-4">
-                    {/* Container responsivo para la preview */}
+                    {/* Container responsivo para la preview - Reducido visualmente */}
                     <div className="w-full overflow-hidden">
                       <div className="flex justify-center">
-                        <div className="w-full max-w-[420px] mx-auto">
-                          <div id="remito-preview" ref={remitoRef} className="w-[420px] bg-white shadow-xl border border-gray-200" style={{
-                          width: '420px',
-                          maxWidth: '420px',
-                          minWidth: '420px'
-                        }}>
+                        <div className="w-full max-w-[300px] mx-auto" style={{ transformOrigin: 'center top' }}>
+                          <div 
+                            id="remito-preview" 
+                            ref={remitoRef} 
+                            className="w-[420px] bg-white shadow-xl border border-gray-200" 
+                            style={{
+                              width: '420px',
+                              maxWidth: '420px',
+                              minWidth: '420px',
+                              transform: 'scale(0.71)',
+                              transformOrigin: 'center top',
+                              marginBottom: '-120px'
+                            }}
+                          >
                           {/* Header Section */}
                           <div className="bg-slate-900 text-white p-6">
                             <div className="flex justify-between items-start gap-6">
