@@ -921,11 +921,6 @@ const RemitosGenerator = () => {
                         <Calculator className="h-4 w-4 mr-2" />
                         Guardar y Compartir
                       </Button>
-                      
-                      <Button onClick={handleSendWhatsApp} disabled={items.length === 0 || !getCurrentClientData().whatsapp_number} className="bg-green-600 hover:bg-green-700 text-white px-6 py-2">
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        Enviar por WhatsApp
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>}
