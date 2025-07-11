@@ -393,66 +393,27 @@ const RemitosGenerator = () => {
       });
       return;
     }
+
     try {
       const remitoData = generateRemitoData();
       
-      // Guardar remito en la base de datos automáticamente
-      let remitoId: string | undefined;
-      if (selectedClient) {
-        try {
-          remitoId = await saveRemitoToDatabase(remitoData, selectedClient.id);
-          toast({
-            title: "Remito guardado",
-            description: "El remito se guardó correctamente en el historial",
-          });
-        } catch (error) {
-          console.error('Error saving remito:', error);
-          toast({
-            title: "Advertencia",
-            description: "El remito se generará pero no se guardó en el historial",
-            variant: "destructive",
-          });
-        }
-      }
+      // Preparar mensaje para WhatsApp
+      const message = `Hola ${clientData.name}, te envío el remito N° ${remitoData.numero} por un total de ${formatCurrency(remitoData.total)}.`;
 
-      // Generar JPG del remito
-      const jpgBlob = await generateRemitoJPG('remito-preview');
+      // Abrir WhatsApp con el mensaje (sin generar imagen)
+      sendToWhatsApp(clientData.whatsapp_number, message);
+      
+      toast({
+        title: "WhatsApp abierto 💬",
+        description: "Chat abierto con el cliente. Adjunta manualmente la imagen si es necesario.",
+        duration: 3000
+      });
 
-      // Verificar si estamos en una app nativa (iOS/Android)
-      if (isNativeApp()) {
-        // Guardar en galería del dispositivo
-        await saveImageToGallery(jpgBlob);
-
-        // Preparar mensaje para app nativa
-        const nativeMessage = `Hola ${clientData.name}, te envío el remito N° ${remitoData.numero} por un total de ${formatCurrency(remitoData.total)}.`;
-
-        // Abrir WhatsApp con el mensaje
-        sendToWhatsApp(clientData.whatsapp_number, nativeMessage);
-        toast({
-          title: "¡Éxito! 📸",
-          description: "Imagen guardada en Fotos del iPhone. WhatsApp abierto con mensaje.",
-          duration: 5000
-        });
-      } else {
-        // Descargar para navegador web
-        downloadFile(jpgBlob, `remito_${remitoData.numero}.jpg`);
-
-        // Preparar mensaje para navegador
-        const webMessage = `Hola ${clientData.name}, te envío el remito N° ${remitoData.numero} por un total de ${formatCurrency(remitoData.total)}.`;
-
-        // Abrir WhatsApp con el mensaje
-        sendToWhatsApp(clientData.whatsapp_number, webMessage);
-        toast({
-          title: "Éxito",
-          description: "Imagen descargada y WhatsApp abierto. Adjunta manualmente la imagen descargada.",
-          duration: 5000
-        });
-      }
     } catch (error) {
       console.error('Error:', error);
       toast({
         title: "Error",
-        description: isNativeApp() ? "Error al guardar en galería" : "Error al generar la imagen del remito",
+        description: "Error al abrir WhatsApp",
         variant: "destructive"
       });
     }
@@ -481,13 +442,31 @@ const RemitosGenerator = () => {
       const remitoData = generateRemitoData();
       console.log('Saving remito manually:', { remitoData, selectedClient });
       
+      // 1. Guardar remito en la base de datos
       const remitoId = await saveRemitoToDatabase(remitoData, selectedClient.id);
       console.log('Remito saved with ID:', remitoId);
       
-      toast({
-        title: "Éxito",
-        description: "Remito guardado correctamente en el historial",
-      });
+      // 2. Generar y guardar imagen en galería
+      const jpgBlob = await generateRemitoJPG('remito-preview');
+      
+      // Verificar si estamos en una app nativa para guardar en galería
+      if (isNativeApp()) {
+        await saveImageToGallery(jpgBlob);
+        toast({
+          title: "¡Éxito! 💾📸",
+          description: "Remito guardado en historial e imagen guardada en Fotos del iPhone.",
+          duration: 4000
+        });
+      } else {
+        // En navegador web, descargar la imagen
+        downloadFile(jpgBlob, `remito_${remitoData.numero}.jpg`);
+        toast({
+          title: "¡Éxito! 💾📁",
+          description: "Remito guardado en historial e imagen descargada.",
+          duration: 4000
+        });
+      }
+      
     } catch (error) {
       console.error('Error saving remito:', error);
       toast({
