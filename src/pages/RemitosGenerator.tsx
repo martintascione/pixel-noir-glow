@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { AdminPanel } from '@/components/admin/AdminPanel';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Plus, Calculator, Download, MessageCircle, UserPlus, Edit, Trash2, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -275,15 +276,12 @@ const RemitosGenerator = () => {
     if (!costData || items.length === 0) {
       return {
         costoTotal: 0,
-        ivaCredito: 0,
-        ivaDebito: 0,
-        ivaNeto: 0,
-        gananciaReal: 0
+        gananciaReal: 0,
+        ivaVenta: 0
       };
     }
 
     let costoTotal = 0;
-    let ivaDebito = 0;
 
     items.forEach(item => {
       // Encontrar el producto correspondiente
@@ -304,29 +302,20 @@ const RemitosGenerator = () => {
         if (productCost) {
           const costoTotalItem = productCost.production_cost * item.cantidad;
           costoTotal += costoTotalItem;
-          
-          // Calcular IVA débito (IVA contenido en el costo)
-          const ivaDebitoItem = costoTotalItem * (costData.ivaRate / 100) / (1 + costData.ivaRate / 100);
-          ivaDebito += ivaDebitoItem;
         }
       }
     });
 
-    // IVA crédito (IVA contenido en la venta - 21% del total)
-    const ivaCredito = totalVenta * (costData.ivaRate / 100) / (1 + costData.ivaRate / 100);
-    
-    // IVA neto = IVA crédito - IVA débito
-    const ivaNeto = ivaCredito - ivaDebito;
-    
     // Ganancia real = Total venta - Costo total
     const gananciaReal = totalVenta - costoTotal;
+    
+    // Calcular IVA de la venta
+    const ivaVenta = totalVenta * (costData.ivaRate / 100) / (1 + costData.ivaRate / 100);
 
     return {
       costoTotal,
-      ivaCredito,
-      ivaDebito,
-      ivaNeto,
-      gananciaReal
+      gananciaReal,
+      ivaVenta
     };
   };
 
@@ -911,73 +900,15 @@ const RemitosGenerator = () => {
                 </Card>}
 
               {/* Panel de Administración */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Calculator className="h-5 w-5 mr-2" />
-                    Panel de Administración
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3">
-                    {/* Valor Total de la Venta */}
-                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-                      <span className="font-medium text-sm sm:text-base">Valor Total de la Venta:</span>
-                      <span className="font-bold text-lg">{formatCurrency(totalVenta)}</span>
-                    </div>
-                    
-                    <div className="border-t pt-3 space-y-3">
-                      {/* Costo Total del Pedido */}
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
-                        <span className="font-medium text-red-600 text-sm sm:text-base">Costo Total del Pedido:</span>
-                        <span className="font-bold text-red-600 text-lg sm:text-base">{formatCurrency(businessAnalysis.costoTotal)}</span>
-                      </div>
-                      
-                      {/* Ganancia Real */}
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
-                        <span className="font-medium text-green-600 text-sm sm:text-base">Ganancia Real:</span>
-                        <span className="font-bold text-green-600 text-lg sm:text-base">{formatCurrency(businessAnalysis.gananciaReal)}</span>
-                      </div>
-                      
-                      <Separator />
-                      
-                      {/* Análisis de IVA */}
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-blue-600 text-sm sm:text-base">Análisis de IVA:</h4>
-                        
-                        {/* IVA Crédito */}
-                        <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-                          <span className="pl-2 text-xs sm:text-sm">IVA Crédito (venta):</span>
-                          <span className="text-blue-600 text-sm font-medium">{formatCurrency(businessAnalysis.ivaCredito)}</span>
-                        </div>
-                        
-                        {/* IVA Débito */}
-                        <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-                          <span className="pl-2 text-xs sm:text-sm">IVA Débito (costo):</span>
-                          <span className="text-orange-600 text-sm font-medium">{formatCurrency(businessAnalysis.ivaDebito)}</span>
-                        </div>
-                        
-                        {/* IVA Neto */}
-                        <div className="flex flex-col sm:flex-row sm:justify-between border-t pt-2 gap-1 sm:gap-0">
-                          <span className="font-medium text-xs sm:text-sm">IVA Neto (Crédito - Débito):</span>
-                          <span className={`font-bold text-sm ${businessAnalysis.ivaNeto >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {formatCurrency(businessAnalysis.ivaNeto)}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      {/* Nota informativa */}
-                      {(!costData || businessAnalysis.costoTotal === 0) && (
-                        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                          <p className="text-xs text-yellow-700">
-                            <strong>Nota:</strong> Para ver cálculos precisos, asegúrate de haber configurado los costos de producción en la sección "Gestión de Costos" del panel de administración.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <AdminPanel 
+                data={{
+                  valorTotal: totalVenta,
+                  costoTotal: businessAnalysis.costoTotal,
+                  gananciaReal: businessAnalysis.gananciaReal,
+                  ivaVenta: businessAnalysis.ivaVenta
+                }}
+                showCostNote={!costData || businessAnalysis.costoTotal === 0}
+              />
             </div>
           </div>
         </TabsContent>

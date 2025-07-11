@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { AdminPanel } from './AdminPanel';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -382,78 +383,37 @@ export const ClientRemitoHistory = () => {
 
       {/* Panel de Resumen Total */}
       {remitos.length > 0 && (
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center text-sm sm:text-base">
-              <Calculator className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-              Resumen Total del Cliente
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              {/* Total de Remitos y Valor Total */}
-              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-                <span className="font-medium text-sm sm:text-base">Total de Remitos:</span>
-                <span className="font-bold text-lg">{remitos.length}</span>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-                <span className="font-medium text-sm sm:text-base">Valor Total de Ventas:</span>
-                <span className="font-bold text-lg">{formatCurrency(totalAnalysis.totalVentasGeneral)}</span>
-              </div>
-              
-              <div className="border-t pt-3 space-y-3">
-                {/* Costo Total General */}
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
-                  <span className="font-medium text-red-600 text-sm sm:text-base">Costo Total General:</span>
-                  <span className="font-bold text-red-600 text-lg sm:text-base">{formatCurrency(totalAnalysis.costoTotalGeneral)}</span>
+        <>
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center text-sm sm:text-base">
+                <Calculator className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                Resumen Total del Cliente
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                {/* Total de Remitos */}
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                  <span className="font-medium text-sm sm:text-base">Total de Remitos:</span>
+                  <span className="font-bold text-lg">{remitos.length}</span>
                 </div>
-                
-                {/* Ganancia Total Real */}
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
-                  <span className="font-medium text-green-600 text-sm sm:text-base">Ganancia Total Real:</span>
-                  <span className="font-bold text-green-600 text-lg sm:text-base">{formatCurrency(totalAnalysis.gananciaTotalReal)}</span>
-                </div>
-                
-                <Separator />
-                
-                {/* Análisis de IVA Total */}
-                <div className="space-y-2">
-                  <h4 className="font-medium text-blue-600 text-sm sm:text-base">Análisis de IVA Total:</h4>
-                  
-                  {/* IVA Crédito Total */}
-                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-                    <span className="pl-2 text-xs sm:text-sm">IVA Crédito Total (ventas):</span>
-                    <span className="text-blue-600 text-sm font-medium">{formatCurrency(totalAnalysis.ivaCreditoTotal)}</span>
-                  </div>
-                  
-                  {/* IVA Débito Total */}
-                  <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-                    <span className="pl-2 text-xs sm:text-sm">IVA Débito Total (costos):</span>
-                    <span className="text-orange-600 text-sm font-medium">{formatCurrency(totalAnalysis.ivaDebitoTotal)}</span>
-                  </div>
-                  
-                  {/* IVA Neto Total */}
-                  <div className="flex flex-col sm:flex-row sm:justify-between border-t pt-2 gap-1 sm:gap-0">
-                    <span className="font-medium text-xs sm:text-sm">IVA Neto Total (Crédito - Débito):</span>
-                    <span className={`font-bold text-sm ${totalAnalysis.ivaNetoTotal >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(totalAnalysis.ivaNetoTotal)}
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Nota informativa */}
-                {(!costData || totalAnalysis.costoTotalGeneral === 0) && (
-                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <p className="text-xs text-yellow-700">
-                      <strong>Nota:</strong> Para ver cálculos precisos, asegúrate de haber configurado los costos de producción en la sección "Gestión de Costos" del panel de administración.
-                    </p>
-                  </div>
-                )}
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          {/* Panel de Administración - Resumen Total */}
+          <AdminPanel 
+            data={{
+              valorTotal: totalAnalysis.totalVentasGeneral,
+              costoTotal: totalAnalysis.costoTotalGeneral,
+              gananciaReal: totalAnalysis.gananciaTotalReal,
+              ivaVenta: totalAnalysis.ivaCreditoTotal
+            }}
+            showCostNote={!costData || totalAnalysis.costoTotalGeneral === 0}
+            title="Panel de Administración - Resumen Total"
+          />
+        </>
       )}
       </div>
     </div>

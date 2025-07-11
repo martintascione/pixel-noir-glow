@@ -9,6 +9,7 @@ import { formatCurrency } from '@/utils/formatters';
 import { useToast } from '@/hooks/use-toast';
 import { generateRemitoJPG, downloadFile } from '@/services/remitoService';
 import { supabase } from '@/integrations/supabase/client';
+import { AdminPanel } from './AdminPanel';
 
 export const RemitoDetailView = () => {
   const { remitoId } = useParams<{ remitoId: string }>();
@@ -331,54 +332,15 @@ export const RemitoDetailView = () => {
         </div>
 
         {/* Panel de Administración */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center text-sm sm:text-base">
-              <Calculator className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-              Panel de Administración
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              {/* Valor Total de la Venta */}
-              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-                <span className="font-medium text-sm sm:text-base">Valor Total de la Venta:</span>
-                <span className="font-bold text-lg">{formatCurrency(remito.total)}</span>
-              </div>
-              
-              <div className="border-t pt-3 space-y-3">
-                {/* Costo Total del Pedido */}
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
-                  <span className="font-medium text-red-600 text-sm sm:text-base">Costo Total del Pedido:</span>
-                  <span className="font-bold text-red-600 text-lg sm:text-base">{formatCurrency(businessAnalysis.costoTotal)}</span>
-                </div>
-                
-                {/* Ganancia Real */}
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
-                  <span className="font-medium text-green-600 text-sm sm:text-base">Ganancia Real:</span>
-                  <span className="font-bold text-green-600 text-lg sm:text-base">{formatCurrency(businessAnalysis.gananciaReal)}</span>
-                </div>
-                
-                <Separator />
-                
-                {/* IVA de la Venta */}
-                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-                  <span className="font-medium text-blue-600 text-sm sm:text-base">IVA de la Venta:</span>
-                  <span className="font-bold text-blue-600 text-lg sm:text-base">{formatCurrency(businessAnalysis.ivaVenta)}</span>
-                </div>
-                
-                {/* Nota informativa */}
-                {(!costData || businessAnalysis.costoTotal === 0) && (
-                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <p className="text-xs text-yellow-700">
-                      <strong>Nota:</strong> Para ver cálculos precisos, asegúrate de haber configurado los costos de producción en la sección "Gestión de Costos" del panel de administración.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <AdminPanel 
+          data={{
+            valorTotal: remito.total,
+            costoTotal: businessAnalysis.costoTotal,
+            gananciaReal: businessAnalysis.gananciaReal,
+            ivaVenta: businessAnalysis.ivaVenta
+          }}
+          showCostNote={!costData || businessAnalysis.costoTotal === 0}
+        />
       </div>
     </div>
   );
