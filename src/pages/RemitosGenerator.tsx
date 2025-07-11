@@ -456,7 +456,7 @@ const RemitosGenerator = () => {
     }
   };
 
-  const handleSaveRemito = async () => {
+  const handleSaveAndShareRemito = async () => {
     if (!selectedClient) {
       toast({
         title: "Error",
@@ -483,25 +483,47 @@ const RemitosGenerator = () => {
       const remitoId = await saveRemitoToDatabase(remitoData, selectedClient.id);
       console.log('Remito saved with ID:', remitoId);
       
-      // 2. Generar y guardar imagen en galería
+      // 2. Generar imagen JPG
       const jpgBlob = await generateRemitoJPG('remito-preview');
       
-      // Verificar si estamos en una app nativa para guardar en galería
+      // 3. Guardar imagen en galería si es app nativa
       if (isNativeApp()) {
         await saveImageToGallery(jpgBlob);
+      }
+      
+      // 4. Intentar compartir la imagen
+      const file = new File([jpgBlob], `remito_${remitoData.numero}.jpg`, { type: 'image/jpeg' });
+      
+      // Verificar si la Web Share API está disponible y soporta archivos
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: `Remito ${remitoData.numero}`,
+          text: `Remito para ${getCurrentClientData().name} - Total: ${formatCurrency(remitoData.total)}`,
+          files: [file]
+        });
+        
         toast({
-          title: "¡Éxito! 💾📸",
-          description: "Remito guardado en historial e imagen guardada en Fotos del iPhone.",
+          title: "¡Éxito! 💾📤",
+          description: "Remito guardado y compartido exitosamente",
           duration: 4000
         });
       } else {
-        // En navegador web, descargar la imagen
-        downloadFile(jpgBlob, `remito_${remitoData.numero}.jpg`);
-        toast({
-          title: "¡Éxito! 💾📁",
-          description: "Remito guardado en historial e imagen descargada.",
-          duration: 4000
-        });
+        // Si no se puede compartir, solo notificar que se guardó
+        if (isNativeApp()) {
+          toast({
+            title: "¡Éxito! 💾📸",
+            description: "Remito guardado en historial e imagen guardada en Fotos del iPhone.",
+            duration: 4000
+          });
+        } else {
+          // En navegador web, descargar la imagen
+          downloadFile(jpgBlob, `remito_${remitoData.numero}.jpg`);
+          toast({
+            title: "¡Éxito! 💾📁",
+            description: "Remito guardado en historial e imagen descargada.",
+            duration: 4000
+          });
+        }
       }
       
     } catch (error) {
@@ -910,14 +932,9 @@ const RemitosGenerator = () => {
 
                     {/* Botones de Acción */}
                     <div className="flex flex-col gap-3 py-4">
-                      <Button onClick={handleSaveRemito} disabled={items.length === 0 || !selectedClient} className="bg-blue-600 hover:bg-blue-700 text-white">
+                      <Button onClick={handleSaveAndShareRemito} disabled={items.length === 0 || !selectedClient} className="bg-blue-600 hover:bg-blue-700 text-white">
                         <Calculator className="h-4 w-4 mr-2" />
-                        Guardar Remito
-                      </Button>
-                      
-                      <Button onClick={handleShareRemito} disabled={items.length === 0} className="bg-orange-600 hover:bg-orange-700 text-white">
-                        <Share2 className="h-4 w-4 mr-2" />
-                        Compartir Imagen
+                        Guardar y Compartir
                       </Button>
                       
                       <Button onClick={handleSendWhatsApp} disabled={items.length === 0 || !getCurrentClientData().whatsapp_number} className="bg-green-600 hover:bg-green-700 text-white px-6 py-2">
