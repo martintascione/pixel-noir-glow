@@ -278,8 +278,8 @@ export const CostManager = ({ products }: Props) => {
           {/* Input de IVA general */}
           <div className="mb-6 p-4 bg-muted/50 rounded-lg">
             <div className="space-y-4">
-              <div className="flex items-start justify-between">
-                <div className="space-y-2 flex-1 mr-4">
+              <div className="space-y-3">
+                <div className="space-y-2">
                   <Label htmlFor="iva-rate" className="flex items-center gap-2">
                     <Percent className="w-4 h-4" />
                     IVA General (%)
@@ -318,7 +318,7 @@ export const CostManager = ({ products }: Props) => {
                       });
                     }
                   }}
-                  className="shrink-0"
+                  className="w-fit"
                 >
                   <Save className="w-4 h-4 mr-2" />
                   Guardar IVA
@@ -341,8 +341,8 @@ export const CostManager = ({ products }: Props) => {
                 {/* Input de margen por categoría */}
                 <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
                   <div className="space-y-4">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-2 flex-1 mr-4">
+                    <div className="space-y-3">
+                      <div className="space-y-2">
                         <Label htmlFor={`margin-${categoryName}`} className="flex items-center gap-2">
                           <Percent className="w-4 h-4" />
                           Margen de Ganancia para {categoryName} (%)
@@ -393,7 +393,7 @@ export const CostManager = ({ products }: Props) => {
                             });
                           }
                         }}
-                        className="shrink-0"
+                        className="w-fit"
                         disabled={categoryName.toLowerCase().includes('estribo')}
                       >
                         <Save className="w-4 h-4 mr-2" />
