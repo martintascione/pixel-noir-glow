@@ -401,11 +401,32 @@ export const CostManager = ({ products }: Props) => {
                     <p className="text-sm text-muted-foreground">
                       Este margen se aplicará a todos los productos de la categoría {categoryName}.
                     </p>
-                    {categoryName.toLowerCase().includes('estribo') && (
-                      <p className="text-sm text-primary font-medium mt-2">
-                        Su margen actual entre el valor de venta y el costo, es de {categoryMargins[categoryName] || 0}% de ganancia
-                      </p>
-                    )}
+                    {categoryName.toLowerCase().includes('estribo') && (() => {
+                      // Calcular margen real promedio para estribos
+                      const estribosData = groupedProducts[categoryName];
+                      let totalMarginReal = 0;
+                      let productosConDatos = 0;
+                      
+                      estribosData.forEach(product => {
+                        const cost = getCostForProduct(product.id, categoryName);
+                        if (cost.production_cost > 0 && product.price > 0) {
+                          const margenReal = ((product.price - cost.production_cost) / cost.production_cost) * 100;
+                          totalMarginReal += margenReal;
+                          productosConDatos++;
+                        }
+                      });
+                      
+                      const margenPromedio = productosConDatos > 0 ? totalMarginReal / productosConDatos : 0;
+                      
+                      return (
+                        <p className="text-sm text-primary font-medium mt-2">
+                          Su margen actual entre el valor de venta y el costo, es de {margenPromedio.toFixed(1)}% de ganancia
+                          <span className="text-xs text-muted-foreground ml-2">
+                            (Promedio de {productosConDatos} productos con datos)
+                          </span>
+                        </p>
+                      );
+                    })()}
                   </div>
                 </div>
                 
