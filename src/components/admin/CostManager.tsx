@@ -363,6 +363,7 @@ export const CostManager = ({ products }: Props) => {
                           }}
                           placeholder="0.0"
                           className="w-32"
+                          disabled={categoryName.toLowerCase().includes('estribo')}
                         />
                       </div>
                       <Button
@@ -393,13 +394,17 @@ export const CostManager = ({ products }: Props) => {
                           }
                         }}
                         className="shrink-0"
+                        disabled={categoryName.toLowerCase().includes('estribo')}
                       >
                         <Save className="w-4 h-4 mr-2" />
                         Guardar Margen
                       </Button>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Este margen se aplicará a todos los productos de la categoría {categoryName}.
+                      {categoryName.toLowerCase().includes('estribo') 
+                        ? "Función disponible para próximas actualizaciones..."
+                        : `Este margen se aplicará a todos los productos de la categoría ${categoryName}.`
+                      }
                     </p>
                     {categoryName.toLowerCase().includes('estribo') && (() => {
                       // Calcular margen real promedio para estribos
