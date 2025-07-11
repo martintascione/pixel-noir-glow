@@ -1,6 +1,6 @@
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
+import { Media } from '@capacitor-community/media';
 
 export const saveImageToGallery = async (blob: Blob): Promise<void> => {
   try {
@@ -13,33 +13,39 @@ export const saveImageToGallery = async (blob: Blob): Promise<void> => {
     const base64Data = await blobToBase64(blob);
     
     // Remover el prefijo data:image/jpeg;base64, si existe
-    const base64String = base64Data.split(',')[1] || base64Data;
+    const base64String = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
 
     // Generar nombre único para el archivo
     const fileName = `remito_${Date.now()}.jpg`;
 
-    // Escribir el archivo
-    await Filesystem.writeFile({
-      path: fileName,
-      data: base64String,
-      directory: Directory.Cache
+    // Usar el plugin @capacitor-community/media para guardar en galería
+    await Media.savePhoto({
+      path: base64String,
+      albumIdentifier: 'Remitos', // Crear un álbum específico (opcional)
+      fileName: fileName
     });
 
-    // En iOS, podemos usar el método savePicture del Camera plugin
-    await Camera.getPhoto({
-      quality: 90,
-      allowEditing: false,
-      resultType: CameraResultType.DataUrl,
-      source: CameraSource.Photos,
-      saveToGallery: true
-    }).catch(() => {
-      // Si falla, intentamos guardar de otra manera
-      console.log('Método alternativo para guardar imagen');
-    });
+    console.log('Imagen guardada exitosamente en la galería de Fotos');
 
   } catch (error) {
     console.error('Error al guardar imagen en galería:', error);
-    throw error;
+    
+    // Fallback: guardar como archivo temporal y mostrar mensaje
+    try {
+      const base64Data = await blobToBase64(blob);
+      const base64String = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
+      const fileName = `remito_${Date.now()}.jpg`;
+      
+      await Filesystem.writeFile({
+        path: fileName,
+        data: base64String,
+        directory: Directory.Documents
+      });
+      
+      throw new Error('Se guardó como archivo. Para acceder a Fotos, ve a Configuración > Privacidad > Fotos y permite el acceso a la app.');
+    } catch (fallbackError) {
+      throw new Error('No se pudo guardar la imagen. Verifica los permisos de la app.');
+    }
   }
 };
 

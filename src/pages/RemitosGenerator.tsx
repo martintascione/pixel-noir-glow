@@ -429,8 +429,8 @@ const RemitosGenerator = () => {
         // Abrir WhatsApp con el mensaje
         sendToWhatsApp(clientData.whatsapp_number, nativeMessage);
         toast({
-          title: "¡Éxito! 📱",
-          description: "Imagen guardada en galería. WhatsApp abierto con mensaje.",
+          title: "¡Éxito! 📸",
+          description: "Imagen guardada en Fotos del iPhone. WhatsApp abierto con mensaje.",
           duration: 5000
         });
       } else {
