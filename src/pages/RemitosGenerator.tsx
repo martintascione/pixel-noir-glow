@@ -93,6 +93,18 @@ const RemitosGenerator = () => {
     }
   });
 
+  // Función para extraer el número de la medida para ordenamiento
+  const extractMeasureNumber = (size: string) => {
+    const match = size.match(/(\d+(?:\.\d+)?)/);
+    return match ? parseFloat(match[1]) : 0;
+  };
+
+  // Función para detectar medidas triangulares (3 dimensiones, ej: 10x10x10)
+  const isTriangularMeasure = (size: string) => {
+    const dimensionCount = (size.match(/x/gi) || []).length;
+    return dimensionCount >= 2; // 3 dimensiones = 2 "x"
+  };
+
   // Obtener medidas únicas agrupadas por tipo
   const medidasGrouped = React.useMemo(() => {
     const allMedidas = products.map(product => ({
@@ -100,6 +112,7 @@ const RemitosGenerator = () => {
       diameter: product.diameter || '',
       shape: product.shape || ''
     }));
+    
     // Filtrar únicos por combinación de size + diameter + shape
     const uniqueMedidas = allMedidas.filter((medida, index, self) => 
       index === self.findIndex(m => 
@@ -108,12 +121,41 @@ const RemitosGenerator = () => {
         m.shape === medida.shape
       )
     );
+
+    // Separar medidas triangulares
+    const triangularMedidas = uniqueMedidas.filter(m => isTriangularMeasure(m.size));
+    const nonTriangularMedidas = uniqueMedidas.filter(m => !isTriangularMeasure(m.size));
+
+    // Agrupar y ordenar medidas no triangulares
     const grouped = {
-      '4mm': uniqueMedidas.filter(m => m.diameter && (m.diameter.startsWith('4') || m.diameter === '4.2')),
-      '6mm': uniqueMedidas.filter(m => m.diameter && (m.diameter.startsWith('6') || m.diameter === '6')),
-      'triangular': uniqueMedidas.filter(m => m.shape?.toLowerCase().includes('triangular')),
-      'otros': uniqueMedidas.filter(m => !m.diameter || (!m.diameter.startsWith('4') && m.diameter !== '4.2' && !m.diameter.startsWith('6') && m.diameter !== '6' && !m.shape?.toLowerCase().includes('triangular')))
+      '4mm': nonTriangularMedidas
+        .filter(m => m.diameter && (m.diameter.startsWith('4') || m.diameter === '4.2'))
+        .sort((a, b) => extractMeasureNumber(a.size) - extractMeasureNumber(b.size)),
+      '6mm': nonTriangularMedidas
+        .filter(m => m.diameter && (m.diameter.startsWith('6') || m.diameter === '6'))
+        .sort((a, b) => extractMeasureNumber(a.size) - extractMeasureNumber(b.size)),
+      'otros': nonTriangularMedidas
+        .filter(m => !m.diameter || (!m.diameter.startsWith('4') && m.diameter !== '4.2' && !m.diameter.startsWith('6') && m.diameter !== '6'))
+        .sort((a, b) => extractMeasureNumber(a.size) - extractMeasureNumber(b.size)),
+      'triangular': triangularMedidas
+        .sort((a, b) => {
+          // Ordenar triangulares primero por diámetro (4.2, luego 6), luego por medida
+          const diameterA = a.diameter || '999';
+          const diameterB = b.diameter || '999';
+          
+          if (diameterA === '4.2' && diameterB !== '4.2') return -1;
+          if (diameterB === '4.2' && diameterA !== '4.2') return 1;
+          if (diameterA === '6' && diameterB !== '6' && diameterB !== '4.2') return -1;
+          if (diameterB === '6' && diameterA !== '6' && diameterA !== '4.2') return 1;
+          
+          if (diameterA === diameterB) {
+            return extractMeasureNumber(a.size) - extractMeasureNumber(b.size);
+          }
+          
+          return diameterA.localeCompare(diameterB);
+        })
     };
+    
     return grouped;
   }, [products]);
 
