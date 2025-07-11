@@ -401,6 +401,11 @@ export const CostManager = ({ products }: Props) => {
                     <p className="text-sm text-muted-foreground">
                       Este margen se aplicará a todos los productos de la categoría {categoryName}.
                     </p>
+                    {categoryName.toLowerCase().includes('estribo') && (
+                      <p className="text-sm text-primary font-medium mt-2">
+                        Su margen actual entre el valor de venta y el costo, es de {categoryMargins[categoryName] || 0}% de ganancia
+                      </p>
+                    )}
                   </div>
                 </div>
                 
