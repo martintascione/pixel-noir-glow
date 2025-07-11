@@ -192,6 +192,18 @@ export const CostManager = ({ products }: Props) => {
     };
   };
 
+  // Función para extraer el número de la medida para ordenamiento
+  const extractMeasureNumber = (size: string) => {
+    const match = size.match(/(\d+(?:\.\d+)?)/);
+    return match ? parseFloat(match[1]) : 0;
+  };
+
+  // Función para detectar medidas triangulares (3 dimensiones, ej: 10x10x10)
+  const isTriangularMeasure = (size: string) => {
+    const dimensionCount = (size.match(/x/gi) || []).length;
+    return dimensionCount >= 2; // 3 dimensiones = 2 "x"
+  };
+
   // Agrupar productos por categoría
   const groupedProducts = products.reduce((acc, product) => {
     const categoryName = product.category?.name || 'Sin categoría';
@@ -201,6 +213,37 @@ export const CostManager = ({ products }: Props) => {
     acc[categoryName].push(product);
     return acc;
   }, {} as Record<string, Product[]>);
+
+  // Ordenar productos dentro de cada categoría por diámetro y medida
+  Object.keys(groupedProducts).forEach(categoryName => {
+    groupedProducts[categoryName].sort((a, b) => {
+      // Detectar si son medidas triangulares (3 dimensiones, ej: 10x10x10)
+      const isTriangularA = isTriangularMeasure(a.size);
+      const isTriangularB = isTriangularMeasure(b.size);
+      
+      // Las triangulares van al final
+      if (isTriangularA && !isTriangularB) return 1;
+      if (!isTriangularA && isTriangularB) return -1;
+      
+      // Primero ordenar por diámetro (4.2 primero, luego 6, luego otros)
+      const diameterA = a.diameter || '999'; // Sin diámetro al final
+      const diameterB = b.diameter || '999';
+      
+      if (diameterA === '4.2' && diameterB !== '4.2') return -1;
+      if (diameterB === '4.2' && diameterA !== '4.2') return 1;
+      if (diameterA === '6' && diameterB !== '6' && diameterB !== '4.2') return -1;
+      if (diameterB === '6' && diameterA !== '6' && diameterA !== '4.2') return 1;
+      
+      // Si tienen el mismo diámetro, ordenar por medida
+      if (diameterA === diameterB) {
+        const sizeA = extractMeasureNumber(a.size);
+        const sizeB = extractMeasureNumber(b.size);
+        return sizeA - sizeB;
+      }
+      
+      return diameterA.localeCompare(diameterB);
+    });
+  });
 
   // Ordenar categorías: Estribos primero, luego el resto alfabéticamente
   const sortedCategories = Object.keys(groupedProducts).sort((a, b) => {
