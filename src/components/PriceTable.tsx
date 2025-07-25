@@ -145,6 +145,7 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
       const cuadrados = filteredProducts.filter(item => item.shape === "Cuadrado");
       const rectangulares = filteredProducts.filter(item => item.shape === "Rectangular");  
       const triangulares = filteredProducts.filter(item => item.shape === "Triangular");
+      const especialesmedidas = filteredProducts.filter(item => item.shape === "Medidas Especiales");
       
       return (
         <div className="divide-y divide-border">
@@ -207,6 +208,30 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
               {triangulares.map((item, index) => (
                 <motion.div 
                   key={`triangular-${index}-${selectedDiameter}`}
+                  className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
+                  variants={itemVariants}
+                >
+                  <div className="flex items-center gap-2">
+                    <span>{item.size}</span>
+                    <span className="text-muted-foreground text-sm">- Ø{item.diameter}mm</span>
+                  </div>
+                  <div className="text-right">{formatPrice(item.price)}</div>
+                </motion.div>
+              ))}
+            </>
+          )}
+          
+          {/* Sección de Medidas Especiales */}
+          {especialesmedidas.length > 0 && (
+            <>
+              <div className="bg-white px-6 py-3 flex items-center gap-2 border-b border-border">
+                <ShoppingCart size={16} className="text-primary" />
+                <h3 className="font-medium">Medidas Especiales</h3>
+              </div>
+              
+              {especialesmedidas.map((item, index) => (
+                <motion.div 
+                  key={`especiales-${index}-${selectedDiameter}`}
                   className="grid grid-cols-2 px-6 py-4 hover:bg-muted/30 transition-colors duration-200 bg-white"
                   variants={itemVariants}
                 >

@@ -431,6 +431,7 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
                       <SelectItem value="Cuadrado">Cuadrado</SelectItem>
                       <SelectItem value="Rectangular">Rectangular</SelectItem>
                       <SelectItem value="Triangular">Triangular</SelectItem>
+                      <SelectItem value="Medidas Especiales">Medidas Especiales</SelectItem>
                     </SelectContent>
                   </Select>
                 </>
@@ -527,6 +528,7 @@ const ProductManager = ({ categories, products }: ProductManagerProps) => {
                                   <SelectItem value="Cuadrado">Cuadrado</SelectItem>
                                   <SelectItem value="Rectangular">Rectangular</SelectItem>
                                   <SelectItem value="Triangular">Triangular</SelectItem>
+                                  <SelectItem value="Medidas Especiales">Medidas Especiales</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
