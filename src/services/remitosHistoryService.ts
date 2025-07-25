@@ -33,12 +33,18 @@ export const saveRemitoToDatabase = async (remitoData: RemitoData, clientId: str
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Usuario no autenticado');
 
+  // Convertir fecha del formato español (dd/mm/yyyy) al formato ISO (yyyy-mm-dd)
+  const convertDateToISO = (dateStr: string): string => {
+    const [day, month, year] = dateStr.split('/');
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  };
+
   // Guardar el remito principal
   const { data: remito, error: remitoError } = await supabase
     .from('remitos')
     .insert({
       numero: remitoData.numero,
-      fecha: remitoData.fecha,
+      fecha: convertDateToISO(remitoData.fecha),
       client_id: clientId,
       user_id: user.id,
       total: remitoData.total
