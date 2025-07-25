@@ -123,19 +123,20 @@ const RemitosGenerator = () => {
       )
     );
 
-    // Separar medidas triangulares
+    // Separar medidas triangulares y especiales
     const triangularMedidas = uniqueMedidas.filter(m => isTriangularMeasure(m.size));
-    const nonTriangularMedidas = uniqueMedidas.filter(m => !isTriangularMeasure(m.size));
+    const especialesMedidas = uniqueMedidas.filter(m => m.shape === "Medidas Especiales");
+    const normalMedidas = uniqueMedidas.filter(m => !isTriangularMeasure(m.size) && m.shape !== "Medidas Especiales");
 
-    // Agrupar y ordenar medidas no triangulares
+    // Agrupar y ordenar medidas normales
     const grouped = {
-      '4mm': nonTriangularMedidas
+      '4mm': normalMedidas
         .filter(m => m.diameter && (m.diameter.startsWith('4') || m.diameter === '4.2'))
         .sort((a, b) => extractMeasureNumber(a.size) - extractMeasureNumber(b.size)),
-      '6mm': nonTriangularMedidas
+      '6mm': normalMedidas
         .filter(m => m.diameter && (m.diameter.startsWith('6') || m.diameter === '6'))
         .sort((a, b) => extractMeasureNumber(a.size) - extractMeasureNumber(b.size)),
-      'otros': nonTriangularMedidas
+      'otros': normalMedidas
         .filter(m => !m.diameter || (!m.diameter.startsWith('4') && m.diameter !== '4.2' && !m.diameter.startsWith('6') && m.diameter !== '6'))
         .sort((a, b) => extractMeasureNumber(a.size) - extractMeasureNumber(b.size)),
       'triangular': triangularMedidas
@@ -154,7 +155,9 @@ const RemitosGenerator = () => {
           }
           
           return diameterA.localeCompare(diameterB);
-        })
+        }),
+      'especiales': especialesMedidas
+        .sort((a, b) => extractMeasureNumber(a.size) - extractMeasureNumber(b.size))
     };
     
     return grouped;
@@ -744,9 +747,27 @@ const RemitosGenerator = () => {
                                   );
                                 })}
                               </>}
+                             
+                            {/* Separador */}
+                            {(medidasGrouped['4mm'].length > 0 || medidasGrouped['6mm'].length > 0 || medidasGrouped['triangular'].length > 0) && medidasGrouped['especiales'].length > 0 && <div className="border-t my-1" />}
+                            
+                            {/* Medidas Especiales */}
+                            {medidasGrouped['especiales'].length > 0 && <>
+                                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
+                                  Medidas Especiales
+                                </div>
+                                {medidasGrouped['especiales'].map(medida => {
+                                  const displayValue = medida.diameter ? `${medida.size}-Ø${medida.diameter}mm` : medida.size;
+                                  return (
+                                    <SelectItem key={`especiales-${medida.size}-${medida.diameter || 'no-diameter'}`} value={displayValue} className="pl-4">
+                                      {medida.size}{medida.diameter ? ` (Ø${medida.diameter}mm)` : ''}
+                                    </SelectItem>
+                                  );
+                                })}
+                              </>}
                             
                             {/* Separador */}
-                            {(medidasGrouped['4mm'].length > 0 || medidasGrouped['6mm'].length > 0 || medidasGrouped['triangular'].length > 0) && medidasGrouped['otros'].length > 0 && <div className="border-t my-1" />}
+                            {(medidasGrouped['4mm'].length > 0 || medidasGrouped['6mm'].length > 0 || medidasGrouped['triangular'].length > 0 || medidasGrouped['especiales'].length > 0) && medidasGrouped['otros'].length > 0 && <div className="border-t my-1" />}
                             
                             {/* Otros productos */}
                             {medidasGrouped['otros'].length > 0 && <>
