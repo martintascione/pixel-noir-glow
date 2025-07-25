@@ -1,0 +1,33 @@
+
+# Habilitar CORS
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
+</IfModule>
+
+# Habilitar reescritura de URL
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Manejar la solicitud OPTIONS para CORS
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteRule ^(.*)$ $1 [R=200,L]
+    
+    # Reescribir URLs para productos
+    RewriteRule ^api/products$ api/products/index.php [L]
+    RewriteRule ^api/products/([0-9]+)$ api/products/read.php?id=$1 [L]
+    
+    # Reescribir URL para fecha de actualización
+    RewriteRule ^api/price-update$ api/price-update/index.php [L]
+</IfModule>
+
+# Prevenir acceso a directorios
+Options -Indexes
+
+# Proteger archivos y directorios
+<FilesMatch "^\.ht">
+    Order allow,deny
+    Deny from all
+    Satisfy All
+</FilesMatch>
