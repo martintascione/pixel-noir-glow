@@ -1,1 +1,4 @@
 project_id = "nnewcokwwpaoiynjhgtc"
+
+[functions.afip-consulta]
+verify_jwt = false
