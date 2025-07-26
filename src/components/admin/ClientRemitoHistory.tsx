@@ -232,7 +232,7 @@ export const ClientRemitoHistory = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate('/admin')}
+              onClick={() => navigate('/admin/remitos', { state: { activeTab: 'clients' } })}
               className="flex-shrink-0"
             >
               <ArrowLeft className="h-4 w-4" />

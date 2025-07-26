@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AdminPanel } from '@/components/admin/AdminPanel';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Plus, Calculator, Download, MessageCircle, UserPlus, Edit, Trash2, History, Share2 } from 'lucide-react';
@@ -30,6 +30,7 @@ interface RemitoItem {
 const RemitosGenerator = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const remitoRef = useRef<HTMLDivElement>(null);
 
@@ -547,7 +548,7 @@ const RemitosGenerator = () => {
         <h1 className="text-3xl font-bold">Generador de Remitos</h1>
       </div>
 
-      <Tabs defaultValue="generator" className="space-y-6">
+      <Tabs defaultValue={location.state?.activeTab || "generator"} className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="generator">Generar Remito</TabsTrigger>
           <TabsTrigger value="clients">Gestión de Clientes</TabsTrigger>
