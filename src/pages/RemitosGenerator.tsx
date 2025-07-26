@@ -780,7 +780,7 @@ const RemitosGenerator = () => {
                       <SelectContent>
                         <SelectItem value="manual">Ingresar manualmente</SelectItem>
                         {clients.map(client => <SelectItem key={client.id} value={client.id}>
-                            {client.name} - {client.company_name}
+                            {client.name} - {client.company_legal_name || client.company_name}
                           </SelectItem>)}
                       </SelectContent>
                     </Select>
