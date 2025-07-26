@@ -1151,17 +1151,6 @@ const RemitosGenerator = () => {
               />
             </div>
             <div>
-              <Label htmlFor="edit-company">Empresa</Label>
-              <Input 
-                id="edit-company" 
-                value={editClient.company_name} 
-                onChange={e => setEditClient(prev => ({
-                  ...prev,
-                  company_name: e.target.value
-                }))} 
-              />
-            </div>
-            <div>
               <Label htmlFor="edit-legal">Razón Social</Label>
               <Input 
                 id="edit-legal" 
@@ -1198,7 +1187,7 @@ const RemitosGenerator = () => {
             <div className="flex gap-2">
               <Button 
                 onClick={handleSaveEditClient} 
-                disabled={!editClient.name || !editClient.company_name || !editClient.cuit || updateClientMutation.isPending} 
+                disabled={!editClient.name || !editClient.cuit || updateClientMutation.isPending} 
                 className="flex-1"
               >
                 {updateClientMutation.isPending ? 'Guardando...' : 'Guardar Cambios'}
