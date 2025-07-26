@@ -72,6 +72,9 @@ const RemitosGenerator = () => {
     cuit: '',
     whatsapp_number: ''
   });
+
+  // Estado para facturación mensual
+  const [showMonthlyBilling, setShowMonthlyBilling] = useState(false);
   const {
     data: products = []
   } = useQuery({
@@ -105,6 +108,29 @@ const RemitosGenerator = () => {
         ivaRate: generalConfig?.iva_rate || 21,
         productCosts: productCosts || []
       };
+    }
+  });
+
+  // Query para obtener remitos del mes actual para facturación
+  const { data: remitosData = [] } = useQuery({
+    queryKey: ['remitos-monthly'],
+    queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('remitos')
+        .select(`
+          *,
+          clients (
+            name,
+            company_name
+          )
+        `)
+        .eq('user_id', userData.user.id);
+      
+      if (error) throw error;
+      return data || [];
     }
   });
 
@@ -435,6 +461,41 @@ const RemitosGenerator = () => {
     }
     return medida;
   };
+
+  // Función para calcular ventas mensuales
+  const calculateMonthlyBilling = () => {
+    const currentDate = new Date();
+    const monthlyData: { [key: string]: { total: number; count: number; clients: { [clientName: string]: number } } } = {};
+
+    remitosData.forEach(remito => {
+      const remitoDate = new Date(remito.fecha);
+      const monthKey = `${remitoDate.getFullYear()}-${(remitoDate.getMonth() + 1).toString().padStart(2, '0')}`;
+      const clientName = remito.clients?.name || 'Cliente Sin Nombre';
+
+      if (!monthlyData[monthKey]) {
+        monthlyData[monthKey] = { total: 0, count: 0, clients: {} };
+      }
+
+      monthlyData[monthKey].total += Number(remito.total);
+      monthlyData[monthKey].count += 1;
+
+      if (!monthlyData[monthKey].clients[clientName]) {
+        monthlyData[monthKey].clients[clientName] = 0;
+      }
+      monthlyData[monthKey].clients[clientName] += Number(remito.total);
+    });
+
+    // Ordenar por mes (más reciente primero)
+    const sortedMonths = Object.keys(monthlyData).sort((a, b) => b.localeCompare(a));
+
+    return sortedMonths.map(month => ({
+      month,
+      ...monthlyData[month]
+    }));
+  };
+
+  // Calcular datos de facturación
+  const monthlyBillingData = calculateMonthlyBilling();
   const getCurrentClientData = () => {
     if (selectedClient) {
       return {
@@ -656,9 +717,10 @@ const RemitosGenerator = () => {
       </div>
 
       <Tabs defaultValue={location.state?.activeTab || "generator"} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="generator">Generar Remito</TabsTrigger>
           <TabsTrigger value="clients">Gestión de Clientes</TabsTrigger>
+          <TabsTrigger value="monthly-billing">Facturación Mensual</TabsTrigger>
         </TabsList>
 
         <TabsContent value="generator">
@@ -1147,6 +1209,65 @@ const RemitosGenerator = () => {
                         </div>
                       </div>)}
                   </div>}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="monthly-billing">
+          <Card>
+            <CardHeader>
+              <CardTitle>Facturación Mensual</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {monthlyBillingData.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">
+                    No hay remitos registrados aún
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {monthlyBillingData.map((monthData, index) => (
+                      <Card key={monthData.month}>
+                        <CardHeader>
+                          <CardTitle className="flex justify-between items-center">
+                            <span>
+                              {new Date(monthData.month + '-01').toLocaleDateString('es-AR', { 
+                                year: 'numeric', 
+                                month: 'long' 
+                              })}
+                            </span>
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-green-600">
+                                {formatCurrency(monthData.total)}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {monthData.count} remito{monthData.count !== 1 ? 's' : ''}
+                              </div>
+                            </div>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <h4 className="font-medium text-sm text-muted-foreground mb-3">
+                              Ventas por Cliente:
+                            </h4>
+                            {Object.entries(monthData.clients)
+                              .sort((a, b) => b[1] - a[1])
+                              .map(([clientName, amount]) => (
+                                <div key={clientName} className="flex justify-between items-center py-2 border-b border-muted">
+                                  <span className="font-medium">{clientName}</span>
+                                  <span className="text-green-600 font-semibold">
+                                    {formatCurrency(amount)}
+                                  </span>
+                                </div>
+                              ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
