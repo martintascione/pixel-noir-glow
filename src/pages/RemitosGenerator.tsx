@@ -264,6 +264,49 @@ const RemitosGenerator = () => {
     });
   };
 
+  // Función para consultar CUIT en AFIP/ARCA
+  const handleCuitLookup = async () => {
+    if (!newClient.cuit) return;
+
+    try {
+      const response = await fetch('https://nnewcokwwpaoiynjhgtc.supabase.co/functions/v1/afip-consulta', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cuit: newClient.cuit }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setNewClient(prev => ({
+          ...prev,
+          company_legal_name: data.razonSocial || '',
+          // Si no hay nombre, usar la razón social
+          name: prev.name || data.razonSocial || ''
+        }));
+        
+        toast({
+          title: "Datos encontrados",
+          description: "Se completaron automáticamente los datos desde AFIP/ARCA",
+        });
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "CUIT no encontrado",
+          description: errorData.error || "Complete los datos manualmente",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error de conexión",
+        description: "No se pudo consultar AFIP. Complete los datos manualmente.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Actualizar producto cuando cambia la medida
   useEffect(() => {
     if (currentItem.medida) {
@@ -660,26 +703,36 @@ const RemitosGenerator = () => {
                             }))} />
                           </div>
                           <div>
-                            <Label htmlFor="new-company">Empresa</Label>
-                            <Input id="new-company" value={newClient.company_name} onChange={e => setNewClient(prev => ({
-                              ...prev,
-                              company_name: e.target.value
-                            }))} />
-                          </div>
-                          <div>
                             <Label htmlFor="new-legal">Razón Social</Label>
                             <Input id="new-legal" value={newClient.company_legal_name} onChange={e => setNewClient(prev => ({
                               ...prev,
                               company_legal_name: e.target.value
                             }))} />
                           </div>
-                          <div>
-                            <Label htmlFor="new-cuit">CUIT</Label>
-                            <Input id="new-cuit" value={newClient.cuit} onChange={e => setNewClient(prev => ({
-                              ...prev,
-                              cuit: e.target.value
-                            }))} />
-                          </div>
+                           <div>
+                             <Label htmlFor="new-cuit">CUIT</Label>
+                             <div className="flex gap-2">
+                               <Input 
+                                 id="new-cuit" 
+                                 value={newClient.cuit} 
+                                 onChange={e => setNewClient(prev => ({
+                                   ...prev,
+                                   cuit: e.target.value
+                                 }))} 
+                                 placeholder="20-12345678-9"
+                                 className="flex-1"
+                               />
+                               <Button 
+                                 type="button"
+                                 variant="outline" 
+                                 size="sm"
+                                 onClick={handleCuitLookup}
+                                 disabled={!newClient.cuit || newClient.cuit.length < 11}
+                               >
+                                 Buscar
+                               </Button>
+                             </div>
+                           </div>
                           <div>
                             <Label htmlFor="new-whatsapp">WhatsApp</Label>
                             <Input id="new-whatsapp" value={newClient.whatsapp_number} onChange={e => setNewClient(prev => ({
@@ -687,7 +740,7 @@ const RemitosGenerator = () => {
                               whatsapp_number: e.target.value
                             }))} placeholder="+54 9 11 1234-5678" />
                           </div>
-                          <Button onClick={() => createClientMutation.mutate(newClient)} disabled={!newClient.name || !newClient.company_name || !newClient.cuit} className="w-full">
+                          <Button onClick={() => createClientMutation.mutate(newClient)} disabled={!newClient.name || !newClient.company_legal_name || !newClient.cuit} className="w-full">
                             Guardar Cliente
                           </Button>
                         </div>
