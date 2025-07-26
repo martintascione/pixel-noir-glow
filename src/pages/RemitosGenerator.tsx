@@ -729,10 +729,22 @@ const RemitosGenerator = () => {
       </div>
 
       <Tabs defaultValue={location.state?.activeTab || "generator"} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="generator">Generar Remito</TabsTrigger>
-          <TabsTrigger value="clients">Gestión de Clientes</TabsTrigger>
-          <TabsTrigger value="monthly-billing">Facturación Mensual</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 gap-1 h-auto p-1">
+          <TabsTrigger value="generator" className="data-[state=active]:bg-white text-xs md:text-sm py-3 flex items-center justify-center gap-2">
+            <Calculator className="h-4 w-4" />
+            <span className="hidden sm:inline">Generar Remito</span>
+            <span className="sm:hidden">Remito</span>
+          </TabsTrigger>
+          <TabsTrigger value="clients" className="data-[state=active]:bg-white text-xs md:text-sm py-3 flex items-center justify-center gap-2">
+            <Users className="h-4 w-4" />
+            <span className="hidden sm:inline">Gestión de Clientes</span>
+            <span className="sm:hidden">Clientes</span>
+          </TabsTrigger>
+          <TabsTrigger value="monthly-billing" className="data-[state=active]:bg-white text-xs md:text-sm py-3 flex items-center justify-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            <span className="hidden sm:inline">Facturación Mensual</span>
+            <span className="sm:hidden">Facturación</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="generator">
