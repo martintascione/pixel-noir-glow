@@ -149,7 +149,7 @@ const Header = ({ onSelectProduct }: HeaderProps) => {
               ) : (
                 <Link to="/auth">
                   <Button variant="outline" size="sm">
-                    Iniciar Sesión
+                    <User className="h-4 w-4" />
                   </Button>
                 </Link>
               )}
