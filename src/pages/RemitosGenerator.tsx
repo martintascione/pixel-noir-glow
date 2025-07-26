@@ -1227,135 +1227,180 @@ const RemitosGenerator = () => {
         </TabsContent>
 
         <TabsContent value="monthly-billing">
-          <div className="space-y-6">
-            {/* Resumen general */}
-            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-blue-500">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-blue-100 p-3 rounded-full">
-                      <TrendingUp className="h-6 w-6 text-blue-600" />
+          <div className="space-y-4">
+            {/* Header con estadísticas principales */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200 rounded-xl p-4 md:p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-blue-500 p-2 rounded-lg">
+                  <TrendingUp className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Facturación Mensual</h2>
+                  <p className="text-sm text-gray-600">Resumen de ventas por período</p>
+                </div>
+              </div>
+              
+              {monthlyBillingData.length > 0 ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl md:text-3xl font-bold text-blue-600">
+                      {formatCurrency(monthlyBillingData.reduce((sum, month) => sum + month.total, 0))}
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Resumen de Facturación</h3>
-                      <p className="text-sm text-gray-600">Últimos {monthlyBillingData.length} meses de actividad</p>
-                    </div>
+                    <div className="text-xs text-gray-600">Total Acumulado</div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-blue-600">
-                      {monthlyBillingData.length > 0 ? formatCurrency(monthlyBillingData.reduce((sum, month) => sum + month.total, 0)) : formatCurrency(0)}
+                  <div className="text-center">
+                    <div className="text-2xl md:text-3xl font-bold text-gray-900">
+                      {monthlyBillingData.length}
                     </div>
-                    <div className="text-sm text-gray-500">Total acumulado</div>
+                    <div className="text-xs text-gray-600">Meses Activos</div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              ) : (
+                <div className="text-center py-4">
+                  <div className="text-lg font-medium text-gray-700">Sin datos disponibles</div>
+                  <div className="text-sm text-gray-500">Genera tu primer remito para ver estadísticas</div>
+                </div>
+              )}
+            </div>
 
             {/* Lista de meses */}
-            {monthlyBillingData.length === 0 ? (
-              <Card>
-                <CardContent className="py-12">
-                  <div className="text-center">
-                    <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No hay datos de facturación</h3>
-                    <p className="text-gray-500">Los datos aparecerán automáticamente cuando generes tu primer remito.</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {monthlyBillingData.map((monthData, index) => {
-                  const isCurrentMonth = index === 0;
-                  const isExpanded = expandedMonths.has(monthData.month);
-                  const monthName = new Date(monthData.month + '-01').toLocaleDateString('es-AR', { 
-                    year: 'numeric', 
-                    month: 'long' 
-                  });
-                  
-                  return (
-                    <Card key={monthData.month} className={`transition-all duration-200 hover:shadow-md ${isCurrentMonth ? 'ring-2 ring-green-200 bg-green-50' : ''}`}>
-                      <CardContent className="p-0">
-                        {/* Header del mes */}
-                        <div className="p-6 cursor-pointer" onClick={() => toggleMonthExpansion(monthData.month)}>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
-                              <div className={`p-2 rounded-full ${isCurrentMonth ? 'bg-green-100' : 'bg-gray-100'}`}>
-                                <Calendar className={`h-5 w-5 ${isCurrentMonth ? 'text-green-600' : 'text-gray-600'}`} />
-                              </div>
-                              <div>
-                                <h3 className="font-semibold text-lg capitalize">
-                                  {monthName}
-                                  {isCurrentMonth && <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Actual</span>}
-                                </h3>
-                                <div className="flex items-center space-x-4 text-sm text-gray-500">
-                                  <span className="flex items-center">
-                                    <Users className="h-4 w-4 mr-1" />
-                                    {Object.keys(monthData.clients).length} cliente{Object.keys(monthData.clients).length !== 1 ? 's' : ''}
-                                  </span>
-                                  <span>
-                                    {monthData.count} remito{monthData.count !== 1 ? 's' : ''}
-                                  </span>
-                                </div>
-                              </div>
+            <div className="space-y-3">
+              {monthlyBillingData.map((monthData, index) => {
+                const isCurrentMonth = index === 0;
+                const isExpanded = expandedMonths.has(monthData.month);
+                const monthName = new Date(monthData.month + '-01').toLocaleDateString('es-AR', { 
+                  year: 'numeric', 
+                  month: 'long' 
+                });
+                
+                return (
+                  <div key={monthData.month} className={`
+                    border rounded-xl overflow-hidden transition-all duration-200 
+                    ${isCurrentMonth 
+                      ? 'border-green-300 bg-green-50 shadow-sm' 
+                      : 'border-gray-200 bg-white hover:shadow-md'
+                    }
+                  `}>
+                    {/* Header clickeable */}
+                    <div 
+                      className="p-4 cursor-pointer select-none"
+                      onClick={() => toggleMonthExpansion(monthData.month)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className={`
+                            p-2 rounded-lg flex-shrink-0
+                            ${isCurrentMonth ? 'bg-green-500' : 'bg-gray-400'}
+                          `}>
+                            <Calendar className="h-4 w-4 text-white" />
+                          </div>
+                          
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-semibold text-base capitalize text-gray-900">
+                                {monthName}
+                              </h3>
+                              {isCurrentMonth && (
+                                <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
+                                  Actual
+                                </span>
+                              )}
                             </div>
-                            <div className="flex items-center space-x-4">
-                              <div className="text-right">
-                                <div className={`text-2xl font-bold ${isCurrentMonth ? 'text-green-600' : 'text-gray-900'}`}>
-                                  {formatCurrency(monthData.total)}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  Promedio: {formatCurrency(monthData.total / monthData.count)}
-                                </div>
-                              </div>
-                              <div className="ml-2">
-                                {isExpanded ? (
-                                  <ChevronDown className="h-5 w-5 text-gray-400" />
-                                ) : (
-                                  <ChevronRight className="h-5 w-5 text-gray-400" />
-                                )}
-                              </div>
+                            
+                            <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+                              <span className="flex items-center gap-1">
+                                <Users className="h-3 w-3" />
+                                {Object.keys(monthData.clients).length}
+                              </span>
+                              <span>{monthData.count} remitos</span>
                             </div>
                           </div>
                         </div>
-
-                        {/* Detalles expandibles */}
-                        {isExpanded && (
-                          <div className="border-t bg-gray-50 px-6 py-4">
-                            <h4 className="font-medium text-gray-900 mb-3 flex items-center">
-                              <Users className="h-4 w-4 mr-2" />
-                              Detalle por Cliente
-                            </h4>
-                            <div className="space-y-2">
-                              {Object.entries(monthData.clients)
-                                .sort((a, b) => b[1] - a[1])
-                                .map(([clientName, amount], clientIndex) => {
-                                  const percentage = (amount / monthData.total) * 100;
-                                  return (
-                                    <div key={clientName} className="flex items-center justify-between py-2 px-3 bg-white rounded-lg border">
-                                      <div className="flex items-center space-x-3">
-                                        <div className={`w-3 h-3 rounded-full ${
-                                          clientIndex === 0 ? 'bg-blue-500' : 
-                                          clientIndex === 1 ? 'bg-green-500' : 
-                                          clientIndex === 2 ? 'bg-yellow-500' : 'bg-gray-400'
-                                        }`}></div>
-                                        <span className="font-medium text-gray-900">{clientName}</span>
-                                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                          {percentage.toFixed(1)}%
-                                        </span>
-                                      </div>
-                                      <span className="font-semibold text-green-600">
-                                        {formatCurrency(amount)}
-                                      </span>
-                                    </div>
-                                  );
-                                })}
+                        
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className="text-right">
+                            <div className={`
+                              text-lg md:text-xl font-bold
+                              ${isCurrentMonth ? 'text-green-600' : 'text-gray-900'}
+                            `}>
+                              {formatCurrency(monthData.total)}
+                            </div>
+                            <div className="text-xs text-gray-500 hidden md:block">
+                              Prom: {formatCurrency(monthData.total / monthData.count)}
                             </div>
                           </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                          
+                          <div className="ml-2">
+                            {isExpanded ? (
+                              <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Contenido expandible */}
+                    {isExpanded && (
+                      <div className="border-t bg-gray-50 animate-accordion-down">
+                        <div className="p-4 space-y-3">
+                          <div className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                            <Users className="h-4 w-4" />
+                            <span>Detalle por Cliente</span>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            {Object.entries(monthData.clients)
+                              .sort((a, b) => b[1] - a[1])
+                              .map(([clientName, amount], clientIndex) => {
+                                const percentage = (amount / monthData.total) * 100;
+                                const colors = ['bg-blue-500', 'bg-green-500', 'bg-orange-500', 'bg-purple-500', 'bg-pink-500'];
+                                const bgColor = colors[clientIndex % colors.length] || 'bg-gray-400';
+                                
+                                return (
+                                  <div key={clientName} className="bg-white rounded-lg p-3 border border-gray-100">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                                        <div className={`w-3 h-3 rounded-full flex-shrink-0 ${bgColor}`}></div>
+                                        <div className="min-w-0 flex-1">
+                                          <div className="font-medium text-sm text-gray-900 truncate">
+                                            {clientName}
+                                          </div>
+                                          <div className="text-xs text-gray-500">
+                                            {percentage.toFixed(1)}% del total
+                                          </div>
+                                        </div>
+                                      </div>
+                                      
+                                      <div className="font-semibold text-sm text-green-600 flex-shrink-0">
+                                        {formatCurrency(amount)}
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Estado vacío */}
+            {monthlyBillingData.length === 0 && (
+              <div className="text-center py-12">
+                <div className="bg-gray-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <Calendar className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Aún no hay datos
+                </h3>
+                <p className="text-gray-500 text-sm max-w-sm mx-auto">
+                  Una vez que generes tu primer remito, aparecerán aquí las estadísticas de facturación mensual.
+                </p>
               </div>
             )}
           </div>
