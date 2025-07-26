@@ -791,12 +791,12 @@ const RemitosGenerator = () => {
                       whatsapp_number: e.target.value
                     }))} placeholder="+54 9 11 1234-5678" />
                     </div>
-                  </div> : <div className="bg-muted p-4 rounded">
+                  </div> : selectedClient ? <div className="bg-muted p-4 rounded">
                     <h4 className="font-medium">{selectedClient.name}</h4>
                     <p className="text-sm text-muted-foreground">{selectedClient.company_name}</p>
                     <p className="text-sm text-muted-foreground">CUIT: {selectedClient.cuit}</p>
                     {selectedClient.whatsapp_number && <p className="text-sm text-muted-foreground">WhatsApp: {selectedClient.whatsapp_number}</p>}
-                  </div>}
+                  </div> : null}
 
                 {/* Agregar Productos */}
                 <div className="border-t pt-4">
