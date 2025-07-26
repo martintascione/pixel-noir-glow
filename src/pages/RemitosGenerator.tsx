@@ -743,7 +743,7 @@ const RemitosGenerator = () => {
           <TabsTrigger value="monthly-billing" className="data-[state=active]:bg-white text-xs md:text-sm py-3 flex items-center justify-center gap-2">
             <TrendingUp className="h-4 w-4" />
             <span className="hidden sm:inline">Facturación Histórica</span>
-            <span className="sm:hidden">Histórica</span>
+            <span className="sm:hidden">Facturación</span>
           </TabsTrigger>
         </TabsList>
 
