@@ -1055,7 +1055,7 @@ const RemitosGenerator = () => {
                               variant="outline" 
                               size="sm"
                               onClick={() => navigate(`/admin/clientes/${client.id}/remitos`)}
-                              className="w-28 h-8"
+                              className="w-28 h-8 text-xs"
                             >
                               <History className="h-4 w-4 mr-1" />
                               Ver Remitos
