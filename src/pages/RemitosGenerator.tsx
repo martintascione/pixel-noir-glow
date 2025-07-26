@@ -1339,11 +1339,11 @@ const RemitosGenerator = () => {
                             </div>
                           </div>
                           
-                          <div className="ml-2">
+                          <div className="bg-white rounded-full p-2 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
                             {isExpanded ? (
-                              <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                              <ChevronDown className="h-4 w-4 text-gray-600" />
                             ) : (
-                              <ChevronRight className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                              <ChevronRight className="h-4 w-4 text-gray-600" />
                             )}
                           </div>
                         </div>
