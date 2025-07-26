@@ -37,6 +37,7 @@ const RemitosGenerator = () => {
 
   // Estados del remito
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [showManualInput, setShowManualInput] = useState(false);
   const [manualClient, setManualClient] = useState({
     name: '',
     company_name: '',
@@ -667,16 +668,21 @@ const RemitosGenerator = () => {
                 <div>
                   <Label>Cliente</Label>
                   <div className="flex gap-2">
-                    <Select value={selectedClient?.id || 'manual'} onValueChange={value => {
+                    <Select value={selectedClient?.id || ''} onValueChange={value => {
                       if (value === 'manual') {
                         setSelectedClient(null);
+                        setShowManualInput(true);
+                      } else if (value === '') {
+                        setSelectedClient(null);
+                        setShowManualInput(false);
                       } else {
                         const client = clients.find(c => c.id === value);
                         setSelectedClient(client || null);
+                        setShowManualInput(false);
                       }
                     }}>
                       <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Seleccionar cliente" />
+                        <SelectValue placeholder="Selecciona un cliente" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="manual">Ingresar manualmente</SelectItem>
@@ -751,7 +757,7 @@ const RemitosGenerator = () => {
                 </div>
 
                 {/* Datos del Cliente (Manual o Seleccionado) */}
-                {!selectedClient ? <div className="grid gap-4">
+                {showManualInput && !selectedClient ? <div className="grid gap-4">
                     <div>
                       <Label htmlFor="manual-name">Nombre del Cliente</Label>
                       <Input id="manual-name" value={manualClient.name} onChange={e => setManualClient(prev => ({
