@@ -438,13 +438,18 @@ const RemitosGenerator = () => {
   const getCurrentClientData = () => {
     if (selectedClient) {
       return {
-        name: selectedClient.name,
-        company_name: selectedClient.company_name,
-        cuit: selectedClient.cuit,
-        whatsapp_number: selectedClient.whatsapp_number
+        name: selectedClient.name || '',
+        company_name: selectedClient.company_name || '',
+        cuit: selectedClient.cuit || '',
+        whatsapp_number: selectedClient.whatsapp_number || ''
       };
     }
-    return manualClient;
+    return {
+      name: manualClient.name || '',
+      company_name: manualClient.company_name || '',
+      cuit: manualClient.cuit || '',
+      whatsapp_number: manualClient.whatsapp_number || ''
+    };
   };
   const generateRemitoData = (): RemitoData => {
     return {
