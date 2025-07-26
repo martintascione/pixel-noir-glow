@@ -87,7 +87,7 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
       title: "Contacto iniciado",
       description: "Redirigiendo a WhatsApp...",
     });
-    window.open("https://wa.me/+5491112345678", "_blank");
+    window.open("https://wa.me/+5492392536423", "_blank");
   };
 
   const handleQuoteClick = () => {
@@ -95,7 +95,7 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
       title: "Solicitud de presupuesto",
       description: "Procesando su solicitud...",
     });
-    window.open("https://wa.me/+5491112345678?text=Hola,%20quiero%20un%20presupuesto%20personalizado", "_blank");
+    window.open("https://wa.me/+5492392536423?text=Hola,%20quiero%20un%20presupuesto%20personalizado", "_blank");
   };
 
   const handleAvailabilityClick = () => {
@@ -103,7 +103,7 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
       title: "Consultando disponibilidad",
       description: "Verificando stock...",
     });
-    window.open("https://wa.me/+5491112345678?text=Hola,%20quiero%20consultar%20la%20disponibilidad%20de%20estribos", "_blank");
+    window.open("https://wa.me/+5492392536423?text=Hola,%20quiero%20consultar%20la%20disponibilidad%20de%20estribos", "_blank");
   };
 
   const containerVariants: Variants = {
@@ -269,7 +269,7 @@ const PriceTable = ({ productId = '', productName = 'Productos' }: PriceTablePro
         description: "Procesando tu solicitud de compra...",
       });
       
-      window.open(`https://wa.me/+5491112345678?text=${encodeURIComponent(message)}`, "_blank");
+      window.open(`https://wa.me/+5492392536423?text=${encodeURIComponent(message)}`, "_blank");
     };
 
     return (
