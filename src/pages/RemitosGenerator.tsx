@@ -513,6 +513,7 @@ const RemitosGenerator = () => {
       return {
         name: selectedClient.name || '',
         company_name: selectedClient.company_name || '',
+        company_legal_name: selectedClient.company_legal_name || selectedClient.company_name || '',
         cuit: selectedClient.cuit || '',
         whatsapp_number: selectedClient.whatsapp_number || ''
       };
@@ -520,6 +521,7 @@ const RemitosGenerator = () => {
     return {
       name: manualClient.name || '',
       company_name: manualClient.company_name || '',
+      company_legal_name: manualClient.company_name || '', // Para clientes manuales, usar company_name como razón social
       cuit: manualClient.cuit || '',
       whatsapp_number: manualClient.whatsapp_number || ''
     };
@@ -1080,7 +1082,7 @@ const RemitosGenerator = () => {
                             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Cliente:</h3>
                             <div className="space-y-1">
                               <h4 className="text-lg font-semibold text-slate-900">{getCurrentClientData().name}</h4>
-                              <p className="text-sm text-slate-600">{getCurrentClientData().company_name}</p>
+                              <p className="text-sm text-slate-600">{getCurrentClientData().company_legal_name}</p>
                               <p className="text-sm text-slate-500">CUIT: {getCurrentClientData().cuit}</p>
                             </div>
                           </div>
