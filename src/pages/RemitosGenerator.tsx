@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { getProducts } from '@/services/supabaseService';
 import { supabase } from '@/integrations/supabase/client';
-import { getClients, createClient, deleteClient, type Client } from '@/services/clientsService';
+import { getClients, createClient, deleteClient, updateClient, type Client } from '@/services/clientsService';
 import { generateRemitoPDF, generateRemitoJPG, sendToWhatsApp, downloadFile, type RemitoData } from '@/services/remitoService';
 import { saveRemitoToDatabase } from '@/services/remitosHistoryService';
 import { saveImageToGallery, isNativeApp } from '@/services/galleryService';
@@ -53,6 +53,17 @@ const RemitosGenerator = () => {
   // Estados para nuevo cliente
   const [showNewClientDialog, setShowNewClientDialog] = useState(false);
   const [newClient, setNewClient] = useState({
+    name: '',
+    company_name: '',
+    company_legal_name: '',
+    cuit: '',
+    whatsapp_number: ''
+  });
+
+  // Estados para editar cliente
+  const [showEditClientDialog, setShowEditClientDialog] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [editClient, setEditClient] = useState({
     name: '',
     company_name: '',
     company_legal_name: '',
@@ -206,6 +217,52 @@ const RemitosGenerator = () => {
       });
     }
   });
+
+  // Mutation para actualizar cliente
+  const updateClientMutation = useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: Partial<Client> }) => updateClient(id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['clients']
+      });
+      setShowEditClientDialog(false);
+      setEditingClient(null);
+      toast({
+        title: "Éxito",
+        description: "Cliente actualizado correctamente"
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Error al actualizar cliente: " + error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Función para abrir el diálogo de edición
+  const handleEditClient = (client: Client) => {
+    setEditingClient(client);
+    setEditClient({
+      name: client.name,
+      company_name: client.company_name,
+      company_legal_name: client.company_legal_name || '',
+      cuit: client.cuit,
+      whatsapp_number: client.whatsapp_number || ''
+    });
+    setShowEditClientDialog(true);
+  };
+
+  // Función para guardar cambios del cliente
+  const handleSaveEditClient = () => {
+    if (!editingClient) return;
+
+    updateClientMutation.mutate({
+      id: editingClient.id,
+      updates: editClient
+    });
+  };
 
   // Actualizar producto cuando cambia la medida
   useEffect(() => {
@@ -1001,12 +1058,12 @@ const RemitosGenerator = () => {
                               className="w-24"
                             >
                               <History className="h-4 w-4 mr-1" />
-                              Historial
+                              Ver Remitos
                             </Button>
                           </div>
                           {/* Fila inferior: Botones de Editar y Borrar */}
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={() => handleEditClient(client)}>
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button variant="destructive" size="sm" onClick={() => deleteClientMutation.mutate(client.id)}>
@@ -1021,6 +1078,89 @@ const RemitosGenerator = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Dialog para editar cliente */}
+      <Dialog open={showEditClientDialog} onOpenChange={setShowEditClientDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Cliente</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-name">Nombre</Label>
+              <Input 
+                id="edit-name" 
+                value={editClient.name} 
+                onChange={e => setEditClient(prev => ({
+                  ...prev,
+                  name: e.target.value
+                }))} 
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-company">Empresa</Label>
+              <Input 
+                id="edit-company" 
+                value={editClient.company_name} 
+                onChange={e => setEditClient(prev => ({
+                  ...prev,
+                  company_name: e.target.value
+                }))} 
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-legal">Razón Social</Label>
+              <Input 
+                id="edit-legal" 
+                value={editClient.company_legal_name} 
+                onChange={e => setEditClient(prev => ({
+                  ...prev,
+                  company_legal_name: e.target.value
+                }))} 
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-cuit">CUIT</Label>
+              <Input 
+                id="edit-cuit" 
+                value={editClient.cuit} 
+                onChange={e => setEditClient(prev => ({
+                  ...prev,
+                  cuit: e.target.value
+                }))} 
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-whatsapp">WhatsApp</Label>
+              <Input 
+                id="edit-whatsapp" 
+                value={editClient.whatsapp_number} 
+                onChange={e => setEditClient(prev => ({
+                  ...prev,
+                  whatsapp_number: e.target.value
+                }))} 
+                placeholder="+54 9 11 1234-5678" 
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleSaveEditClient} 
+                disabled={!editClient.name || !editClient.company_name || !editClient.cuit || updateClientMutation.isPending} 
+                className="flex-1"
+              >
+                {updateClientMutation.isPending ? 'Guardando...' : 'Guardar Cambios'}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowEditClientDialog(false)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       </div>
     </div>;
 };
