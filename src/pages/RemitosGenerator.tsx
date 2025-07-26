@@ -1069,7 +1069,7 @@ const RemitosGenerator = () => {
 
                     {/* Botones de Acción */}
                     <div className="flex flex-col gap-3 py-4">
-                      <Button onClick={handleSaveAndShareRemito} disabled={items.length === 0 || (!selectedClient && (!showManualInput || !manualClient.name || !manualClient.cuit))} className="bg-blue-600 hover:bg-blue-700 text-white">
+                      <Button onClick={handleSaveAndShareRemito} disabled={items.length === 0 || (!selectedClient && (!showManualInput || !manualClient.name))} className="bg-blue-600 hover:bg-blue-700 text-white">
                         <Calculator className="h-4 w-4 mr-2" />
                         Guardar y Compartir
                       </Button>
