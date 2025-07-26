@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AdminPanel } from '@/components/admin/AdminPanel';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Plus, Calculator, Download, MessageCircle, UserPlus, Edit, Trash2, History, Share2 } from 'lucide-react';
+import { ArrowLeft, Plus, Calculator, Download, MessageCircle, UserPlus, Edit, Trash2, History, Share2, TrendingUp, Users, ChevronDown, ChevronRight, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -75,6 +75,7 @@ const RemitosGenerator = () => {
 
   // Estado para facturación mensual
   const [showMonthlyBilling, setShowMonthlyBilling] = useState(false);
+  const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
   const {
     data: products = []
   } = useQuery({
@@ -496,6 +497,17 @@ const RemitosGenerator = () => {
 
   // Calcular datos de facturación
   const monthlyBillingData = calculateMonthlyBilling();
+
+  // Función para alternar expansión de mes
+  const toggleMonthExpansion = (month: string) => {
+    const newExpanded = new Set(expandedMonths);
+    if (newExpanded.has(month)) {
+      newExpanded.delete(month);
+    } else {
+      newExpanded.add(month);
+    }
+    setExpandedMonths(newExpanded);
+  };
   const getCurrentClientData = () => {
     if (selectedClient) {
       return {
@@ -1215,62 +1227,138 @@ const RemitosGenerator = () => {
         </TabsContent>
 
         <TabsContent value="monthly-billing">
-          <Card>
-            <CardHeader>
-              <CardTitle>Facturación Mensual</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {monthlyBillingData.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    No hay remitos registrados aún
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {monthlyBillingData.map((monthData, index) => (
-                      <Card key={monthData.month}>
-                        <CardHeader>
-                          <CardTitle className="flex justify-between items-center">
-                            <span>
-                              {new Date(monthData.month + '-01').toLocaleDateString('es-AR', { 
-                                year: 'numeric', 
-                                month: 'long' 
-                              })}
-                            </span>
-                            <div className="text-right">
-                              <div className="text-2xl font-bold text-green-600">
-                                {formatCurrency(monthData.total)}
+          <div className="space-y-6">
+            {/* Resumen general */}
+            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-blue-500">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-blue-100 p-3 rounded-full">
+                      <TrendingUp className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Resumen de Facturación</h3>
+                      <p className="text-sm text-gray-600">Últimos {monthlyBillingData.length} meses de actividad</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {monthlyBillingData.length > 0 ? formatCurrency(monthlyBillingData.reduce((sum, month) => sum + month.total, 0)) : formatCurrency(0)}
+                    </div>
+                    <div className="text-sm text-gray-500">Total acumulado</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Lista de meses */}
+            {monthlyBillingData.length === 0 ? (
+              <Card>
+                <CardContent className="py-12">
+                  <div className="text-center">
+                    <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No hay datos de facturación</h3>
+                    <p className="text-gray-500">Los datos aparecerán automáticamente cuando generes tu primer remito.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {monthlyBillingData.map((monthData, index) => {
+                  const isCurrentMonth = index === 0;
+                  const isExpanded = expandedMonths.has(monthData.month);
+                  const monthName = new Date(monthData.month + '-01').toLocaleDateString('es-AR', { 
+                    year: 'numeric', 
+                    month: 'long' 
+                  });
+                  
+                  return (
+                    <Card key={monthData.month} className={`transition-all duration-200 hover:shadow-md ${isCurrentMonth ? 'ring-2 ring-green-200 bg-green-50' : ''}`}>
+                      <CardContent className="p-0">
+                        {/* Header del mes */}
+                        <div className="p-6 cursor-pointer" onClick={() => toggleMonthExpansion(monthData.month)}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              <div className={`p-2 rounded-full ${isCurrentMonth ? 'bg-green-100' : 'bg-gray-100'}`}>
+                                <Calendar className={`h-5 w-5 ${isCurrentMonth ? 'text-green-600' : 'text-gray-600'}`} />
                               </div>
-                              <div className="text-sm text-muted-foreground">
-                                {monthData.count} remito{monthData.count !== 1 ? 's' : ''}
-                              </div>
-                            </div>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-2">
-                            <h4 className="font-medium text-sm text-muted-foreground mb-3">
-                              Ventas por Cliente:
-                            </h4>
-                            {Object.entries(monthData.clients)
-                              .sort((a, b) => b[1] - a[1])
-                              .map(([clientName, amount]) => (
-                                <div key={clientName} className="flex justify-between items-center py-2 border-b border-muted">
-                                  <span className="font-medium">{clientName}</span>
-                                  <span className="text-green-600 font-semibold">
-                                    {formatCurrency(amount)}
+                              <div>
+                                <h3 className="font-semibold text-lg capitalize">
+                                  {monthName}
+                                  {isCurrentMonth && <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Actual</span>}
+                                </h3>
+                                <div className="flex items-center space-x-4 text-sm text-gray-500">
+                                  <span className="flex items-center">
+                                    <Users className="h-4 w-4 mr-1" />
+                                    {Object.keys(monthData.clients).length} cliente{Object.keys(monthData.clients).length !== 1 ? 's' : ''}
+                                  </span>
+                                  <span>
+                                    {monthData.count} remito{monthData.count !== 1 ? 's' : ''}
                                   </span>
                                 </div>
-                              ))}
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-4">
+                              <div className="text-right">
+                                <div className={`text-2xl font-bold ${isCurrentMonth ? 'text-green-600' : 'text-gray-900'}`}>
+                                  {formatCurrency(monthData.total)}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  Promedio: {formatCurrency(monthData.total / monthData.count)}
+                                </div>
+                              </div>
+                              <div className="ml-2">
+                                {isExpanded ? (
+                                  <ChevronDown className="h-5 w-5 text-gray-400" />
+                                ) : (
+                                  <ChevronRight className="h-5 w-5 text-gray-400" />
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
+                        </div>
+
+                        {/* Detalles expandibles */}
+                        {isExpanded && (
+                          <div className="border-t bg-gray-50 px-6 py-4">
+                            <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                              <Users className="h-4 w-4 mr-2" />
+                              Detalle por Cliente
+                            </h4>
+                            <div className="space-y-2">
+                              {Object.entries(monthData.clients)
+                                .sort((a, b) => b[1] - a[1])
+                                .map(([clientName, amount], clientIndex) => {
+                                  const percentage = (amount / monthData.total) * 100;
+                                  return (
+                                    <div key={clientName} className="flex items-center justify-between py-2 px-3 bg-white rounded-lg border">
+                                      <div className="flex items-center space-x-3">
+                                        <div className={`w-3 h-3 rounded-full ${
+                                          clientIndex === 0 ? 'bg-blue-500' : 
+                                          clientIndex === 1 ? 'bg-green-500' : 
+                                          clientIndex === 2 ? 'bg-yellow-500' : 'bg-gray-400'
+                                        }`}></div>
+                                        <span className="font-medium text-gray-900">{clientName}</span>
+                                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                          {percentage.toFixed(1)}%
+                                        </span>
+                                      </div>
+                                      <span className="font-semibold text-green-600">
+                                        {formatCurrency(amount)}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                            </div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
 
