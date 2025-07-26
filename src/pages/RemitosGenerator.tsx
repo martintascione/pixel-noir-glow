@@ -1337,9 +1337,6 @@ const RemitosGenerator = () => {
                             `}>
                               {formatCurrency(monthData.total)}
                             </div>
-                            <div className="text-xs text-gray-500 hidden md:block">
-                              Prom: {formatCurrency(monthData.total / monthData.count)}
-                            </div>
                           </div>
                           
                           <div className="ml-2">
