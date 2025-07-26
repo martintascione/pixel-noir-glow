@@ -721,30 +721,18 @@ const RemitosGenerator = () => {
                               company_legal_name: e.target.value
                             }))} />
                           </div>
-                           <div>
-                             <Label htmlFor="new-cuit">CUIT</Label>
-                             <div className="flex gap-2">
-                               <Input 
-                                 id="new-cuit" 
-                                 value={newClient.cuit} 
-                                 onChange={e => setNewClient(prev => ({
-                                   ...prev,
-                                   cuit: e.target.value
-                                 }))} 
-                                 placeholder="20-12345678-9"
-                                 className="flex-1"
-                               />
-                               <Button 
-                                 type="button"
-                                 variant="outline" 
-                                 size="sm"
-                                 onClick={handleCuitLookup}
-                                 disabled={!newClient.cuit || newClient.cuit.length < 11}
-                               >
-                                 Buscar
-                               </Button>
-                             </div>
-                           </div>
+                          <div>
+                            <Label htmlFor="new-cuit">CUIT</Label>
+                            <Input 
+                              id="new-cuit" 
+                              value={newClient.cuit} 
+                              onChange={e => setNewClient(prev => ({
+                                ...prev,
+                                cuit: e.target.value
+                              }))} 
+                              placeholder="20-12345678-9"
+                            />
+                          </div>
                           <div>
                             <Label htmlFor="new-whatsapp">WhatsApp</Label>
                             <Input id="new-whatsapp" value={newClient.whatsapp_number} onChange={e => setNewClient(prev => ({
