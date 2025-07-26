@@ -983,28 +983,35 @@ const RemitosGenerator = () => {
                 {clients.length === 0 ? <p className="text-center text-muted-foreground py-8">
                     No hay clientes registrados
                   </p> : <div className="grid gap-4">
-                    {clients.map(client => <div key={client.id} className="flex justify-between items-center p-4 border rounded">
-                        <div>
+                    {clients.map(client => <div key={client.id} className="flex justify-between items-start p-4 border rounded">
+                        <div className="flex-1">
                           <h4 className="font-medium">{client.name}</h4>
                           <p className="text-sm text-muted-foreground">{client.company_name}</p>
                           <p className="text-xs text-muted-foreground">CUIT: {client.cuit}</p>
                           {client.whatsapp_number && <p className="text-xs text-muted-foreground">WhatsApp: {client.whatsapp_number}</p>}
                         </div>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => navigate(`/admin/clientes/${client.id}/remitos`)}
-                          >
-                            <History className="h-4 w-4 mr-1" />
-                            Historial
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="destructive" size="sm" onClick={() => deleteClientMutation.mutate(client.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        <div className="flex flex-col gap-2 ml-4">
+                          {/* Fila superior: Botón de Historial */}
+                          <div className="flex justify-end">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => navigate(`/admin/clientes/${client.id}/remitos`)}
+                              className="w-24"
+                            >
+                              <History className="h-4 w-4 mr-1" />
+                              Historial
+                            </Button>
+                          </div>
+                          {/* Fila inferior: Botones de Editar y Borrar */}
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="destructive" size="sm" onClick={() => deleteClientMutation.mutate(client.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>)}
                   </div>}
