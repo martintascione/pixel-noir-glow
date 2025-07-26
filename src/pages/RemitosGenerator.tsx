@@ -240,6 +240,9 @@ const RemitosGenerator = () => {
       queryClient.invalidateQueries({
         queryKey: ['clients']
       });
+      queryClient.invalidateQueries({
+        queryKey: ['remitos-monthly']
+      });
       toast({
         title: "Éxito",
         description: "Cliente eliminado correctamente"
