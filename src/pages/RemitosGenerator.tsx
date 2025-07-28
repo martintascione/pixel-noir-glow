@@ -941,7 +941,7 @@ const RemitosGenerator = () => {
                                   Triangulares
                                 </div>
                                 {medidasGrouped['triangular'].map(medida => {
-                                  const displayValue = medida.diameter ? `${medida.size}-Ø${medida.diameter}mm` : medida.size;
+                                  const displayValue = medida.diameter ? `${medida.size}-Ø${medida.diameter}mm` : `${medida.size}`;
                                   return (
                                     <SelectItem key={`triangular-${medida.size}-${medida.diameter || 'no-diameter'}`} value={displayValue} className="pl-4">
                                       {medida.size}{medida.diameter ? ` (Ø${medida.diameter}mm)` : ''}
