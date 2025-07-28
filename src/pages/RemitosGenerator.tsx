@@ -904,7 +904,7 @@ const RemitosGenerator = () => {
                                 <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
                                   Ø4.2mm
                                 </div>
-                                {medidasGrouped['4mm'].map(medida => {
+                                {medidasGrouped['4mm'].filter(medida => medida.size && medida.size.trim() !== '').map(medida => {
                                   const displayValue = `${medida.size}-Ø${medida.diameter}mm`;
                                   return (
                                     <SelectItem key={`4mm-${medida.size}-${medida.diameter}`} value={displayValue} className="pl-4">
@@ -922,7 +922,7 @@ const RemitosGenerator = () => {
                                 <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
                                   Ø6mm
                                 </div>
-                                {medidasGrouped['6mm'].map(medida => {
+                                {medidasGrouped['6mm'].filter(medida => medida.size && medida.size.trim() !== '').map(medida => {
                                   const displayValue = `${medida.size}-Ø${medida.diameter}mm`;
                                   return (
                                     <SelectItem key={`6mm-${medida.size}-${medida.diameter}`} value={displayValue} className="pl-4">
@@ -940,7 +940,7 @@ const RemitosGenerator = () => {
                                 <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
                                   Triangulares
                                 </div>
-                                {medidasGrouped['triangular'].map(medida => {
+                                {medidasGrouped['triangular'].filter(medida => medida.size && medida.size.trim() !== '').map(medida => {
                                   const displayValue = medida.diameter ? `${medida.size}-Ø${medida.diameter}mm` : `${medida.size}`;
                                   return (
                                     <SelectItem key={`triangular-${medida.size}-${medida.diameter || 'no-diameter'}`} value={displayValue} className="pl-4">
@@ -958,7 +958,7 @@ const RemitosGenerator = () => {
                                 <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
                                   Medidas Especiales
                                 </div>
-                                {medidasGrouped['especiales'].map(medida => {
+                                {medidasGrouped['especiales'].filter(medida => medida.size && medida.size.trim() !== '').map(medida => {
                                   const displayValue = medida.diameter ? `${medida.size}-Ø${medida.diameter}mm` : medida.size;
                                   return (
                                     <SelectItem key={`especiales-${medida.size}-${medida.diameter || 'no-diameter'}`} value={displayValue} className="pl-4">
@@ -976,7 +976,7 @@ const RemitosGenerator = () => {
                                 <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
                                   Clavos y Otros
                                 </div>
-                                {medidasGrouped['otros'].map(medida => <SelectItem key={`otros-${medida.size}`} value={medida.size} className="pl-4">
+                                {medidasGrouped['otros'].filter(medida => medida.size && medida.size.trim() !== '').map(medida => <SelectItem key={`otros-${medida.size}`} value={medida.size} className="pl-4">
                                     {medida.size}
                                   </SelectItem>)}
                               </>}
