@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AdminPanel } from '@/components/admin/AdminPanel';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Plus, Calculator, Download, MessageCircle, UserPlus, Edit, Trash2, History, Share2, TrendingUp, Users, ChevronDown, ChevronRight, Calendar } from 'lucide-react';
+import { ArrowLeft, Plus, Calculator, Download, MessageCircle, UserPlus, Edit, Trash2, History, Share2, TrendingUp, Users, ChevronDown, ChevronRight, Calendar, CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { getProducts, getCategories } from '@/services/supabaseService';
 import { supabase } from '@/integrations/supabase/client';
@@ -45,6 +49,7 @@ const RemitosGenerator = () => {
     whatsapp_number: ''
   });
   const [items, setItems] = useState<RemitoItem[]>([]);
+  const [remitoDate, setRemitoDate] = useState<Date>(new Date()); // Nueva fecha del remito
   const [currentItem, setCurrentItem] = useState({
     cantidad: '',
     medida: '',
@@ -521,7 +526,7 @@ const RemitosGenerator = () => {
       cliente: getCurrentClientData(),
       items,
       total: totalVenta,
-      fecha: new Date().toLocaleDateString('es-AR'),
+      fecha: remitoDate.toLocaleDateString('es-AR'),
       numero: `R${Date.now().toString().slice(-6)}`
     };
   };
@@ -747,6 +752,34 @@ const RemitosGenerator = () => {
                 <CardTitle>Datos del Remito</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Fecha del Remito */}
+                <div>
+                  <Label>Fecha del Remito</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !remitoDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {remitoDate ? format(remitoDate, "dd/MM/yyyy") : <span>Seleccionar fecha</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={remitoDate}
+                        onSelect={(date) => date && setRemitoDate(date)}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                
                 {/* Selección de Cliente */}
                 <div>
                   <Label>Cliente</Label>
