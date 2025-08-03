@@ -158,6 +158,9 @@ const RemitosGenerator = () => {
   const medidasGrouped = React.useMemo(() => {
     const grouped: Record<string, any[]> = {};
     
+    // Verificar que categories y products existan antes de procesarlos
+    if (!categories || !products) return grouped;
+    
     // Agrupar productos por categoría
     categories.forEach(category => {
       const categoryProducts = products.filter(product => product.category_id === category.id);
@@ -882,7 +885,7 @@ const RemitosGenerator = () => {
                             <SelectValue placeholder="Seleccionar medida" />
                           </SelectTrigger>
                           <SelectContent className="bg-background border shadow-lg z-50 max-h-80 overflow-y-auto">
-                            {categories.map((category, index) => {
+                            {(categories || []).map((category, index) => {
                               const categoryMedidas = medidasGrouped[category.id] || [];
                               const filteredMedidas = categoryMedidas.filter(medida => medida.size && medida.size.trim() !== '');
                               
