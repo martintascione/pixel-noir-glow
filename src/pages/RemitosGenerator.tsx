@@ -168,11 +168,12 @@ const RemitosGenerator = () => {
       if (categoryProducts.length > 0) {
         const uniqueMedidas = categoryProducts
           .map(product => ({
-            size: product.size,
+            size: product.size || product.name, // Usar el nombre como fallback si size está vacío
             diameter: product.diameter || '',
             shape: product.shape || '',
             categoryName: category.name,
-            categoryType: category.type
+            categoryType: category.type,
+            productName: product.name
           }))
           .filter((medida, index, self) => 
             index === self.findIndex(m => 
