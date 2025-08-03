@@ -13,7 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { getProducts } from '@/services/supabaseService';
+import { getProducts, getCategories } from '@/services/supabaseService';
 import { supabase } from '@/integrations/supabase/client';
 import { getClients, createClient, deleteClient, updateClient, type Client } from '@/services/clientsService';
 import { generateRemitoPDF, generateRemitoJPG, sendToWhatsApp, downloadFile, type RemitoData } from '@/services/remitoService';
@@ -82,6 +82,13 @@ const RemitosGenerator = () => {
     queryKey: ['products'],
     queryFn: () => getProducts()
   });
+
+  const {
+    data: categories = []
+  } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => getCategories()
+  });
   const {
     data: clients = []
   } = useQuery({
@@ -147,62 +154,38 @@ const RemitosGenerator = () => {
     return dimensionCount >= 2; // 3 dimensiones = 2 "x"
   };
 
-  // Obtener medidas únicas agrupadas por tipo
+  // Obtener medidas agrupadas por categorías
   const medidasGrouped = React.useMemo(() => {
-    const allMedidas = products.map(product => ({
-      size: product.size,
-      diameter: product.diameter || '',
-      shape: product.shape || ''
-    }));
+    const grouped: Record<string, any[]> = {};
     
-    // Filtrar únicos por combinación de size + diameter + shape
-    const uniqueMedidas = allMedidas.filter((medida, index, self) => 
-      index === self.findIndex(m => 
-        m.size === medida.size && 
-        m.diameter === medida.diameter && 
-        m.shape === medida.shape
-      )
-    );
-
-    // Separar medidas triangulares y especiales
-    const triangularMedidas = uniqueMedidas.filter(m => isTriangularMeasure(m.size));
-    const especialesMedidas = uniqueMedidas.filter(m => m.shape === "Medidas Especiales");
-    const normalMedidas = uniqueMedidas.filter(m => !isTriangularMeasure(m.size) && m.shape !== "Medidas Especiales");
-
-    // Agrupar y ordenar medidas normales
-    const grouped = {
-      '4mm': normalMedidas
-        .filter(m => m.diameter && (m.diameter.startsWith('4') || m.diameter === '4.2'))
-        .sort((a, b) => extractMeasureNumber(a.size) - extractMeasureNumber(b.size)),
-      '6mm': normalMedidas
-        .filter(m => m.diameter && (m.diameter.startsWith('6') || m.diameter === '6'))
-        .sort((a, b) => extractMeasureNumber(a.size) - extractMeasureNumber(b.size)),
-      'otros': normalMedidas
-        .filter(m => !m.diameter || (!m.diameter.startsWith('4') && m.diameter !== '4.2' && !m.diameter.startsWith('6') && m.diameter !== '6'))
-        .sort((a, b) => extractMeasureNumber(a.size) - extractMeasureNumber(b.size)),
-      'triangular': triangularMedidas
-        .sort((a, b) => {
-          // Ordenar triangulares primero por diámetro (4.2, luego 6), luego por medida
-          const diameterA = a.diameter || '999';
-          const diameterB = b.diameter || '999';
-          
-          if (diameterA === '4.2' && diameterB !== '4.2') return -1;
-          if (diameterB === '4.2' && diameterA !== '4.2') return 1;
-          if (diameterA === '6' && diameterB !== '6' && diameterB !== '4.2') return -1;
-          if (diameterB === '6' && diameterA !== '6' && diameterA !== '4.2') return 1;
-          
-          if (diameterA === diameterB) {
-            return extractMeasureNumber(a.size) - extractMeasureNumber(b.size);
-          }
-          
-          return diameterA.localeCompare(diameterB);
-        }),
-      'especiales': especialesMedidas
-        .sort((a, b) => extractMeasureNumber(a.size) - extractMeasureNumber(b.size))
-    };
+    // Agrupar productos por categoría
+    categories.forEach(category => {
+      const categoryProducts = products.filter(product => product.category_id === category.id);
+      
+      if (categoryProducts.length > 0) {
+        const uniqueMedidas = categoryProducts
+          .map(product => ({
+            size: product.size,
+            diameter: product.diameter || '',
+            shape: product.shape || '',
+            categoryName: category.name,
+            categoryType: category.type
+          }))
+          .filter((medida, index, self) => 
+            index === self.findIndex(m => 
+              m.size === medida.size && 
+              m.diameter === medida.diameter && 
+              m.shape === medida.shape
+            )
+          )
+          .sort((a, b) => extractMeasureNumber(a.size) - extractMeasureNumber(b.size));
+        
+        grouped[category.id] = uniqueMedidas;
+      }
+    });
     
     return grouped;
-  }, [products]);
+  }, [products, categories]);
 
   // Mutation para crear cliente
   const createClientMutation = useMutation({
@@ -899,87 +882,36 @@ const RemitosGenerator = () => {
                             <SelectValue placeholder="Seleccionar medida" />
                           </SelectTrigger>
                           <SelectContent className="bg-background border shadow-lg z-50 max-h-80 overflow-y-auto">
-                            {/* Medidas 4mm */}
-                            {medidasGrouped['4mm'].length > 0 && <>
-                                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
-                                  Ø4.2mm
-                                </div>
-                                {medidasGrouped['4mm'].filter(medida => medida.size && medida.size.trim() !== '').map(medida => {
-                                  const displayValue = `${medida.size}-Ø${medida.diameter}mm`;
-                                  return (
-                                    <SelectItem key={`4mm-${medida.size}-${medida.diameter}`} value={displayValue} className="pl-4">
-                                      {medida.size} (Ø{medida.diameter}mm)
-                                    </SelectItem>
-                                  );
-                                })}
-                              </>}
-                            
-                            {/* Separador */}
-                            {medidasGrouped['4mm'].length > 0 && medidasGrouped['6mm'].length > 0 && <div className="border-t my-1" />}
-                            
-                            {/* Medidas 6mm */}
-                            {medidasGrouped['6mm'].length > 0 && <>
-                                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
-                                  Ø6mm
-                                </div>
-                                {medidasGrouped['6mm'].filter(medida => medida.size && medida.size.trim() !== '').map(medida => {
-                                  const displayValue = `${medida.size}-Ø${medida.diameter}mm`;
-                                  return (
-                                    <SelectItem key={`6mm-${medida.size}-${medida.diameter}`} value={displayValue} className="pl-4">
-                                      {medida.size} (Ø{medida.diameter}mm)
-                                    </SelectItem>
-                                  );
-                                })}
-                              </>}
-                            
-                            {/* Separador */}
-                            {(medidasGrouped['4mm'].length > 0 || medidasGrouped['6mm'].length > 0) && medidasGrouped['triangular'].length > 0 && <div className="border-t my-1" />}
-                            
-                            {/* Medidas triangulares */}
-                            {medidasGrouped['triangular'].length > 0 && <>
-                                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
-                                  Triangulares
-                                </div>
-                                {medidasGrouped['triangular'].filter(medida => medida.size && medida.size.trim() !== '').map(medida => {
-                                  const displayValue = medida.diameter ? `${medida.size}-Ø${medida.diameter}mm` : `${medida.size}`;
-                                  return (
-                                    <SelectItem key={`triangular-${medida.size}-${medida.diameter || 'no-diameter'}`} value={displayValue} className="pl-4">
-                                      {medida.size}{medida.diameter ? ` (Ø${medida.diameter}mm)` : ''}
-                                    </SelectItem>
-                                  );
-                                })}
-                              </>}
-                             
-                            {/* Separador */}
-                            {(medidasGrouped['4mm'].length > 0 || medidasGrouped['6mm'].length > 0 || medidasGrouped['triangular'].length > 0) && medidasGrouped['especiales'].length > 0 && <div className="border-t my-1" />}
-                            
-                            {/* Medidas Especiales */}
-                            {medidasGrouped['especiales'].length > 0 && <>
-                                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
-                                  Medidas Especiales
-                                </div>
-                                {medidasGrouped['especiales'].filter(medida => medida.size && medida.size.trim() !== '').map(medida => {
-                                  const displayValue = medida.diameter ? `${medida.size}-Ø${medida.diameter}mm` : medida.size;
-                                  return (
-                                    <SelectItem key={`especiales-${medida.size}-${medida.diameter || 'no-diameter'}`} value={displayValue} className="pl-4">
-                                      {medida.size}{medida.diameter ? ` (Ø${medida.diameter}mm)` : ''}
-                                    </SelectItem>
-                                  );
-                                })}
-                              </>}
-                            
-                            {/* Separador */}
-                            {(medidasGrouped['4mm'].length > 0 || medidasGrouped['6mm'].length > 0 || medidasGrouped['triangular'].length > 0 || medidasGrouped['especiales'].length > 0) && medidasGrouped['otros'].length > 0 && <div className="border-t my-1" />}
-                            
-                            {/* Otros productos */}
-                            {medidasGrouped['otros'].length > 0 && <>
-                                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
-                                  Clavos y Otros
-                                </div>
-                                {medidasGrouped['otros'].filter(medida => medida.size && medida.size.trim() !== '').map(medida => <SelectItem key={`otros-${medida.size}`} value={medida.size} className="pl-4">
-                                    {medida.size}
-                                  </SelectItem>)}
-                              </>}
+                            {categories.map((category, index) => {
+                              const categoryMedidas = medidasGrouped[category.id] || [];
+                              const filteredMedidas = categoryMedidas.filter(medida => medida.size && medida.size.trim() !== '');
+                              
+                              if (filteredMedidas.length === 0) return null;
+                              
+                              return (
+                                <React.Fragment key={category.id}>
+                                  {index > 0 && <div className="border-t my-1" />}
+                                  <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted/50 sticky top-0">
+                                    {category.name}
+                                  </div>
+                                  {filteredMedidas.map(medida => {
+                                    const displayValue = medida.diameter ? 
+                                      `${medida.size}-Ø${medida.diameter}mm` : 
+                                      medida.size;
+                                    
+                                    return (
+                                      <SelectItem 
+                                        key={`${category.id}-${medida.size}-${medida.diameter || 'no-diameter'}`} 
+                                        value={displayValue} 
+                                        className="pl-4"
+                                      >
+                                        {medida.size}{medida.diameter ? ` (Ø${medida.diameter}mm)` : ''}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </React.Fragment>
+                              );
+                            })}
                           </SelectContent>
                         </Select>
                       </div>
