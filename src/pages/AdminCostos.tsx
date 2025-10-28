@@ -53,6 +53,7 @@ const AdminCostos = () => {
   const [descripcion, setDescripcion] = useState("");
   const [pesoMetroLineal, setPesoMetroLineal] = useState("");
   const [costoPorKilo, setCostoPorKilo] = useState("");
+  const [medidaDoblez, setMedidaDoblez] = useState("6"); // Medida del doblez en cm
   const [medidas, setMedidas] = useState<MedidaInput[]>([
     { medida_nombre: "", metros_por_unidad: "" }
   ]);
@@ -64,19 +65,25 @@ const AdminCostos = () => {
     
     if (numeros.length === 0 || numeros.some(isNaN)) return 0;
 
+    let metrosLados = 0;
+
     if (shape?.toLowerCase().includes('cuadrado') || numeros.length === 1) {
       // Cuadrado: 4 * lado
-      return 4 * numeros[0];
+      metrosLados = 4 * numeros[0];
     } else if (shape?.toLowerCase().includes('rectangular') || numeros.length === 2) {
       // Rectangular: 2 * (lado1 + lado2)
-      return 2 * (numeros[0] + numeros[1]);
+      metrosLados = 2 * (numeros[0] + numeros[1]);
     } else if (shape?.toLowerCase().includes('triangular') || numeros.length === 3) {
       // Triangular: suma de los 3 lados
-      return numeros[0] + numeros[1] + numeros[2];
+      metrosLados = numeros[0] + numeros[1] + numeros[2];
+    } else {
+      // Por defecto, rectangular
+      metrosLados = numeros.length === 2 ? 2 * (numeros[0] + numeros[1]) : 0;
     }
     
-    // Por defecto, rectangular
-    return numeros.length === 2 ? 2 * (numeros[0] + numeros[1]) : 0;
+    // Agregar 2 dobleces (convertir cm a metros)
+    const doblezEnMetros = (parseFloat(medidaDoblez) || 0) / 100;
+    return metrosLados + (2 * doblezEnMetros);
   };
 
   // Cargar productos de estribos desde Supabase
@@ -367,6 +374,22 @@ const AdminCostos = () => {
                         required
                       />
                     </div>
+                  </div>
+
+                  {/* Medida del Doblez */}
+                  <div className="space-y-2">
+                    <Label htmlFor="medida-doblez">Medida del Doblez (cm)</Label>
+                    <Input
+                      id="medida-doblez"
+                      type="number"
+                      step="0.1"
+                      placeholder="6"
+                      value={medidaDoblez}
+                      onChange={(e) => setMedidaDoblez(e.target.value)}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Cada estribo tiene 2 dobleces. Se agregarán automáticamente al cálculo.
+                    </p>
                   </div>
 
                   {/* Medidas */}
