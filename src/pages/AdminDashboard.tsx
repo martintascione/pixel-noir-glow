@@ -60,15 +60,11 @@ const AdminDashboard = () => {
       </div>
 
       <div className="mb-6 flex gap-4">
-        <a 
-          href="https://calculos-costos.hierrostascione.com" 
-          target="_blank" 
-          rel="noopener noreferrer"
-        >
+        <Link to="/admin/costos">
           <Button variant="outline">
             Página de Costos
           </Button>
-        </a>
+        </Link>
         <Link to="/admin/remitos">
           <Button variant="outline">
             Generar Remito
