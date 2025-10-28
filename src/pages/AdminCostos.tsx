@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Plus, History } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -10,6 +10,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getProducts } from "@/services/supabaseService";
+
+interface EstribosProduct {
+  id: string;
+  name: string;
+  size: string;
+  shape?: string;
+  diameter?: string;
+}
 
 interface CostBatch {
   id: string;
@@ -36,6 +46,7 @@ interface MedidaInput {
 const AdminCostos = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("nueva-tanda");
+  const [estribosDisponibles, setEstribosDisponibles] = useState<EstribosProduct[]>([]);
   
   // Form state para nueva tanda
   const [nombre, setNombre] = useState("");
@@ -45,6 +56,52 @@ const AdminCostos = () => {
   const [medidas, setMedidas] = useState<MedidaInput[]>([
     { medida_nombre: "", metros_por_unidad: "" }
   ]);
+
+  // Función para calcular metros lineales a partir del tamaño
+  const calcularMetrosLineales = (size: string, shape?: string): number => {
+    // Extraer números del tamaño (ej: "15x20" -> [15, 20])
+    const numeros = size.split('x').map(n => parseFloat(n.trim()) / 100); // convertir cm a metros
+    
+    if (numeros.length === 0 || numeros.some(isNaN)) return 0;
+
+    if (shape?.toLowerCase().includes('cuadrado') || numeros.length === 1) {
+      // Cuadrado: 4 * lado
+      return 4 * numeros[0];
+    } else if (shape?.toLowerCase().includes('rectangular') || numeros.length === 2) {
+      // Rectangular: 2 * (lado1 + lado2)
+      return 2 * (numeros[0] + numeros[1]);
+    } else if (shape?.toLowerCase().includes('triangular') || numeros.length === 3) {
+      // Triangular: suma de los 3 lados
+      return numeros[0] + numeros[1] + numeros[2];
+    }
+    
+    // Por defecto, rectangular
+    return numeros.length === 2 ? 2 * (numeros[0] + numeros[1]) : 0;
+  };
+
+  // Cargar productos de estribos desde Supabase
+  useEffect(() => {
+    const cargarEstribos = async () => {
+      try {
+        const productos = await getProducts();
+        // Filtrar productos de categorías tipo "estribos"
+        const estribos = productos
+          .filter(p => p.category?.type === 'estribos')
+          .map(p => ({
+            id: p.id,
+            name: p.name,
+            size: p.size || '',
+            shape: p.shape,
+            diameter: p.diameter
+          }));
+        setEstribosDisponibles(estribos);
+      } catch (error) {
+        console.error("Error al cargar estribos:", error);
+        toast.error("No se pudieron cargar las medidas de estribos");
+      }
+    };
+    cargarEstribos();
+  }, []);
 
   // Fetch tandas históricas
   const { data: batches = [], isLoading } = useQuery({
@@ -142,6 +199,19 @@ const AdminCostos = () => {
 
   const agregarMedida = () => {
     setMedidas([...medidas, { medida_nombre: "", metros_por_unidad: "" }]);
+  };
+
+  const seleccionarEstribo = (index: number, estribosId: string) => {
+    const estribo = estribosDisponibles.find(e => e.id === estribosId);
+    if (estribo) {
+      const metrosLineales = calcularMetrosLineales(estribo.size, estribo.shape);
+      const nuevasMedidas = [...medidas];
+      nuevasMedidas[index] = {
+        medida_nombre: `${estribo.name} - ${estribo.size}`,
+        metros_por_unidad: metrosLineales.toFixed(4)
+      };
+      setMedidas(nuevasMedidas);
+    }
   };
 
   const eliminarMedida = (index: number) => {
@@ -317,7 +387,22 @@ const AdminCostos = () => {
                         return (
                           <Card key={index}>
                             <CardContent className="pt-4">
-                              <div className="grid gap-4 md:grid-cols-4 items-end">
+                              <div className="grid gap-4 md:grid-cols-5 items-end">
+                                <div className="space-y-2">
+                                  <Label>Seleccionar Medida</Label>
+                                  <Select onValueChange={(value) => seleccionarEstribo(index, value)}>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Elegir de la lista" />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-background z-50">
+                                      {estribosDisponibles.map((estribo) => (
+                                        <SelectItem key={estribo.id} value={estribo.id}>
+                                          {estribo.name} - {estribo.size}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                                 <div className="space-y-2">
                                   <Label>Nombre/Medida</Label>
                                   <Input
