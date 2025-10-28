@@ -47,6 +47,7 @@ const AdminCostos = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("nueva-tanda");
   const [estribosDisponibles, setEstribosDisponibles] = useState<EstribosProduct[]>([]);
+  const [editingBatchId, setEditingBatchId] = useState<string | null>(null);
   
   // Form state para nueva tanda
   const [nombre, setNombre] = useState("");
@@ -148,8 +149,8 @@ const AdminCostos = () => {
     enabled: !!selectedBatchId
   });
 
-  // Mutación para crear nueva tanda
-  const createBatchMutation = useMutation({
+  // Mutación para crear/actualizar tanda
+  const saveBatchMutation = useMutation({
     mutationFn: async (batchData: { 
       nombre: string; 
       descripcion: string; 
@@ -160,55 +161,103 @@ const AdminCostos = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
 
-      // Crear batch
-      const { data: batch, error: batchError } = await supabase
-        .from('cost_batches' as any)
-        .insert({
-          nombre: batchData.nombre,
-          descripcion: batchData.descripcion,
-          peso_por_metro_lineal: batchData.peso_por_metro_lineal,
-          costo_por_kilo: batchData.costo_por_kilo,
-          user_id: user.id
-        })
-        .select()
-        .single();
+      if (editingBatchId) {
+        // Actualizar batch existente
+        const { error: batchError } = await supabase
+          .from('cost_batches' as any)
+          .update({
+            nombre: batchData.nombre,
+            descripcion: batchData.descripcion,
+            peso_por_metro_lineal: batchData.peso_por_metro_lineal,
+            costo_por_kilo: batchData.costo_por_kilo
+          })
+          .eq('id', editingBatchId);
 
-      if (batchError || !batch) throw batchError || new Error("Error al crear batch");
+        if (batchError) throw batchError;
 
-      // Crear cálculos
-      const calculations = batchData.medidas.map(m => {
-        const costoPorUnidad = batchData.peso_por_metro_lineal * m.metros_por_unidad * batchData.costo_por_kilo;
-        return {
-          batch_id: (batch as any).id,
-          medida_nombre: m.medida_nombre,
-          metros_por_unidad: m.metros_por_unidad,
-          costo_por_unidad: costoPorUnidad
-        };
-      });
+        // Eliminar cálculos anteriores
+        const { error: deleteError } = await supabase
+          .from('cost_calculations' as any)
+          .delete()
+          .eq('batch_id', editingBatchId);
 
-      const { error: calcError } = await supabase
-        .from('cost_calculations' as any)
-        .insert(calculations);
+        if (deleteError) throw deleteError;
 
-      if (calcError) throw calcError;
+        // Crear nuevos cálculos
+        const calculations = batchData.medidas.map(m => {
+          const costoPorUnidad = batchData.peso_por_metro_lineal * m.metros_por_unidad * batchData.costo_por_kilo;
+          return {
+            batch_id: editingBatchId,
+            medida_nombre: m.medida_nombre,
+            metros_por_unidad: m.metros_por_unidad,
+            costo_por_unidad: costoPorUnidad
+          };
+        });
 
-      return batch;
+        const { error: calcError } = await supabase
+          .from('cost_calculations' as any)
+          .insert(calculations);
+
+        if (calcError) throw calcError;
+
+        return { id: editingBatchId };
+      } else {
+        // Crear nuevo batch
+        const { data: batch, error: batchError } = await supabase
+          .from('cost_batches' as any)
+          .insert({
+            nombre: batchData.nombre,
+            descripcion: batchData.descripcion,
+            peso_por_metro_lineal: batchData.peso_por_metro_lineal,
+            costo_por_kilo: batchData.costo_por_kilo,
+            user_id: user.id
+          })
+          .select()
+          .single();
+
+        if (batchError || !batch) throw batchError || new Error("Error al crear batch");
+
+        // Crear cálculos
+        const calculations = batchData.medidas.map(m => {
+          const costoPorUnidad = batchData.peso_por_metro_lineal * m.metros_por_unidad * batchData.costo_por_kilo;
+          return {
+            batch_id: (batch as any).id,
+            medida_nombre: m.medida_nombre,
+            metros_por_unidad: m.metros_por_unidad,
+            costo_por_unidad: costoPorUnidad
+          };
+        });
+
+        const { error: calcError } = await supabase
+          .from('cost_calculations' as any)
+          .insert(calculations);
+
+        if (calcError) throw calcError;
+
+        return batch;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cost-batches'] });
-      toast.success("Tanda guardada exitosamente");
+      toast.success(editingBatchId ? "Tanda actualizada exitosamente" : "Tanda guardada exitosamente");
       // Reset form
-      setNombre("");
-      setDescripcion("");
-      setPesoMetroLineal("");
-      setCostoPorKilo("");
-      setMedidas([{ medida_nombre: "", metros_por_unidad: "" }]);
+      resetForm();
       setActiveTab("historial");
     },
     onError: (error) => {
       toast.error("Error al guardar la tanda: " + error.message);
     }
   });
+
+  const resetForm = () => {
+    setNombre("");
+    setDescripcion("");
+    setPesoMetroLineal("");
+    setCostoPorKilo("");
+    setMedidaDoblez("6");
+    setMedidas([{ medida_nombre: "", metros_por_unidad: "" }]);
+    setEditingBatchId(null);
+  };
 
   const agregarMedida = () => {
     setMedidas([...medidas, { medida_nombre: "", metros_por_unidad: "" }]);
@@ -263,7 +312,7 @@ const AdminCostos = () => {
       return;
     }
 
-    createBatchMutation.mutate({
+    saveBatchMutation.mutate({
       nombre,
       descripcion,
       peso_por_metro_lineal: peso,
@@ -273,6 +322,39 @@ const AdminCostos = () => {
         metros_por_unidad: parseFloat(m.metros_por_unidad)
       }))
     });
+  };
+
+  const cargarTandaParaEditar = async (batchId: string) => {
+    const batch = batches.find(b => b.id === batchId);
+    if (!batch) return;
+
+    // Cargar cálculos de la tanda
+    const { data: calcs, error } = await supabase
+      .from('cost_calculations' as any)
+      .select('*')
+      .eq('batch_id', batchId);
+
+    if (error) {
+      toast.error("Error al cargar la tanda");
+      return;
+    }
+
+    // Llenar el formulario
+    setEditingBatchId(batchId);
+    setNombre(batch.nombre);
+    setDescripcion(batch.descripcion || "");
+    setPesoMetroLineal(batch.peso_por_metro_lineal.toString());
+    setCostoPorKilo(batch.costo_por_kilo.toString());
+    
+    if (calcs && calcs.length > 0) {
+      setMedidas(calcs.map((calc: any) => ({
+        medida_nombre: calc.medida_nombre,
+        metros_por_unidad: calc.metros_por_unidad.toString()
+      })));
+    }
+
+    setActiveTab("nueva-tanda");
+    toast.success("Tanda cargada para edición");
   };
 
   const verDetalles = (batchId: string) => {
@@ -323,10 +405,19 @@ const AdminCostos = () => {
           <TabsContent value="nueva-tanda" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Crear Nueva Tanda de Cálculo</CardTitle>
-                <CardDescription>
-                  Ingresa los datos de la materia prima y las medidas de estribos
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>{editingBatchId ? "Editar Tanda de Cálculo" : "Crear Nueva Tanda de Cálculo"}</CardTitle>
+                    <CardDescription>
+                      {editingBatchId ? "Modifica los datos de la tanda existente" : "Ingresa los datos de la materia prima y las medidas de estribos"}
+                    </CardDescription>
+                  </div>
+                  {editingBatchId && (
+                    <Button variant="outline" onClick={resetForm}>
+                      Cancelar Edición
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -478,9 +569,9 @@ const AdminCostos = () => {
                   <Button 
                     type="submit" 
                     className="w-full" 
-                    disabled={createBatchMutation.isPending}
+                    disabled={saveBatchMutation.isPending}
                   >
-                    {createBatchMutation.isPending ? "Guardando..." : "Guardar Tanda"}
+                    {saveBatchMutation.isPending ? "Guardando..." : (editingBatchId ? "Actualizar Tanda" : "Guardar Tanda")}
                   </Button>
                 </form>
               </CardContent>
@@ -516,13 +607,22 @@ const AdminCostos = () => {
                             })}
                           </p>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => verDetalles(batch.id)}
-                        >
-                          Ver Detalles
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => cargarTandaParaEditar(batch.id)}
+                          >
+                            Editar
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => verDetalles(batch.id)}
+                          >
+                            Ver Detalles
+                          </Button>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent>
