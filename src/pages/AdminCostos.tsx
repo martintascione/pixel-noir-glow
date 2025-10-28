@@ -60,8 +60,8 @@ const AdminCostos = () => {
 
   // Función para calcular metros lineales a partir del tamaño
   const calcularMetrosLineales = (size: string, shape?: string): number => {
-    // Extraer números del tamaño en cm (ej: "20x35" -> [20, 35])
-    const numerosCm = size.split('x').map(n => parseFloat(n.trim()));
+    // Extraer números del tamaño en cm (ej: "20x35" o "20X35" -> [20, 35])
+    const numerosCm = size.toLowerCase().split('x').map(n => parseFloat(n.trim()));
     
     if (numerosCm.length === 0 || numerosCm.some(isNaN)) return 0;
 
