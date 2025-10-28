@@ -253,7 +253,7 @@ const AdminCostos = () => {
                       <Label htmlFor="nombre">Nombre de la Tanda *</Label>
                       <Input
                         id="nombre"
-                        placeholder="Ej: Proveedor A - Hierro 8mm"
+                        placeholder="Ej: Proveedor A - Hierro 4,2mm"
                         value={nombre}
                         onChange={(e) => setNombre(e.target.value)}
                         required
