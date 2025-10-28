@@ -376,7 +376,7 @@ const AdminCostos = () => {
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-4 md:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center">
           <Link to="/admin">
             <Button variant="outline" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -384,8 +384,8 @@ const AdminCostos = () => {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold">Cálculo de Costos por Unidad</h1>
-            <p className="text-muted-foreground">Gestiona tandas de cálculo y consulta históricos</p>
+            <h1 className="text-2xl md:text-3xl font-bold">Cálculo de Costos por Unidad</h1>
+            <p className="text-sm md:text-base text-muted-foreground">Gestiona tandas de cálculo y consulta históricos</p>
           </div>
         </div>
 
