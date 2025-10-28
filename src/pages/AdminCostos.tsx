@@ -508,21 +508,33 @@ const AdminCostos = () => {
                           <Card key={index}>
                             <CardContent className="pt-4">
                               <div className="grid gap-4 md:grid-cols-5 items-end">
-                                <div className="space-y-2">
-                                  <Label>Seleccionar Medida</Label>
-                                  <Select onValueChange={(value) => seleccionarEstribo(index, value)}>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Elegir de la lista" />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-background z-50">
-                                      {estribosDisponibles.map((estribo) => (
-                                        <SelectItem key={estribo.id} value={estribo.id}>
-                                          {estribo.name} - {estribo.size} - Ø{estribo.diameter}mm
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
+                                 <div className="space-y-2">
+                                   <Label>Seleccionar Medida</Label>
+                                   <Select onValueChange={(value) => {
+                                     if (value === "manual") {
+                                       // Si selecciona manual, limpiar los campos para ingreso libre
+                                       const nuevasMedidas = [...medidas];
+                                       nuevasMedidas[index] = { medida_nombre: "", metros_por_unidad: "" };
+                                       setMedidas(nuevasMedidas);
+                                     } else {
+                                       seleccionarEstribo(index, value);
+                                     }
+                                   }}>
+                                     <SelectTrigger>
+                                       <SelectValue placeholder="Elegir de la lista o manual" />
+                                     </SelectTrigger>
+                                     <SelectContent className="bg-background z-50">
+                                       <SelectItem value="manual" className="font-semibold text-primary">
+                                         ✏️ Ingresar manualmente
+                                       </SelectItem>
+                                       {estribosDisponibles.map((estribo) => (
+                                         <SelectItem key={estribo.id} value={estribo.id}>
+                                           {estribo.name} - {estribo.size} - Ø{estribo.diameter}mm
+                                         </SelectItem>
+                                       ))}
+                                     </SelectContent>
+                                   </Select>
+                                 </div>
                                 <div className="space-y-2">
                                   <Label>Nombre/Medida</Label>
                                   <Input
