@@ -60,30 +60,36 @@ const AdminCostos = () => {
 
   // Función para calcular metros lineales a partir del tamaño
   const calcularMetrosLineales = (size: string, shape?: string): number => {
-    // Extraer números del tamaño (ej: "15x20" -> [15, 20])
-    const numeros = size.split('x').map(n => parseFloat(n.trim()) / 100); // convertir cm a metros
+    // Extraer números del tamaño en cm (ej: "20x35" -> [20, 35])
+    const numerosCm = size.split('x').map(n => parseFloat(n.trim()));
     
-    if (numeros.length === 0 || numeros.some(isNaN)) return 0;
+    if (numerosCm.length === 0 || numerosCm.some(isNaN)) return 0;
 
-    let metrosLados = 0;
+    let centimetrosTotales = 0;
 
-    if (shape?.toLowerCase().includes('cuadrado') || numeros.length === 1) {
-      // Cuadrado: 4 * lado
-      metrosLados = 4 * numeros[0];
-    } else if (shape?.toLowerCase().includes('rectangular') || numeros.length === 2) {
-      // Rectangular: 2 * (lado1 + lado2)
-      metrosLados = 2 * (numeros[0] + numeros[1]);
-    } else if (shape?.toLowerCase().includes('triangular') || numeros.length === 3) {
+    if (shape?.toLowerCase().includes('cuadrado') || numerosCm.length === 1) {
+      // Cuadrado: 4 lados iguales
+      // Ejemplo: 20x20 = 20 + 20 + 20 + 20 = 80cm
+      centimetrosTotales = 4 * numerosCm[0];
+    } else if (shape?.toLowerCase().includes('rectangular') || numerosCm.length === 2) {
+      // Rectangular: cada medida aparece 2 veces
+      // Ejemplo: 20x35 = 20 + 20 + 35 + 35 = 110cm
+      centimetrosTotales = 2 * (numerosCm[0] + numerosCm[1]);
+    } else if (shape?.toLowerCase().includes('triangular') || numerosCm.length === 3) {
       // Triangular: suma de los 3 lados
-      metrosLados = numeros[0] + numeros[1] + numeros[2];
+      centimetrosTotales = numerosCm[0] + numerosCm[1] + numerosCm[2];
     } else {
       // Por defecto, rectangular
-      metrosLados = numeros.length === 2 ? 2 * (numeros[0] + numeros[1]) : 0;
+      centimetrosTotales = numerosCm.length === 2 ? 2 * (numerosCm[0] + numerosCm[1]) : 0;
     }
     
-    // Agregar 2 dobleces (convertir cm a metros)
-    const doblezEnMetros = (parseFloat(medidaDoblez) || 0) / 100;
-    return metrosLados + (2 * doblezEnMetros);
+    // Agregar 2 dobleces
+    // Ejemplo con doblez de 6cm: 110cm + 6cm + 6cm = 122cm
+    const doblezCm = parseFloat(medidaDoblez) || 0;
+    centimetrosTotales += 2 * doblezCm;
+    
+    // Convertir a metros al final
+    return centimetrosTotales / 100;
   };
 
   // Cargar productos de estribos desde Supabase
