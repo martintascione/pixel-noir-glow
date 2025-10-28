@@ -397,7 +397,7 @@ const AdminCostos = () => {
                                     <SelectContent className="bg-background z-50">
                                       {estribosDisponibles.map((estribo) => (
                                         <SelectItem key={estribo.id} value={estribo.id}>
-                                          {estribo.name} - {estribo.size}
+                                          {estribo.name} - {estribo.size} - Ø{estribo.diameter}mm
                                         </SelectItem>
                                       ))}
                                     </SelectContent>
