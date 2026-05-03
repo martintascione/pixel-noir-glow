@@ -358,7 +358,10 @@ const AdminCostos = () => {
     
     if (calcs && calcs.length > 0) {
       setMedidas(calcs.map((calc: any) => {
-        const matched = estribosDisponibles.find(e => `${e.name} - ${e.size}` === calc.medida_nombre);
+        const matched = estribosDisponibles.find(e => {
+          const withDiam = `${e.name} - ${e.size}${e.diameter ? ` - Ø${e.diameter}mm` : ''}`;
+          return withDiam === calc.medida_nombre || `${e.name} - ${e.size}` === calc.medida_nombre;
+        });
         return {
           medida_nombre: calc.medida_nombre,
           metros_por_unidad: calc.metros_por_unidad.toString(),
