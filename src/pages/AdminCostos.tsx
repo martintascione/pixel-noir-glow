@@ -275,9 +275,10 @@ const AdminCostos = () => {
     const estribo = estribosDisponibles.find(e => e.id === estribosId);
     if (estribo) {
       const metrosLineales = calcularMetrosLineales(estribo.size, estribo.shape);
+      const diamSuffix = estribo.diameter ? ` - Ø${estribo.diameter}mm` : '';
       const nuevasMedidas = [...medidas];
       nuevasMedidas[index] = {
-        medida_nombre: `${estribo.name} - ${estribo.size}`,
+        medida_nombre: `${estribo.name} - ${estribo.size}${diamSuffix}`,
         metros_por_unidad: metrosLineales.toFixed(4),
         product_id: estribo.id
       };
