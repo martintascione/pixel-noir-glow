@@ -357,10 +357,14 @@ const AdminCostos = () => {
     setCostoPorKilo(batch.costo_por_kilo.toString());
     
     if (calcs && calcs.length > 0) {
-      setMedidas(calcs.map((calc: any) => ({
-        medida_nombre: calc.medida_nombre,
-        metros_por_unidad: calc.metros_por_unidad.toString()
-      })));
+      setMedidas(calcs.map((calc: any) => {
+        const matched = estribosDisponibles.find(e => `${e.name} - ${e.size}` === calc.medida_nombre);
+        return {
+          medida_nombre: calc.medida_nombre,
+          metros_por_unidad: calc.metros_por_unidad.toString(),
+          product_id: matched?.id
+        };
+      }));
     }
 
     setActiveTab("nueva-tanda");
