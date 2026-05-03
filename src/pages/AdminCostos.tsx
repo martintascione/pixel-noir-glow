@@ -395,6 +395,64 @@ const AdminCostos = () => {
     setSelectedBatchId(batchId);
   };
 
+  // Activar una tanda: la marca como "activa" y sincroniza sus costos a product_costs
+  const activarTanda = async (batchId: string) => {
+    try {
+      const batch = batches.find(b => b.id === batchId);
+      if (!batch) return;
+
+      // Cargar cálculos de la tanda
+      const { data: calcs, error } = await supabase
+        .from('cost_calculations' as any)
+        .select('*')
+        .eq('batch_id', batchId);
+
+      if (error) throw error;
+
+      // Resolver product_id a partir del nombre de la medida
+      const updates = (calcs || [])
+        .map((calc: any) => {
+          const matched = estribosDisponibles.find(e => {
+            const withDiam = `${e.name} - ${e.size}${e.diameter ? ` - Ø${e.diameter}mm` : ''}`;
+            return withDiam === calc.medida_nombre || `${e.name} - ${e.size}` === calc.medida_nombre;
+          });
+          return matched ? {
+            product_id: matched.id,
+            production_cost: calc.costo_por_unidad,
+          } : null;
+        })
+        .filter(Boolean) as { product_id: string; production_cost: number }[];
+
+      let syncedCount = 0;
+      if (updates.length > 0) {
+        // Preservar profit_margin existente
+        const productIds = updates.map(u => u.product_id);
+        const { data: existing } = await supabase
+          .from('product_costs')
+          .select('product_id, profit_margin')
+          .in('product_id', productIds);
+
+        const marginMap = new Map((existing || []).map((e: any) => [e.product_id, e.profit_margin]));
+        const finalUpdates = updates.map(u => ({
+          ...u,
+          profit_margin: marginMap.get(u.product_id) ?? 0
+        }));
+
+        const { error: upsertError } = await supabase
+          .from('product_costs')
+          .upsert(finalUpdates, { onConflict: 'product_id' });
+        if (upsertError) throw upsertError;
+        syncedCount = finalUpdates.length;
+      }
+
+      localStorage.setItem(ACTIVE_BATCH_KEY, batchId);
+      setActiveBatchId(batchId);
+      toast.success(`Tanda "${batch.nombre}" activada · ${syncedCount} costo(s) sincronizado(s)`);
+    } catch (err: any) {
+      toast.error("Error al activar la tanda: " + err.message);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
