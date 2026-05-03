@@ -275,9 +275,10 @@ const AdminCostos = () => {
     const estribo = estribosDisponibles.find(e => e.id === estribosId);
     if (estribo) {
       const metrosLineales = calcularMetrosLineales(estribo.size, estribo.shape);
+      const diamSuffix = estribo.diameter ? ` - Ø${estribo.diameter}mm` : '';
       const nuevasMedidas = [...medidas];
       nuevasMedidas[index] = {
-        medida_nombre: `${estribo.name} - ${estribo.size}`,
+        medida_nombre: `${estribo.name} - ${estribo.size}${diamSuffix}`,
         metros_por_unidad: metrosLineales.toFixed(4),
         product_id: estribo.id
       };
@@ -358,7 +359,10 @@ const AdminCostos = () => {
     
     if (calcs && calcs.length > 0) {
       setMedidas(calcs.map((calc: any) => {
-        const matched = estribosDisponibles.find(e => `${e.name} - ${e.size}` === calc.medida_nombre);
+        const matched = estribosDisponibles.find(e => {
+          const withDiam = `${e.name} - ${e.size}${e.diameter ? ` - Ø${e.diameter}mm` : ''}`;
+          return withDiam === calc.medida_nombre || `${e.name} - ${e.size}` === calc.medida_nombre;
+        });
         return {
           medida_nombre: calc.medida_nombre,
           metros_por_unidad: calc.metros_por_unidad.toString(),
