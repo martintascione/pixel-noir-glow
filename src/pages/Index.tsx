@@ -70,7 +70,7 @@ const Index = () => {
         transition={{ duration: 0.5 }}
       >
         <div className="container-custom">
-          <PromotionalBanner />
+          
           <PriceTable 
             productId={selectedProductId} 
             productName={selectedProduct} 
