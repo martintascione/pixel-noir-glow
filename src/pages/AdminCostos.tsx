@@ -41,6 +41,7 @@ interface CostCalculation {
 interface MedidaInput {
   medida_nombre: string;
   metros_por_unidad: string;
+  product_id?: string;
 }
 
 const AdminCostos = () => {
@@ -270,7 +271,8 @@ const AdminCostos = () => {
       const nuevasMedidas = [...medidas];
       nuevasMedidas[index] = {
         medida_nombre: `${estribo.name} - ${estribo.size}`,
-        metros_por_unidad: metrosLineales.toFixed(4)
+        metros_por_unidad: metrosLineales.toFixed(4),
+        product_id: estribo.id
       };
       setMedidas(nuevasMedidas);
     }
