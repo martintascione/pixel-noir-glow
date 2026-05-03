@@ -693,11 +693,18 @@ const AdminCostos = () => {
             ) : (
               <div className="grid gap-4">
                 {batches.map((batch) => (
-                  <Card key={batch.id}>
+                  <Card key={batch.id} className={activeBatchId === batch.id ? "border-primary border-2" : ""}>
                     <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle>{batch.nombre}</CardTitle>
+                      <div className="flex items-start justify-between gap-4 flex-wrap">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <CardTitle>{batch.nombre}</CardTitle>
+                            {activeBatchId === batch.id && (
+                              <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded">
+                                <CheckCircle2 className="w-3 h-3" /> Activa
+                              </span>
+                            )}
+                          </div>
                           <CardDescription>
                             {batch.descripcion || "Sin descripción"}
                           </CardDescription>
@@ -710,6 +717,16 @@ const AdminCostos = () => {
                               minute: '2-digit'
                             })}
                           </p>
+                          <label className="flex items-center gap-2 mt-3 cursor-pointer text-sm">
+                            <Checkbox
+                              checked={activeBatchId === batch.id}
+                              onCheckedChange={(checked) => {
+                                if (checked) activarTanda(batch.id);
+                              }}
+                              disabled={activeBatchId === batch.id}
+                            />
+                            <span>Usar esta lista de precios para los cálculos</span>
+                          </label>
                         </div>
                         <div className="flex gap-2">
                           <Button
