@@ -363,8 +363,8 @@ export const CostManager = ({ products }: Props) => {
                           }}
                           placeholder="0.0"
                           className="w-32"
-                          disabled={categoryName.toLowerCase().includes('estribo')}
                         />
+
                       </div>
                       <Button
                         onClick={async () => {
