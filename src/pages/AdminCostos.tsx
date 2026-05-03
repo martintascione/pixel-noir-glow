@@ -217,7 +217,14 @@ const AdminCostos = () => {
         .insert(buildCalcs(batchId));
       if (calcError) throw calcError;
 
-      // Sincronizar costos a Gestión de Productos (product_costs)
+      // Determinar si esta tanda es la activa (o lo será si es la primera)
+      const currentActive = localStorage.getItem(ACTIVE_BATCH_KEY);
+      const willBeActive = !currentActive || currentActive === batchId;
+      if (!currentActive) {
+        localStorage.setItem(ACTIVE_BATCH_KEY, batchId);
+      }
+
+      // Sincronizar costos a Gestión de Productos (product_costs) SOLO si es la tanda activa
       const updates = batchData.medidas
         .filter(m => m.product_id)
         .map(m => ({
@@ -227,7 +234,7 @@ const AdminCostos = () => {
         }));
 
       let syncedCount = 0;
-      if (updates.length > 0) {
+      if (willBeActive && updates.length > 0) {
         // Preservar profit_margin existente
         const productIds = updates.map(u => u.product_id);
         const { data: existing } = await supabase
@@ -248,12 +255,15 @@ const AdminCostos = () => {
         syncedCount = finalUpdates.length;
       }
 
-      return { id: batchId, syncedCount };
+      return { id: batchId, syncedCount, willBeActive };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['cost-batches'] });
+      setActiveBatchId(localStorage.getItem(ACTIVE_BATCH_KEY));
       const baseMsg = editingBatchId ? "Tanda actualizada exitosamente" : "Tanda guardada exitosamente";
-      const syncMsg = result.syncedCount > 0 ? ` · ${result.syncedCount} costo(s) sincronizado(s) con Productos` : '';
+      const syncMsg = result.syncedCount > 0
+        ? ` · ${result.syncedCount} costo(s) sincronizado(s) con Productos`
+        : (!result.willBeActive ? ' · (no es la tanda activa, no se sincronizó)' : '');
       toast.success(baseMsg + syncMsg);
       resetForm();
       setActiveTab("historial");
