@@ -45,11 +45,16 @@ interface MedidaInput {
   product_id?: string;
 }
 
+const ACTIVE_BATCH_KEY = 'active_cost_batch_id';
+
 const AdminCostos = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("nueva-tanda");
   const [estribosDisponibles, setEstribosDisponibles] = useState<EstribosProduct[]>([]);
   const [editingBatchId, setEditingBatchId] = useState<string | null>(null);
+  const [activeBatchId, setActiveBatchId] = useState<string | null>(
+    () => localStorage.getItem(ACTIVE_BATCH_KEY)
+  );
   
   // Form state para nueva tanda
   const [nombre, setNombre] = useState("");
