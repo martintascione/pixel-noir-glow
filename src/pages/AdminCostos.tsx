@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Plus, History } from "lucide-react";
+import { ArrowLeft, Plus, History, CheckCircle2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,11 +45,16 @@ interface MedidaInput {
   product_id?: string;
 }
 
+const ACTIVE_BATCH_KEY = 'active_cost_batch_id';
+
 const AdminCostos = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("nueva-tanda");
   const [estribosDisponibles, setEstribosDisponibles] = useState<EstribosProduct[]>([]);
   const [editingBatchId, setEditingBatchId] = useState<string | null>(null);
+  const [activeBatchId, setActiveBatchId] = useState<string | null>(
+    () => localStorage.getItem(ACTIVE_BATCH_KEY)
+  );
   
   // Form state para nueva tanda
   const [nombre, setNombre] = useState("");
@@ -211,7 +217,14 @@ const AdminCostos = () => {
         .insert(buildCalcs(batchId));
       if (calcError) throw calcError;
 
-      // Sincronizar costos a Gestión de Productos (product_costs)
+      // Determinar si esta tanda es la activa (o lo será si es la primera)
+      const currentActive = localStorage.getItem(ACTIVE_BATCH_KEY);
+      const willBeActive = !currentActive || currentActive === batchId;
+      if (!currentActive) {
+        localStorage.setItem(ACTIVE_BATCH_KEY, batchId);
+      }
+
+      // Sincronizar costos a Gestión de Productos (product_costs) SOLO si es la tanda activa
       const updates = batchData.medidas
         .filter(m => m.product_id)
         .map(m => ({
@@ -221,7 +234,7 @@ const AdminCostos = () => {
         }));
 
       let syncedCount = 0;
-      if (updates.length > 0) {
+      if (willBeActive && updates.length > 0) {
         // Preservar profit_margin existente
         const productIds = updates.map(u => u.product_id);
         const { data: existing } = await supabase
@@ -242,12 +255,15 @@ const AdminCostos = () => {
         syncedCount = finalUpdates.length;
       }
 
-      return { id: batchId, syncedCount };
+      return { id: batchId, syncedCount, willBeActive };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['cost-batches'] });
+      setActiveBatchId(localStorage.getItem(ACTIVE_BATCH_KEY));
       const baseMsg = editingBatchId ? "Tanda actualizada exitosamente" : "Tanda guardada exitosamente";
-      const syncMsg = result.syncedCount > 0 ? ` · ${result.syncedCount} costo(s) sincronizado(s) con Productos` : '';
+      const syncMsg = result.syncedCount > 0
+        ? ` · ${result.syncedCount} costo(s) sincronizado(s) con Productos`
+        : (!result.willBeActive ? ' · (no es la tanda activa, no se sincronizó)' : '');
       toast.success(baseMsg + syncMsg);
       resetForm();
       setActiveTab("historial");
@@ -377,6 +393,64 @@ const AdminCostos = () => {
 
   const verDetalles = (batchId: string) => {
     setSelectedBatchId(batchId);
+  };
+
+  // Activar una tanda: la marca como "activa" y sincroniza sus costos a product_costs
+  const activarTanda = async (batchId: string) => {
+    try {
+      const batch = batches.find(b => b.id === batchId);
+      if (!batch) return;
+
+      // Cargar cálculos de la tanda
+      const { data: calcs, error } = await supabase
+        .from('cost_calculations' as any)
+        .select('*')
+        .eq('batch_id', batchId);
+
+      if (error) throw error;
+
+      // Resolver product_id a partir del nombre de la medida
+      const updates = (calcs || [])
+        .map((calc: any) => {
+          const matched = estribosDisponibles.find(e => {
+            const withDiam = `${e.name} - ${e.size}${e.diameter ? ` - Ø${e.diameter}mm` : ''}`;
+            return withDiam === calc.medida_nombre || `${e.name} - ${e.size}` === calc.medida_nombre;
+          });
+          return matched ? {
+            product_id: matched.id,
+            production_cost: calc.costo_por_unidad,
+          } : null;
+        })
+        .filter(Boolean) as { product_id: string; production_cost: number }[];
+
+      let syncedCount = 0;
+      if (updates.length > 0) {
+        // Preservar profit_margin existente
+        const productIds = updates.map(u => u.product_id);
+        const { data: existing } = await supabase
+          .from('product_costs')
+          .select('product_id, profit_margin')
+          .in('product_id', productIds);
+
+        const marginMap = new Map((existing || []).map((e: any) => [e.product_id, e.profit_margin]));
+        const finalUpdates = updates.map(u => ({
+          ...u,
+          profit_margin: marginMap.get(u.product_id) ?? 0
+        }));
+
+        const { error: upsertError } = await supabase
+          .from('product_costs')
+          .upsert(finalUpdates, { onConflict: 'product_id' });
+        if (upsertError) throw upsertError;
+        syncedCount = finalUpdates.length;
+      }
+
+      localStorage.setItem(ACTIVE_BATCH_KEY, batchId);
+      setActiveBatchId(batchId);
+      toast.success(`Tanda "${batch.nombre}" activada · ${syncedCount} costo(s) sincronizado(s)`);
+    } catch (err: any) {
+      toast.error("Error al activar la tanda: " + err.message);
+    }
   };
 
   if (isLoading) {
@@ -619,11 +693,18 @@ const AdminCostos = () => {
             ) : (
               <div className="grid gap-4">
                 {batches.map((batch) => (
-                  <Card key={batch.id}>
+                  <Card key={batch.id} className={activeBatchId === batch.id ? "border-primary border-2" : ""}>
                     <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle>{batch.nombre}</CardTitle>
+                      <div className="flex items-start justify-between gap-4 flex-wrap">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <CardTitle>{batch.nombre}</CardTitle>
+                            {activeBatchId === batch.id && (
+                              <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded">
+                                <CheckCircle2 className="w-3 h-3" /> Activa
+                              </span>
+                            )}
+                          </div>
                           <CardDescription>
                             {batch.descripcion || "Sin descripción"}
                           </CardDescription>
@@ -636,6 +717,16 @@ const AdminCostos = () => {
                               minute: '2-digit'
                             })}
                           </p>
+                          <label className="flex items-center gap-2 mt-3 cursor-pointer text-sm">
+                            <Checkbox
+                              checked={activeBatchId === batch.id}
+                              onCheckedChange={(checked) => {
+                                if (checked) activarTanda(batch.id);
+                              }}
+                              disabled={activeBatchId === batch.id}
+                            />
+                            <span>Usar esta lista de precios para los cálculos</span>
+                          </label>
                         </div>
                         <div className="flex gap-2">
                           <Button
