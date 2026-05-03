@@ -41,6 +41,7 @@ interface CostCalculation {
 interface MedidaInput {
   medida_nombre: string;
   metros_por_unidad: string;
+  product_id?: string;
 }
 
 const AdminCostos = () => {
@@ -156,13 +157,21 @@ const AdminCostos = () => {
       descripcion: string; 
       peso_por_metro_lineal: number; 
       costo_por_kilo: number;
-      medidas: { medida_nombre: string; metros_por_unidad: number }[];
+      medidas: { medida_nombre: string; metros_por_unidad: number; product_id?: string }[];
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
 
+      const buildCalcs = (batchId: string) => batchData.medidas.map(m => ({
+        batch_id: batchId,
+        medida_nombre: m.medida_nombre,
+        metros_por_unidad: m.metros_por_unidad,
+        costo_por_unidad: batchData.peso_por_metro_lineal * m.metros_por_unidad * batchData.costo_por_kilo
+      }));
+
+      let batchId: string;
+
       if (editingBatchId) {
-        // Actualizar batch existente
         const { error: batchError } = await supabase
           .from('cost_batches' as any)
           .update({
@@ -172,37 +181,16 @@ const AdminCostos = () => {
             costo_por_kilo: batchData.costo_por_kilo
           })
           .eq('id', editingBatchId);
-
         if (batchError) throw batchError;
 
-        // Eliminar cálculos anteriores
         const { error: deleteError } = await supabase
           .from('cost_calculations' as any)
           .delete()
           .eq('batch_id', editingBatchId);
-
         if (deleteError) throw deleteError;
 
-        // Crear nuevos cálculos
-        const calculations = batchData.medidas.map(m => {
-          const costoPorUnidad = batchData.peso_por_metro_lineal * m.metros_por_unidad * batchData.costo_por_kilo;
-          return {
-            batch_id: editingBatchId,
-            medida_nombre: m.medida_nombre,
-            metros_por_unidad: m.metros_por_unidad,
-            costo_por_unidad: costoPorUnidad
-          };
-        });
-
-        const { error: calcError } = await supabase
-          .from('cost_calculations' as any)
-          .insert(calculations);
-
-        if (calcError) throw calcError;
-
-        return { id: editingBatchId };
+        batchId = editingBatchId;
       } else {
-        // Crear nuevo batch
         const { data: batch, error: batchError } = await supabase
           .from('cost_batches' as any)
           .insert({
@@ -214,33 +202,53 @@ const AdminCostos = () => {
           })
           .select()
           .single();
-
         if (batchError || !batch) throw batchError || new Error("Error al crear batch");
-
-        // Crear cálculos
-        const calculations = batchData.medidas.map(m => {
-          const costoPorUnidad = batchData.peso_por_metro_lineal * m.metros_por_unidad * batchData.costo_por_kilo;
-          return {
-            batch_id: (batch as any).id,
-            medida_nombre: m.medida_nombre,
-            metros_por_unidad: m.metros_por_unidad,
-            costo_por_unidad: costoPorUnidad
-          };
-        });
-
-        const { error: calcError } = await supabase
-          .from('cost_calculations' as any)
-          .insert(calculations);
-
-        if (calcError) throw calcError;
-
-        return batch;
+        batchId = (batch as any).id;
       }
+
+      const { error: calcError } = await supabase
+        .from('cost_calculations' as any)
+        .insert(buildCalcs(batchId));
+      if (calcError) throw calcError;
+
+      // Sincronizar costos a Gestión de Productos (product_costs)
+      const updates = batchData.medidas
+        .filter(m => m.product_id)
+        .map(m => ({
+          product_id: m.product_id!,
+          production_cost: batchData.peso_por_metro_lineal * m.metros_por_unidad * batchData.costo_por_kilo,
+          profit_margin: 0
+        }));
+
+      let syncedCount = 0;
+      if (updates.length > 0) {
+        // Preservar profit_margin existente
+        const productIds = updates.map(u => u.product_id);
+        const { data: existing } = await supabase
+          .from('product_costs')
+          .select('product_id, profit_margin')
+          .in('product_id', productIds);
+
+        const marginMap = new Map((existing || []).map((e: any) => [e.product_id, e.profit_margin]));
+        const finalUpdates = updates.map(u => ({
+          ...u,
+          profit_margin: marginMap.get(u.product_id) ?? 0
+        }));
+
+        const { error: upsertError } = await supabase
+          .from('product_costs')
+          .upsert(finalUpdates, { onConflict: 'product_id' });
+        if (upsertError) throw upsertError;
+        syncedCount = finalUpdates.length;
+      }
+
+      return { id: batchId, syncedCount };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['cost-batches'] });
-      toast.success(editingBatchId ? "Tanda actualizada exitosamente" : "Tanda guardada exitosamente");
-      // Reset form
+      const baseMsg = editingBatchId ? "Tanda actualizada exitosamente" : "Tanda guardada exitosamente";
+      const syncMsg = result.syncedCount > 0 ? ` · ${result.syncedCount} costo(s) sincronizado(s) con Productos` : '';
+      toast.success(baseMsg + syncMsg);
       resetForm();
       setActiveTab("historial");
     },
@@ -270,7 +278,8 @@ const AdminCostos = () => {
       const nuevasMedidas = [...medidas];
       nuevasMedidas[index] = {
         medida_nombre: `${estribo.name} - ${estribo.size}`,
-        metros_por_unidad: metrosLineales.toFixed(4)
+        metros_por_unidad: metrosLineales.toFixed(4),
+        product_id: estribo.id
       };
       setMedidas(nuevasMedidas);
     }
@@ -319,7 +328,8 @@ const AdminCostos = () => {
       costo_por_kilo: costo,
       medidas: medidasValidas.map(m => ({
         medida_nombre: m.medida_nombre,
-        metros_por_unidad: parseFloat(m.metros_por_unidad)
+        metros_por_unidad: parseFloat(m.metros_por_unidad),
+        product_id: m.product_id
       }))
     });
   };
@@ -347,10 +357,14 @@ const AdminCostos = () => {
     setCostoPorKilo(batch.costo_por_kilo.toString());
     
     if (calcs && calcs.length > 0) {
-      setMedidas(calcs.map((calc: any) => ({
-        medida_nombre: calc.medida_nombre,
-        metros_por_unidad: calc.metros_por_unidad.toString()
-      })));
+      setMedidas(calcs.map((calc: any) => {
+        const matched = estribosDisponibles.find(e => `${e.name} - ${e.size}` === calc.medida_nombre);
+        return {
+          medida_nombre: calc.medida_nombre,
+          metros_por_unidad: calc.metros_por_unidad.toString(),
+          product_id: matched?.id
+        };
+      }));
     }
 
     setActiveTab("nueva-tanda");

@@ -613,13 +613,8 @@ const RemitosGenerator = () => {
     }
 
     try {
-      const remitoData = generateRemitoData();
-      
-      // Preparar mensaje para WhatsApp
-      const message = `Hola ${clientData.name}, te envío el remito N° ${remitoData.numero} por un total de ${formatCurrency(remitoData.total)}.`;
-
-      // Abrir WhatsApp con el mensaje (sin generar imagen)
-      sendToWhatsApp(clientData.whatsapp_number, message);
+      // Abrir WhatsApp sin mensaje predeterminado
+      sendToWhatsApp(clientData.whatsapp_number, '');
       
       toast({
         title: "WhatsApp abierto 💬",
