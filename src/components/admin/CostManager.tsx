@@ -369,20 +369,59 @@ export const CostManager = ({ products }: Props) => {
                       <Button
                         onClick={async () => {
                           try {
+                            const margin = categoryMargins[categoryName] || 0;
                             const { error } = await supabase
                               .from('category_margins')
                               .upsert({
                                 category_name: categoryName,
-                                profit_margin: categoryMargins[categoryName] || 0
+                                profit_margin: margin
                               }, {
                                 onConflict: 'category_name'
                               });
                             
                             if (error) throw error;
-                            
+
+                            // Aplicar el margen a todos los productos de la categoría:
+                            // 1) Persistir profit_margin en product_costs (upsert por producto)
+                            // 2) Actualizar el precio público (products.price) con el precio final calculado
+                            const productosCategoria = groupedProducts[categoryName];
+                            const costUpserts = productosCategoria.map(p => {
+                              const c = costs.find(x => x.product_id === p.id);
+                              return {
+                                product_id: p.id,
+                                production_cost: c?.production_cost ?? 0,
+                                profit_margin: margin,
+                              };
+                            });
+
+                            if (costUpserts.length > 0) {
+                              const { error: upErr } = await supabase
+                                .from('product_costs')
+                                .upsert(costUpserts, { onConflict: 'product_id' });
+                              if (upErr) throw upErr;
+                            }
+
+                            // Actualizar precio público de cada producto con costo > 0
+                            await Promise.all(productosCategoria.map(async (p) => {
+                              const c = costs.find(x => x.product_id === p.id);
+                              const productionCost = c?.production_cost ?? 0;
+                              if (productionCost <= 0) return;
+                              const { finalPrice } = calculateSalePrice({
+                                product_id: p.id,
+                                production_cost: productionCost,
+                                profit_margin: margin,
+                              });
+                              await supabase
+                                .from('products')
+                                .update({ price: Math.round(finalPrice * 100) / 100 })
+                                .eq('id', p.id);
+                            }));
+
+                            await fetchCosts();
+
                             toast({
                               title: "Éxito",
-                              description: `Margen para ${categoryName} actualizado correctamente`,
+                              description: `Margen para ${categoryName} aplicado y precios actualizados`,
                             });
                           } catch (error) {
                             console.error('Error saving category margin:', error);
@@ -394,17 +433,13 @@ export const CostManager = ({ products }: Props) => {
                           }
                         }}
                         className="w-fit"
-                        disabled={categoryName.toLowerCase().includes('estribo')}
                       >
                         <Save className="w-4 h-4 mr-2" />
-                        Guardar Margen
+                        Guardar Margen y Aplicar Precios
                       </Button>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {categoryName.toLowerCase().includes('estribo') 
-                        ? "Función disponible para próximas actualizaciones..."
-                        : `Este margen se aplicará a todos los productos de la categoría ${categoryName}.`
-                      }
+                      Este margen se aplicará al costo de cada producto de la categoría {categoryName} para calcular el precio de venta público.
                     </p>
                     {categoryName.toLowerCase().includes('estribo') && (() => {
                       // Calcular margen real promedio para estribos
