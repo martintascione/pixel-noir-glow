@@ -455,10 +455,7 @@ const AdminCostos = () => {
 
     if (calcs && calcs.length > 0) {
       setMedidas(calcs.map((calc: any) => {
-        const matched = estribosDisponibles.find(e => {
-          const withDiam = `${e.name} - ${e.size}${e.diameter ? ` - Ø${e.diameter}mm` : ''}`;
-          return withDiam === calc.medida_nombre || `${e.name} - ${e.size}` === calc.medida_nombre;
-        });
+        const matched = matchEstribo(calc.medida_nombre, estribosDisponibles);
         const diametro_real: DiametroReal =
           calc.diametro_real === 5.5 ? 5.5
           : calc.diametro_real === 3.8 ? 3.8
