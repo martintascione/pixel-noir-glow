@@ -28,6 +28,7 @@ interface CostCalculation {
   batch_id: string;
   medida_nombre: string;
   costo_por_unidad: number;
+  product_id?: string | null;
 }
 
 interface Product {
