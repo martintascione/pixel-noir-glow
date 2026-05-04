@@ -575,11 +575,11 @@ export const CostManager = ({ products }: Props) => {
                       Este margen se aplicará al costo de cada producto de la categoría {categoryName} para calcular el precio de venta público.
                     </p>
                     {categoryName.toLowerCase().includes('estribo') && (() => {
-                      // Calcular margen real promedio para estribos
                       const estribosData = groupedProducts[categoryName];
+
+                      // Margen actual real (con costos guardados en product_costs)
                       let totalMarginReal = 0;
                       let productosConDatos = 0;
-                      
                       estribosData.forEach(product => {
                         const cost = getCostForProduct(product.id, categoryName);
                         if (cost.production_cost > 0 && product.price > 0) {
@@ -588,16 +588,82 @@ export const CostManager = ({ products }: Props) => {
                           productosConDatos++;
                         }
                       });
-                      
                       const margenPromedio = productosConDatos > 0 ? totalMarginReal / productosConDatos : 0;
-                      
+
                       return (
-                        <p className="text-sm text-primary font-medium mt-2">
-                          Su margen actual entre el valor de venta y el costo, es de {margenPromedio.toFixed(1)}% de ganancia
-                          <span className="text-xs text-muted-foreground ml-2">
-                            (Promedio de {productosConDatos} productos con datos)
-                          </span>
-                        </p>
+                        <div className="mt-3 space-y-3">
+                          <p className="text-sm text-primary font-medium">
+                            Su margen actual entre el valor de venta y el costo, es de {margenPromedio.toFixed(1)}% de ganancia
+                            <span className="text-xs text-muted-foreground ml-2">
+                              (Promedio de {productosConDatos} productos con datos)
+                            </span>
+                          </p>
+
+                          {batches.length > 0 && (
+                            <div className="rounded-md border border-primary/20 bg-background p-3 space-y-3">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium">
+                                  Lista de precios del proveedor (tanda activa)
+                                </Label>
+                                <Select
+                                  value={activeBatchId ?? undefined}
+                                  onValueChange={(val) => cambiarTandaActiva(val)}
+                                  disabled={switchingBatch}
+                                >
+                                  <SelectTrigger className="w-full md:w-[420px]">
+                                    <SelectValue placeholder="Seleccionar tanda / proveedor" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {batches.map(b => (
+                                      <SelectItem key={b.id} value={b.id}>
+                                        {b.nombre}{b.id === activeBatchId ? ' · activa' : ''}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <p className="text-xs text-muted-foreground">
+                                  Al cambiar la tanda activa se sincronizan los costos de producción de los estribos con esa lista del proveedor.
+                                </p>
+                              </div>
+
+                              <Separator />
+
+                              <div className="space-y-1.5">
+                                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                                  Margen estimado por lista de precios
+                                </p>
+                                {batches.map(b => {
+                                  const { margen, cantidad } = calcularMargenTanda(b.id, estribosData);
+                                  const isActive = b.id === activeBatchId;
+                                  return (
+                                    <div
+                                      key={b.id}
+                                      className={`flex items-center justify-between gap-3 text-sm p-2 rounded ${isActive ? 'bg-primary/10' : ''}`}
+                                    >
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        {isActive && <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />}
+                                        <span className="truncate">{b.nombre}</span>
+                                      </div>
+                                      <div className="text-right shrink-0">
+                                        {cantidad > 0 ? (
+                                          <>
+                                            <span className="font-semibold text-primary">{margen.toFixed(1)}%</span>
+                                            <span className="text-xs text-muted-foreground ml-2">({cantidad} prod.)</span>
+                                          </>
+                                        ) : (
+                                          <span className="text-xs text-muted-foreground">sin datos comparables</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                                <p className="text-xs text-muted-foreground pt-1">
+                                  Cada % indica la ganancia que tendrías sobre el precio de venta público actual si usaras esa lista de precios del proveedor.
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       );
                     })()}
                   </div>
