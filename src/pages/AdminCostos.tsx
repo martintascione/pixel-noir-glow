@@ -28,6 +28,10 @@ interface CostBatch {
   descripcion: string | null;
   peso_por_metro_lineal: number;
   costo_por_kilo: number;
+  peso_por_metro_lineal_38?: number | null;
+  costo_por_kilo_38?: number | null;
+  peso_por_metro_lineal_55?: number | null;
+  costo_por_kilo_55?: number | null;
   created_at: string;
 }
 
@@ -37,13 +41,25 @@ interface CostCalculation {
   medida_nombre: string;
   metros_por_unidad: number;
   costo_por_unidad: number;
+  diametro_real?: number | null;
 }
+
+type DiametroReal = 3.8 | 5.5;
 
 interface MedidaInput {
   medida_nombre: string;
   metros_por_unidad: string;
   product_id?: string;
+  diametro_real: DiametroReal;
 }
+
+// Mapea el diámetro comercial del producto al diámetro real del hierro
+const inferDiametroReal = (diameterStr?: string): DiametroReal => {
+  const d = parseFloat((diameterStr || '').replace(',', '.'));
+  if (!isFinite(d) || d <= 0) return 3.8;
+  // Ø ≤ 4.5mm comercial → hierro real 3.8mm; resto → 5.5mm
+  return d <= 4.5 ? 3.8 : 5.5;
+};
 
 const ACTIVE_BATCH_KEY = 'active_cost_batch_id';
 
@@ -59,11 +75,13 @@ const AdminCostos = () => {
   // Form state para nueva tanda
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [pesoMetroLineal, setPesoMetroLineal] = useState("");
-  const [costoPorKilo, setCostoPorKilo] = useState("");
+  const [pesoMetroLineal38, setPesoMetroLineal38] = useState("");
+  const [costoPorKilo38, setCostoPorKilo38] = useState("");
+  const [pesoMetroLineal55, setPesoMetroLineal55] = useState("");
+  const [costoPorKilo55, setCostoPorKilo55] = useState("");
   const [medidaDoblez, setMedidaDoblez] = useState("6"); // Medida del doblez en cm
   const [medidas, setMedidas] = useState<MedidaInput[]>([
-    { medida_nombre: "", metros_por_unidad: "" }
+    { medida_nombre: "", metros_por_unidad: "", diametro_real: 3.8 }
   ]);
 
   // Función para calcular metros lineales a partir del tamaño
@@ -156,26 +174,51 @@ const AdminCostos = () => {
     enabled: !!selectedBatchId
   });
 
+  // Helpers para obtener peso/costo del diámetro real
+  const getPesoForDiam = (d: DiametroReal): number =>
+    parseFloat(d === 3.8 ? pesoMetroLineal38 : pesoMetroLineal55) || 0;
+  const getCostoForDiam = (d: DiametroReal): number =>
+    parseFloat(d === 3.8 ? costoPorKilo38 : costoPorKilo55) || 0;
+
   // Mutación para crear/actualizar tanda
   const saveBatchMutation = useMutation({
-    mutationFn: async (batchData: { 
-      nombre: string; 
-      descripcion: string; 
-      peso_por_metro_lineal: number; 
-      costo_por_kilo: number;
-      medidas: { medida_nombre: string; metros_por_unidad: number; product_id?: string }[];
+    mutationFn: async (batchData: {
+      nombre: string;
+      descripcion: string;
+      peso_por_metro_lineal_38: number;
+      costo_por_kilo_38: number;
+      peso_por_metro_lineal_55: number;
+      costo_por_kilo_55: number;
+      medidas: { medida_nombre: string; metros_por_unidad: number; product_id?: string; diametro_real: DiametroReal }[];
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
+
+      const costoFor = (d: DiametroReal, metros: number) => {
+        const peso = d === 3.8 ? batchData.peso_por_metro_lineal_38 : batchData.peso_por_metro_lineal_55;
+        const costo = d === 3.8 ? batchData.costo_por_kilo_38 : batchData.costo_por_kilo_55;
+        return peso * metros * costo;
+      };
 
       const buildCalcs = (batchId: string) => batchData.medidas.map(m => ({
         batch_id: batchId,
         medida_nombre: m.medida_nombre,
         metros_por_unidad: m.metros_por_unidad,
-        costo_por_unidad: batchData.peso_por_metro_lineal * m.metros_por_unidad * batchData.costo_por_kilo
+        costo_por_unidad: costoFor(m.diametro_real, m.metros_por_unidad),
+        diametro_real: m.diametro_real,
       }));
 
       let batchId: string;
+
+      // Compatibilidad: mantenemos peso_por_metro_lineal/costo_por_kilo legacy con los valores de 3.8mm
+      const legacyPayload = {
+        peso_por_metro_lineal: batchData.peso_por_metro_lineal_38,
+        costo_por_kilo: batchData.costo_por_kilo_38,
+        peso_por_metro_lineal_38: batchData.peso_por_metro_lineal_38,
+        costo_por_kilo_38: batchData.costo_por_kilo_38,
+        peso_por_metro_lineal_55: batchData.peso_por_metro_lineal_55,
+        costo_por_kilo_55: batchData.costo_por_kilo_55,
+      };
 
       if (editingBatchId) {
         const { error: batchError } = await supabase
@@ -183,8 +226,7 @@ const AdminCostos = () => {
           .update({
             nombre: batchData.nombre,
             descripcion: batchData.descripcion,
-            peso_por_metro_lineal: batchData.peso_por_metro_lineal,
-            costo_por_kilo: batchData.costo_por_kilo
+            ...legacyPayload,
           })
           .eq('id', editingBatchId);
         if (batchError) throw batchError;
@@ -202,9 +244,8 @@ const AdminCostos = () => {
           .insert({
             nombre: batchData.nombre,
             descripcion: batchData.descripcion,
-            peso_por_metro_lineal: batchData.peso_por_metro_lineal,
-            costo_por_kilo: batchData.costo_por_kilo,
-            user_id: user.id
+            ...legacyPayload,
+            user_id: user.id,
           })
           .select()
           .single();
@@ -229,7 +270,7 @@ const AdminCostos = () => {
         .filter(m => m.product_id)
         .map(m => ({
           product_id: m.product_id!,
-          production_cost: batchData.peso_por_metro_lineal * m.metros_por_unidad * batchData.costo_por_kilo,
+          production_cost: costoFor(m.diametro_real, m.metros_por_unidad),
           profit_margin: 0
         }));
 
@@ -276,15 +317,17 @@ const AdminCostos = () => {
   const resetForm = () => {
     setNombre("");
     setDescripcion("");
-    setPesoMetroLineal("");
-    setCostoPorKilo("");
+    setPesoMetroLineal38("");
+    setCostoPorKilo38("");
+    setPesoMetroLineal55("");
+    setCostoPorKilo55("");
     setMedidaDoblez("6");
-    setMedidas([{ medida_nombre: "", metros_por_unidad: "" }]);
+    setMedidas([{ medida_nombre: "", metros_por_unidad: "", diametro_real: 3.8 }]);
     setEditingBatchId(null);
   };
 
   const agregarMedida = () => {
-    setMedidas([...medidas, { medida_nombre: "", metros_por_unidad: "" }]);
+    setMedidas([...medidas, { medida_nombre: "", metros_por_unidad: "", diametro_real: 3.8 }]);
   };
 
   const seleccionarEstribo = (index: number, estribosId: string) => {
@@ -296,7 +339,8 @@ const AdminCostos = () => {
       nuevasMedidas[index] = {
         medida_nombre: `${estribo.name} - ${estribo.size}${diamSuffix}`,
         metros_por_unidad: metrosLineales.toFixed(4),
-        product_id: estribo.id
+        product_id: estribo.id,
+        diametro_real: inferDiametroReal(estribo.diameter),
       };
       setMedidas(nuevasMedidas);
     }
@@ -306,30 +350,36 @@ const AdminCostos = () => {
     setMedidas(medidas.filter((_, i) => i !== index));
   };
 
-  const actualizarMedida = (index: number, field: keyof MedidaInput, value: string) => {
+  const actualizarMedida = (index: number, field: 'medida_nombre' | 'metros_por_unidad', value: string) => {
     const nuevasMedidas = [...medidas];
-    nuevasMedidas[index][field] = value;
+    nuevasMedidas[index] = { ...nuevasMedidas[index], [field]: value };
     setMedidas(nuevasMedidas);
   };
 
-  const calcularCostoPorUnidad = (metrosPorUnidad: number): number => {
-    const peso = parseFloat(pesoMetroLineal) || 0;
-    const costo = parseFloat(costoPorKilo) || 0;
-    return peso * metrosPorUnidad * costo;
+  const cambiarDiametroMedida = (index: number, d: DiametroReal) => {
+    const nuevasMedidas = [...medidas];
+    nuevasMedidas[index] = { ...nuevasMedidas[index], diametro_real: d };
+    setMedidas(nuevasMedidas);
+  };
+
+  const calcularCostoPorUnidad = (metrosPorUnidad: number, diametro: DiametroReal): number => {
+    return getPesoForDiam(diametro) * metrosPorUnidad * getCostoForDiam(diametro);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const peso = parseFloat(pesoMetroLineal);
-    const costo = parseFloat(costoPorKilo);
-    
-    if (!nombre || !peso || !costo) {
-      toast.error("Complete todos los campos obligatorios");
+
+    const peso38 = parseFloat(pesoMetroLineal38);
+    const costo38 = parseFloat(costoPorKilo38);
+    const peso55 = parseFloat(pesoMetroLineal55);
+    const costo55 = parseFloat(costoPorKilo55);
+
+    if (!nombre || !peso38 || !costo38 || !peso55 || !costo55) {
+      toast.error("Complete todos los campos obligatorios (peso y costo para ambos diámetros)");
       return;
     }
 
-    const medidasValidas = medidas.filter(m => 
+    const medidasValidas = medidas.filter(m =>
       m.medida_nombre.trim() && parseFloat(m.metros_por_unidad) > 0
     );
 
@@ -341,12 +391,15 @@ const AdminCostos = () => {
     saveBatchMutation.mutate({
       nombre,
       descripcion,
-      peso_por_metro_lineal: peso,
-      costo_por_kilo: costo,
+      peso_por_metro_lineal_38: peso38,
+      costo_por_kilo_38: costo38,
+      peso_por_metro_lineal_55: peso55,
+      costo_por_kilo_55: costo55,
       medidas: medidasValidas.map(m => ({
         medida_nombre: m.medida_nombre,
         metros_por_unidad: parseFloat(m.metros_por_unidad),
-        product_id: m.product_id
+        product_id: m.product_id,
+        diametro_real: m.diametro_real,
       }))
     });
   };
@@ -366,23 +419,30 @@ const AdminCostos = () => {
       return;
     }
 
-    // Llenar el formulario
+    // Llenar el formulario (fallback a campo legacy si los nuevos no están)
     setEditingBatchId(batchId);
     setNombre(batch.nombre);
     setDescripcion(batch.descripcion || "");
-    setPesoMetroLineal(batch.peso_por_metro_lineal.toString());
-    setCostoPorKilo(batch.costo_por_kilo.toString());
-    
+    setPesoMetroLineal38((batch.peso_por_metro_lineal_38 ?? batch.peso_por_metro_lineal).toString());
+    setCostoPorKilo38((batch.costo_por_kilo_38 ?? batch.costo_por_kilo).toString());
+    setPesoMetroLineal55((batch.peso_por_metro_lineal_55 ?? batch.peso_por_metro_lineal).toString());
+    setCostoPorKilo55((batch.costo_por_kilo_55 ?? batch.costo_por_kilo).toString());
+
     if (calcs && calcs.length > 0) {
       setMedidas(calcs.map((calc: any) => {
         const matched = estribosDisponibles.find(e => {
           const withDiam = `${e.name} - ${e.size}${e.diameter ? ` - Ø${e.diameter}mm` : ''}`;
           return withDiam === calc.medida_nombre || `${e.name} - ${e.size}` === calc.medida_nombre;
         });
+        const diametro_real: DiametroReal =
+          calc.diametro_real === 5.5 ? 5.5
+          : calc.diametro_real === 3.8 ? 3.8
+          : inferDiametroReal(matched?.diameter);
         return {
           medida_nombre: calc.medida_nombre,
           metros_por_unidad: calc.metros_por_unidad.toString(),
-          product_id: matched?.id
+          product_id: matched?.id,
+          diametro_real,
         };
       }));
     }
@@ -537,31 +597,69 @@ const AdminCostos = () => {
                     </div>
                   </div>
 
-                  {/* Datos de materia prima */}
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="peso">Peso por Metro Lineal (kg/m) *</Label>
-                      <Input
-                        id="peso"
-                        type="number"
-                        step="0.0001"
-                        placeholder="Ej: 0.395"
-                        value={pesoMetroLineal}
-                        onChange={(e) => setPesoMetroLineal(e.target.value)}
-                        required
-                      />
+                  {/* Datos de materia prima – Hierro 3.8mm (comercial 4.2mm) */}
+                  <div className="rounded-lg border p-4 space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <h3 className="font-semibold text-sm">Hierro Ø3.8mm <span className="text-muted-foreground font-normal">(comercial 4.2mm)</span></h3>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="costo">Costo por Kilo ($/kg) *</Label>
-                      <Input
-                        id="costo"
-                        type="number"
-                        step="0.01"
-                        placeholder="Ej: 1500.00"
-                        value={costoPorKilo}
-                        onChange={(e) => setCostoPorKilo(e.target.value)}
-                        required
-                      />
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="peso-38">Peso por Metro Lineal (kg/m) *</Label>
+                        <Input
+                          id="peso-38"
+                          type="number"
+                          step="0.0001"
+                          placeholder="Ej: 0.088"
+                          value={pesoMetroLineal38}
+                          onChange={(e) => setPesoMetroLineal38(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="costo-38">Costo por Kilo ($/kg) *</Label>
+                        <Input
+                          id="costo-38"
+                          type="number"
+                          step="0.01"
+                          placeholder="Ej: 1500.00"
+                          value={costoPorKilo38}
+                          onChange={(e) => setCostoPorKilo38(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Datos de materia prima – Hierro 5.5mm (comercial 6mm) */}
+                  <div className="rounded-lg border p-4 space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <h3 className="font-semibold text-sm">Hierro Ø5.5mm <span className="text-muted-foreground font-normal">(comercial 6mm)</span></h3>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="peso-55">Peso por Metro Lineal (kg/m) *</Label>
+                        <Input
+                          id="peso-55"
+                          type="number"
+                          step="0.0001"
+                          placeholder="Ej: 0.187"
+                          value={pesoMetroLineal55}
+                          onChange={(e) => setPesoMetroLineal55(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="costo-55">Costo por Kilo ($/kg) *</Label>
+                        <Input
+                          id="costo-55"
+                          type="number"
+                          step="0.01"
+                          placeholder="Ej: 1500.00"
+                          value={costoPorKilo55}
+                          onChange={(e) => setCostoPorKilo55(e.target.value)}
+                          required
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -594,19 +692,18 @@ const AdminCostos = () => {
                     <div className="space-y-3">
                       {medidas.map((medida, index) => {
                         const metros = parseFloat(medida.metros_por_unidad) || 0;
-                        const costoCalculado = calcularCostoPorUnidad(metros);
-                        
+                        const costoCalculado = calcularCostoPorUnidad(metros, medida.diametro_real);
+
                         return (
                           <Card key={index}>
                             <CardContent className="pt-4">
-                              <div className="grid gap-4 md:grid-cols-5 items-end">
+                              <div className="grid gap-4 md:grid-cols-6 items-end">
                                  <div className="space-y-2">
                                    <Label>Seleccionar Medida</Label>
                                    <Select onValueChange={(value) => {
                                      if (value === "manual") {
-                                       // Si selecciona manual, limpiar los campos para ingreso libre
                                        const nuevasMedidas = [...medidas];
-                                       nuevasMedidas[index] = { medida_nombre: "", metros_por_unidad: "" };
+                                       nuevasMedidas[index] = { medida_nombre: "", metros_por_unidad: "", diametro_real: medida.diametro_real };
                                        setMedidas(nuevasMedidas);
                                      } else {
                                        seleccionarEstribo(index, value);
@@ -634,6 +731,21 @@ const AdminCostos = () => {
                                     value={medida.medida_nombre}
                                     onChange={(e) => actualizarMedida(index, 'medida_nombre', e.target.value)}
                                   />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label>Diámetro Hierro</Label>
+                                  <Select
+                                    value={String(medida.diametro_real)}
+                                    onValueChange={(v) => cambiarDiametroMedida(index, parseFloat(v) as DiametroReal)}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-background z-50">
+                                      <SelectItem value="3.8">Ø3.8mm (com. 4.2)</SelectItem>
+                                      <SelectItem value="5.5">Ø5.5mm (com. 6)</SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                 </div>
                                 <div className="space-y-2">
                                   <Label>Metros por Unidad</Label>
@@ -747,14 +859,20 @@ const AdminCostos = () => {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">Peso/m:</span>{" "}
-                          <span className="font-medium">{batch.peso_por_metro_lineal} kg/m</span>
+                      <div className="grid gap-3 text-sm md:grid-cols-2">
+                        <div className="rounded border p-2">
+                          <div className="font-semibold mb-1">Ø3.8mm <span className="text-muted-foreground font-normal">(com. 4.2)</span></div>
+                          <div className="flex flex-wrap gap-x-4 gap-y-1">
+                            <div><span className="text-muted-foreground">Peso/m:</span> <span className="font-medium">{(batch.peso_por_metro_lineal_38 ?? batch.peso_por_metro_lineal)} kg/m</span></div>
+                            <div><span className="text-muted-foreground">Costo/kg:</span> <span className="font-medium">${Number(batch.costo_por_kilo_38 ?? batch.costo_por_kilo).toFixed(2)}</span></div>
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-muted-foreground">Costo/kg:</span>{" "}
-                          <span className="font-medium">${batch.costo_por_kilo.toFixed(2)}</span>
+                        <div className="rounded border p-2">
+                          <div className="font-semibold mb-1">Ø5.5mm <span className="text-muted-foreground font-normal">(com. 6)</span></div>
+                          <div className="flex flex-wrap gap-x-4 gap-y-1">
+                            <div><span className="text-muted-foreground">Peso/m:</span> <span className="font-medium">{(batch.peso_por_metro_lineal_55 ?? batch.peso_por_metro_lineal)} kg/m</span></div>
+                            <div><span className="text-muted-foreground">Costo/kg:</span> <span className="font-medium">${Number(batch.costo_por_kilo_55 ?? batch.costo_por_kilo).toFixed(2)}</span></div>
+                          </div>
                         </div>
                       </div>
 
@@ -763,10 +881,14 @@ const AdminCostos = () => {
                           <h4 className="font-semibold mb-3">Cálculos Detallados</h4>
                           <div className="space-y-2">
                             {calculations.map((calc) => (
-                              <div key={calc.id} className="grid grid-cols-3 gap-4 text-sm bg-muted/50 p-3 rounded">
+                              <div key={calc.id} className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-muted/50 p-3 rounded">
                                 <div>
                                   <span className="text-muted-foreground">Medida:</span>{" "}
                                   <span className="font-medium">{calc.medida_nombre}</span>
+                                </div>
+                                <div>
+                                  <span className="text-muted-foreground">Ø Hierro:</span>{" "}
+                                  <span className="font-medium">{calc.diametro_real ? `Ø${calc.diametro_real}mm` : '—'}</span>
                                 </div>
                                 <div>
                                   <span className="text-muted-foreground">Metros/unidad:</span>{" "}
