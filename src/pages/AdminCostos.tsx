@@ -763,10 +763,15 @@ const AdminCostos = () => {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <Label>Medidas de Estribos</Label>
-                      <Button type="button" variant="outline" size="sm" onClick={agregarMedida}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Agregar Medida
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button type="button" variant="secondary" size="sm" onClick={autollenarTodasMedidas}>
+                          Autollenar todas
+                        </Button>
+                        <Button type="button" variant="outline" size="sm" onClick={agregarMedida}>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Agregar Medida
+                        </Button>
+                      </div>
                     </div>
 
                     <div className="space-y-3">
