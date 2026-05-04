@@ -55,6 +55,10 @@ export const CostManager = ({ products }: Props) => {
   const [savingCosts, setSavingCosts] = useState<Set<string>>(new Set());
   const [ivaRate, setIvaRate] = useState(21);
   const [categoryMargins, setCategoryMargins] = useState<Record<string, number>>({});
+  const [batches, setBatches] = useState<CostBatch[]>([]);
+  const [batchCalcs, setBatchCalcs] = useState<Record<string, CostCalculation[]>>({});
+  const [activeBatchId, setActiveBatchId] = useState<string | null>(null);
+  const [switchingBatch, setSwitchingBatch] = useState(false);
 
   const fetchConfig = async () => {
     try {
