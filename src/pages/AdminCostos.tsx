@@ -167,6 +167,29 @@ const AdminCostos = () => {
     cargarEstribos();
   }, []);
 
+  // Autollenar todas las medidas cuando se cargan los estribos por primera vez
+  // (solo si no se está editando una tanda y la lista está vacía/inicial)
+  useEffect(() => {
+    if (editingBatchId) return;
+    if (estribosDisponibles.length === 0) return;
+    const isInitialEmpty = medidas.length === 1 && !medidas[0].medida_nombre && !medidas[0].metros_por_unidad;
+    if (!isInitialEmpty) return;
+    setMedidas(estribosDisponibles.map(buildMedidaFromEstribo));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [estribosDisponibles, editingBatchId]);
+
+  // Recalcular metros cuando cambia la medida del doblez (afecta a todas las filas autollenas)
+  useEffect(() => {
+    if (estribosDisponibles.length === 0) return;
+    setMedidas(prev => prev.map(m => {
+      if (!m.product_id) return m; // no recalcular medidas manuales
+      const estribo = estribosDisponibles.find(e => e.id === m.product_id);
+      if (!estribo) return m;
+      return { ...m, metros_por_unidad: calcularMetrosLineales(estribo.size, estribo.shape).toFixed(4) };
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [medidaDoblez]);
+
   // Fetch tandas históricas
   const { data: batches = [], isLoading } = useQuery({
     queryKey: ['cost-batches'],
@@ -354,6 +377,28 @@ const AdminCostos = () => {
 
   const agregarMedida = () => {
     setMedidas([...medidas, { medida_nombre: "", metros_por_unidad: "", diametro_real: 3.8 }]);
+  };
+
+  // Genera una fila de medida a partir de un estribo del catálogo
+  const buildMedidaFromEstribo = (estribo: EstribosProduct): MedidaInput => {
+    const metrosLineales = calcularMetrosLineales(estribo.size, estribo.shape);
+    const diamSuffix = estribo.diameter ? ` - Ø${estribo.diameter}mm` : '';
+    return {
+      medida_nombre: `${estribo.name} - ${estribo.size}${diamSuffix}`,
+      metros_por_unidad: metrosLineales.toFixed(4),
+      product_id: estribo.id,
+      diametro_real: inferDiametroReal(estribo.diameter),
+    };
+  };
+
+  // Autollena todas las medidas con todos los estribos del catálogo
+  const autollenarTodasMedidas = () => {
+    if (estribosDisponibles.length === 0) {
+      toast.error("No hay estribos cargados en el catálogo de productos");
+      return;
+    }
+    setMedidas(estribosDisponibles.map(buildMedidaFromEstribo));
+    toast.success(`${estribosDisponibles.length} medida(s) cargadas automáticamente`);
   };
 
   const seleccionarEstribo = (index: number, estribosId: string) => {
@@ -718,10 +763,15 @@ const AdminCostos = () => {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <Label>Medidas de Estribos</Label>
-                      <Button type="button" variant="outline" size="sm" onClick={agregarMedida}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Agregar Medida
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button type="button" variant="secondary" size="sm" onClick={autollenarTodasMedidas}>
+                          Autollenar todas
+                        </Button>
+                        <Button type="button" variant="outline" size="sm" onClick={agregarMedida}>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Agregar Medida
+                        </Button>
+                      </div>
                     </div>
 
                     <div className="space-y-3">
