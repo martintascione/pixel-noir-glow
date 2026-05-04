@@ -92,9 +92,46 @@ export const CostManager = ({ products }: Props) => {
     }
   };
 
+  const fetchBatches = async () => {
+    try {
+      const { data: batchesData, error: bErr } = await supabase
+        .from('cost_batches' as any)
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (bErr) throw bErr;
+      const list = (batchesData || []) as unknown as CostBatch[];
+      setBatches(list);
+
+      if (list.length > 0) {
+        const ids = list.map(b => b.id);
+        const { data: calcsData, error: cErr } = await supabase
+          .from('cost_calculations' as any)
+          .select('*')
+          .in('batch_id', ids);
+        if (cErr) throw cErr;
+        const grouped: Record<string, CostCalculation[]> = {};
+        ((calcsData || []) as unknown as CostCalculation[]).forEach(c => {
+          if (!grouped[c.batch_id]) grouped[c.batch_id] = [];
+          grouped[c.batch_id].push(c);
+        });
+        setBatchCalcs(grouped);
+      }
+
+      const stored = localStorage.getItem(ACTIVE_BATCH_KEY);
+      if (stored && list.find(b => b.id === stored)) {
+        setActiveBatchId(stored);
+      } else if (list.length > 0) {
+        setActiveBatchId(list[0].id);
+      }
+    } catch (err) {
+      console.error('Error fetching batches:', err);
+    }
+  };
+
   useEffect(() => {
     fetchCosts();
     fetchConfig();
+    fetchBatches();
   }, []);
 
   const fetchCosts = async () => {
