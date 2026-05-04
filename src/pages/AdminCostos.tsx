@@ -66,6 +66,28 @@ const ACTIVE_BATCH_KEY = 'active_cost_batch_id';
 const dedupeProductCostUpdates = <T extends { product_id: string }>(updates: T[]): T[] =>
   Array.from(new Map(updates.map(update => [update.product_id, update])).values());
 
+const normalizeMedida = (s: string) =>
+  (s || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s*-\s*/g, ' - ')
+    .trim();
+
+const matchEstribo = (medidaNombre: string, estribos: { id: string; name: string; size: string; diameter?: string }[]) => {
+  const target = normalizeMedida(medidaNombre);
+  return estribos.find(e => {
+    const diamStr = e.diameter ? String(e.diameter).replace(/mm/i, '').trim() : '';
+    const candidates = [
+      `${e.name} - ${e.size}${diamStr ? ` - Ø${diamStr}mm` : ''}`,
+      `${e.name} - ${e.size}`,
+    ].map(normalizeMedida);
+    return candidates.includes(target);
+  });
+};
+
+
 const AdminCostos = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("nueva-tanda");
