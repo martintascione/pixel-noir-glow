@@ -63,6 +63,9 @@ const inferDiametroReal = (diameterStr?: string): DiametroReal => {
 
 const ACTIVE_BATCH_KEY = 'active_cost_batch_id';
 
+const dedupeProductCostUpdates = <T extends { product_id: string }>(updates: T[]): T[] =>
+  Array.from(new Map(updates.map(update => [update.product_id, update])).values());
+
 const AdminCostos = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("nueva-tanda");
@@ -266,13 +269,13 @@ const AdminCostos = () => {
       }
 
       // Sincronizar costos a Gestión de Productos (product_costs) SOLO si es la tanda activa
-      const updates = batchData.medidas
+      const updates = dedupeProductCostUpdates(batchData.medidas
         .filter(m => m.product_id)
         .map(m => ({
           product_id: m.product_id!,
           production_cost: costoFor(m.diametro_real, m.metros_por_unidad),
           profit_margin: 0
-        }));
+        })));
 
       let syncedCount = 0;
       if (willBeActive && updates.length > 0) {
@@ -470,7 +473,7 @@ const AdminCostos = () => {
       if (error) throw error;
 
       // Resolver product_id a partir del nombre de la medida
-      const updates = (calcs || [])
+      const updates = dedupeProductCostUpdates((calcs || [])
         .map((calc: any) => {
           const matched = estribosDisponibles.find(e => {
             const withDiam = `${e.name} - ${e.size}${e.diameter ? ` - Ø${e.diameter}mm` : ''}`;
@@ -481,7 +484,7 @@ const AdminCostos = () => {
             production_cost: calc.costo_por_unidad,
           } : null;
         })
-        .filter(Boolean) as { product_id: string; production_cost: number }[];
+        .filter(Boolean) as { product_id: string; production_cost: number }[]);
 
       let syncedCount = 0;
       if (updates.length > 0) {

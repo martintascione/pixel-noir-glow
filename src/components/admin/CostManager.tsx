@@ -13,6 +13,9 @@ import { formatCurrency } from '@/utils/formatters';
 
 const ACTIVE_BATCH_KEY = 'active_cost_batch_id';
 
+const dedupeProductCostUpdates = <T extends { product_id: string }>(updates: T[]): T[] =>
+  Array.from(new Map(updates.map(update => [update.product_id, update])).values());
+
 interface CostBatch {
   id: string;
   nombre: string;
@@ -343,12 +346,12 @@ export const CostManager = ({ products }: Props) => {
     setSwitchingBatch(true);
     try {
       const calcs = batchCalcs[batchId] || [];
-      const updates = calcs
+      const updates = dedupeProductCostUpdates(calcs
         .map(calc => {
           const pid = resolveProductId(calc.medida_nombre, products);
           return pid ? { product_id: pid, production_cost: calc.costo_por_unidad } : null;
         })
-        .filter(Boolean) as { product_id: string; production_cost: number }[];
+        .filter(Boolean) as { product_id: string; production_cost: number }[]);
 
       if (updates.length > 0) {
         const productIds = updates.map(u => u.product_id);
@@ -518,14 +521,14 @@ export const CostManager = ({ products }: Props) => {
                             // 1) Persistir profit_margin en product_costs (upsert por producto)
                             // 2) Actualizar el precio público (products.price) con el precio final calculado
                             const productosCategoria = groupedProducts[categoryName];
-                            const costUpserts = productosCategoria.map(p => {
+                            const costUpserts = dedupeProductCostUpdates(productosCategoria.map(p => {
                               const c = costs.find(x => x.product_id === p.id);
                               return {
                                 product_id: p.id,
                                 production_cost: c?.production_cost ?? 0,
                                 profit_margin: margin,
                               };
-                            });
+                            }));
 
                             if (costUpserts.length > 0) {
                               const { error: upErr } = await supabase
