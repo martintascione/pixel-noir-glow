@@ -313,11 +313,25 @@ export const CostManager = ({ products }: Props) => {
     return a.localeCompare(b);
   });
 
-  // Resolver product_id desde el nombre de medida de un cálculo
+  // Resolver product_id desde el nombre de medida de un cálculo (tolerante)
+  const normalize = (s: string) =>
+    (s || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ')
+      .replace(/\s*-\s*/g, ' - ')
+      .trim();
+
   const resolveProductId = (medidaNombre: string, categoryProducts: Product[]): string | null => {
+    const target = normalize(medidaNombre);
     const matched = categoryProducts.find(p => {
-      const withDiam = `${p.name} - ${p.size}${p.diameter ? ` - Ø${p.diameter}mm` : ''}`;
-      return withDiam === medidaNombre || `${p.name} - ${p.size}` === medidaNombre;
+      const diamStr = p.diameter ? String(p.diameter).replace(/mm/i, '').trim() : '';
+      const candidates = [
+        `${p.name} - ${p.size}${diamStr ? ` - Ø${diamStr}mm` : ''}`,
+        `${p.name} - ${p.size}`,
+      ].map(normalize);
+      return candidates.includes(target);
     });
     return matched?.id ?? null;
   };
