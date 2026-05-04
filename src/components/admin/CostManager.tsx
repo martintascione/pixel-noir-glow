@@ -28,6 +28,7 @@ interface CostCalculation {
   batch_id: string;
   medida_nombre: string;
   costo_por_unidad: number;
+  product_id?: string | null;
 }
 
 interface Product {
@@ -361,7 +362,9 @@ export const CostManager = ({ products }: Props) => {
     try {
       const calcs = batchCalcs[batchId] || [];
       const mapped = calcs.map(calc => {
-        const pid = resolveProductId(calc.medida_nombre, products);
+        const directId = calc.product_id ?? null;
+        const exists = directId ? products.find(p => p.id === directId) : null;
+        const pid = exists ? exists.id : resolveProductId(calc.medida_nombre, products);
         return { calc, pid };
       });
       const unmatched = mapped.filter(m => !m.pid).map(m => m.calc.medida_nombre);
