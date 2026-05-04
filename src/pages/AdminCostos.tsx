@@ -859,14 +859,20 @@ const AdminCostos = () => {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">Peso/m:</span>{" "}
-                          <span className="font-medium">{batch.peso_por_metro_lineal} kg/m</span>
+                      <div className="grid gap-3 text-sm md:grid-cols-2">
+                        <div className="rounded border p-2">
+                          <div className="font-semibold mb-1">Ø3.8mm <span className="text-muted-foreground font-normal">(com. 4.2)</span></div>
+                          <div className="flex flex-wrap gap-x-4 gap-y-1">
+                            <div><span className="text-muted-foreground">Peso/m:</span> <span className="font-medium">{(batch.peso_por_metro_lineal_38 ?? batch.peso_por_metro_lineal)} kg/m</span></div>
+                            <div><span className="text-muted-foreground">Costo/kg:</span> <span className="font-medium">${Number(batch.costo_por_kilo_38 ?? batch.costo_por_kilo).toFixed(2)}</span></div>
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-muted-foreground">Costo/kg:</span>{" "}
-                          <span className="font-medium">${batch.costo_por_kilo.toFixed(2)}</span>
+                        <div className="rounded border p-2">
+                          <div className="font-semibold mb-1">Ø5.5mm <span className="text-muted-foreground font-normal">(com. 6)</span></div>
+                          <div className="flex flex-wrap gap-x-4 gap-y-1">
+                            <div><span className="text-muted-foreground">Peso/m:</span> <span className="font-medium">{(batch.peso_por_metro_lineal_55 ?? batch.peso_por_metro_lineal)} kg/m</span></div>
+                            <div><span className="text-muted-foreground">Costo/kg:</span> <span className="font-medium">${Number(batch.costo_por_kilo_55 ?? batch.costo_por_kilo).toFixed(2)}</span></div>
+                          </div>
                         </div>
                       </div>
 
@@ -875,10 +881,14 @@ const AdminCostos = () => {
                           <h4 className="font-semibold mb-3">Cálculos Detallados</h4>
                           <div className="space-y-2">
                             {calculations.map((calc) => (
-                              <div key={calc.id} className="grid grid-cols-3 gap-4 text-sm bg-muted/50 p-3 rounded">
+                              <div key={calc.id} className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-muted/50 p-3 rounded">
                                 <div>
                                   <span className="text-muted-foreground">Medida:</span>{" "}
                                   <span className="font-medium">{calc.medida_nombre}</span>
+                                </div>
+                                <div>
+                                  <span className="text-muted-foreground">Ø Hierro:</span>{" "}
+                                  <span className="font-medium">{calc.diametro_real ? `Ø${calc.diametro_real}mm` : '—'}</span>
                                 </div>
                                 <div>
                                   <span className="text-muted-foreground">Metros/unidad:</span>{" "}
