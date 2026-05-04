@@ -492,18 +492,22 @@ const AdminCostos = () => {
       if (error) throw error;
 
       // Resolver product_id a partir del nombre de la medida
-      const updates = dedupeProductCostUpdates((calcs || [])
-        .map((calc: any) => {
-          const matched = estribosDisponibles.find(e => {
-            const withDiam = `${e.name} - ${e.size}${e.diameter ? ` - Ø${e.diameter}mm` : ''}`;
-            return withDiam === calc.medida_nombre || `${e.name} - ${e.size}` === calc.medida_nombre;
-          });
-          return matched ? {
-            product_id: matched.id,
-            production_cost: calc.costo_por_unidad,
-          } : null;
-        })
-        .filter(Boolean) as { product_id: string; production_cost: number }[]);
+      const mapped = (calcs || []).map((calc: any) => {
+        const matched = matchEstribo(calc.medida_nombre, estribosDisponibles);
+        return { calc, matched };
+      });
+      const unmatched = mapped.filter(m => !m.matched).map(m => m.calc.medida_nombre);
+      if (unmatched.length > 0) {
+        console.warn('[activarTanda] Medidas sin match con productos:', unmatched);
+      }
+      const updates = dedupeProductCostUpdates(
+        mapped
+          .filter(m => m.matched)
+          .map(m => ({
+            product_id: m.matched!.id,
+            production_cost: m.calc.costo_por_unidad,
+          }))
+      );
 
       let syncedCount = 0;
       if (updates.length > 0) {
@@ -525,6 +529,11 @@ const AdminCostos = () => {
           .upsert(finalUpdates, { onConflict: 'product_id' });
         if (upsertError) throw upsertError;
         syncedCount = finalUpdates.length;
+        if (unmatched.length > 0) {
+          toast.warning(`${unmatched.length} medida(s) sin producto asociado`, {
+            description: unmatched.slice(0, 3).join(', ') + (unmatched.length > 3 ? '…' : ''),
+          });
+        }
       }
 
       localStorage.setItem(ACTIVE_BATCH_KEY, batchId);
