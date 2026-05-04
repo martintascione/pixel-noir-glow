@@ -231,6 +231,7 @@ const AdminCostos = () => {
         metros_por_unidad: m.metros_por_unidad,
         costo_por_unidad: costoFor(m.diametro_real, m.metros_por_unidad),
         diametro_real: m.diametro_real,
+        product_id: m.product_id ?? null,
       }));
 
       let batchId: string;
