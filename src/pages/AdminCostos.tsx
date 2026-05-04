@@ -75,11 +75,13 @@ const AdminCostos = () => {
   // Form state para nueva tanda
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [pesoMetroLineal, setPesoMetroLineal] = useState("");
-  const [costoPorKilo, setCostoPorKilo] = useState("");
+  const [pesoMetroLineal38, setPesoMetroLineal38] = useState("");
+  const [costoPorKilo38, setCostoPorKilo38] = useState("");
+  const [pesoMetroLineal55, setPesoMetroLineal55] = useState("");
+  const [costoPorKilo55, setCostoPorKilo55] = useState("");
   const [medidaDoblez, setMedidaDoblez] = useState("6"); // Medida del doblez en cm
   const [medidas, setMedidas] = useState<MedidaInput[]>([
-    { medida_nombre: "", metros_por_unidad: "" }
+    { medida_nombre: "", metros_por_unidad: "", diametro_real: 3.8 }
   ]);
 
   // Función para calcular metros lineales a partir del tamaño
