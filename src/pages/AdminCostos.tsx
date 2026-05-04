@@ -28,6 +28,10 @@ interface CostBatch {
   descripcion: string | null;
   peso_por_metro_lineal: number;
   costo_por_kilo: number;
+  peso_por_metro_lineal_38?: number | null;
+  costo_por_kilo_38?: number | null;
+  peso_por_metro_lineal_55?: number | null;
+  costo_por_kilo_55?: number | null;
   created_at: string;
 }
 
@@ -37,13 +41,25 @@ interface CostCalculation {
   medida_nombre: string;
   metros_por_unidad: number;
   costo_por_unidad: number;
+  diametro_real?: number | null;
 }
+
+type DiametroReal = 3.8 | 5.5;
 
 interface MedidaInput {
   medida_nombre: string;
   metros_por_unidad: string;
   product_id?: string;
+  diametro_real: DiametroReal;
 }
+
+// Mapea el diámetro comercial del producto al diámetro real del hierro
+const inferDiametroReal = (diameterStr?: string): DiametroReal => {
+  const d = parseFloat((diameterStr || '').replace(',', '.'));
+  if (!isFinite(d) || d <= 0) return 3.8;
+  // Ø ≤ 4.5mm comercial → hierro real 3.8mm; resto → 5.5mm
+  return d <= 4.5 ? 3.8 : 5.5;
+};
 
 const ACTIVE_BATCH_KEY = 'active_cost_batch_id';
 
