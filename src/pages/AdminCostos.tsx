@@ -174,26 +174,51 @@ const AdminCostos = () => {
     enabled: !!selectedBatchId
   });
 
+  // Helpers para obtener peso/costo del diámetro real
+  const getPesoForDiam = (d: DiametroReal): number =>
+    parseFloat(d === 3.8 ? pesoMetroLineal38 : pesoMetroLineal55) || 0;
+  const getCostoForDiam = (d: DiametroReal): number =>
+    parseFloat(d === 3.8 ? costoPorKilo38 : costoPorKilo55) || 0;
+
   // Mutación para crear/actualizar tanda
   const saveBatchMutation = useMutation({
-    mutationFn: async (batchData: { 
-      nombre: string; 
-      descripcion: string; 
-      peso_por_metro_lineal: number; 
-      costo_por_kilo: number;
-      medidas: { medida_nombre: string; metros_por_unidad: number; product_id?: string }[];
+    mutationFn: async (batchData: {
+      nombre: string;
+      descripcion: string;
+      peso_por_metro_lineal_38: number;
+      costo_por_kilo_38: number;
+      peso_por_metro_lineal_55: number;
+      costo_por_kilo_55: number;
+      medidas: { medida_nombre: string; metros_por_unidad: number; product_id?: string; diametro_real: DiametroReal }[];
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
+
+      const costoFor = (d: DiametroReal, metros: number) => {
+        const peso = d === 3.8 ? batchData.peso_por_metro_lineal_38 : batchData.peso_por_metro_lineal_55;
+        const costo = d === 3.8 ? batchData.costo_por_kilo_38 : batchData.costo_por_kilo_55;
+        return peso * metros * costo;
+      };
 
       const buildCalcs = (batchId: string) => batchData.medidas.map(m => ({
         batch_id: batchId,
         medida_nombre: m.medida_nombre,
         metros_por_unidad: m.metros_por_unidad,
-        costo_por_unidad: batchData.peso_por_metro_lineal * m.metros_por_unidad * batchData.costo_por_kilo
+        costo_por_unidad: costoFor(m.diametro_real, m.metros_por_unidad),
+        diametro_real: m.diametro_real,
       }));
 
       let batchId: string;
+
+      // Compatibilidad: mantenemos peso_por_metro_lineal/costo_por_kilo legacy con los valores de 3.8mm
+      const legacyPayload = {
+        peso_por_metro_lineal: batchData.peso_por_metro_lineal_38,
+        costo_por_kilo: batchData.costo_por_kilo_38,
+        peso_por_metro_lineal_38: batchData.peso_por_metro_lineal_38,
+        costo_por_kilo_38: batchData.costo_por_kilo_38,
+        peso_por_metro_lineal_55: batchData.peso_por_metro_lineal_55,
+        costo_por_kilo_55: batchData.costo_por_kilo_55,
+      };
 
       if (editingBatchId) {
         const { error: batchError } = await supabase
@@ -201,8 +226,7 @@ const AdminCostos = () => {
           .update({
             nombre: batchData.nombre,
             descripcion: batchData.descripcion,
-            peso_por_metro_lineal: batchData.peso_por_metro_lineal,
-            costo_por_kilo: batchData.costo_por_kilo
+            ...legacyPayload,
           })
           .eq('id', editingBatchId);
         if (batchError) throw batchError;
@@ -220,9 +244,8 @@ const AdminCostos = () => {
           .insert({
             nombre: batchData.nombre,
             descripcion: batchData.descripcion,
-            peso_por_metro_lineal: batchData.peso_por_metro_lineal,
-            costo_por_kilo: batchData.costo_por_kilo,
-            user_id: user.id
+            ...legacyPayload,
+            user_id: user.id,
           })
           .select()
           .single();
@@ -247,7 +270,7 @@ const AdminCostos = () => {
         .filter(m => m.product_id)
         .map(m => ({
           product_id: m.product_id!,
-          production_cost: batchData.peso_por_metro_lineal * m.metros_por_unidad * batchData.costo_por_kilo,
+          production_cost: costoFor(m.diametro_real, m.metros_por_unidad),
           profit_margin: 0
         }));
 
@@ -294,15 +317,17 @@ const AdminCostos = () => {
   const resetForm = () => {
     setNombre("");
     setDescripcion("");
-    setPesoMetroLineal("");
-    setCostoPorKilo("");
+    setPesoMetroLineal38("");
+    setCostoPorKilo38("");
+    setPesoMetroLineal55("");
+    setCostoPorKilo55("");
     setMedidaDoblez("6");
-    setMedidas([{ medida_nombre: "", metros_por_unidad: "" }]);
+    setMedidas([{ medida_nombre: "", metros_por_unidad: "", diametro_real: 3.8 }]);
     setEditingBatchId(null);
   };
 
   const agregarMedida = () => {
-    setMedidas([...medidas, { medida_nombre: "", metros_por_unidad: "" }]);
+    setMedidas([...medidas, { medida_nombre: "", metros_por_unidad: "", diametro_real: 3.8 }]);
   };
 
   const seleccionarEstribo = (index: number, estribosId: string) => {
@@ -314,7 +339,8 @@ const AdminCostos = () => {
       nuevasMedidas[index] = {
         medida_nombre: `${estribo.name} - ${estribo.size}${diamSuffix}`,
         metros_por_unidad: metrosLineales.toFixed(4),
-        product_id: estribo.id
+        product_id: estribo.id,
+        diametro_real: inferDiametroReal(estribo.diameter),
       };
       setMedidas(nuevasMedidas);
     }
@@ -324,30 +350,36 @@ const AdminCostos = () => {
     setMedidas(medidas.filter((_, i) => i !== index));
   };
 
-  const actualizarMedida = (index: number, field: keyof MedidaInput, value: string) => {
+  const actualizarMedida = (index: number, field: 'medida_nombre' | 'metros_por_unidad', value: string) => {
     const nuevasMedidas = [...medidas];
-    nuevasMedidas[index][field] = value;
+    nuevasMedidas[index] = { ...nuevasMedidas[index], [field]: value };
     setMedidas(nuevasMedidas);
   };
 
-  const calcularCostoPorUnidad = (metrosPorUnidad: number): number => {
-    const peso = parseFloat(pesoMetroLineal) || 0;
-    const costo = parseFloat(costoPorKilo) || 0;
-    return peso * metrosPorUnidad * costo;
+  const cambiarDiametroMedida = (index: number, d: DiametroReal) => {
+    const nuevasMedidas = [...medidas];
+    nuevasMedidas[index] = { ...nuevasMedidas[index], diametro_real: d };
+    setMedidas(nuevasMedidas);
+  };
+
+  const calcularCostoPorUnidad = (metrosPorUnidad: number, diametro: DiametroReal): number => {
+    return getPesoForDiam(diametro) * metrosPorUnidad * getCostoForDiam(diametro);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const peso = parseFloat(pesoMetroLineal);
-    const costo = parseFloat(costoPorKilo);
-    
-    if (!nombre || !peso || !costo) {
-      toast.error("Complete todos los campos obligatorios");
+
+    const peso38 = parseFloat(pesoMetroLineal38);
+    const costo38 = parseFloat(costoPorKilo38);
+    const peso55 = parseFloat(pesoMetroLineal55);
+    const costo55 = parseFloat(costoPorKilo55);
+
+    if (!nombre || !peso38 || !costo38 || !peso55 || !costo55) {
+      toast.error("Complete todos los campos obligatorios (peso y costo para ambos diámetros)");
       return;
     }
 
-    const medidasValidas = medidas.filter(m => 
+    const medidasValidas = medidas.filter(m =>
       m.medida_nombre.trim() && parseFloat(m.metros_por_unidad) > 0
     );
 
@@ -359,12 +391,15 @@ const AdminCostos = () => {
     saveBatchMutation.mutate({
       nombre,
       descripcion,
-      peso_por_metro_lineal: peso,
-      costo_por_kilo: costo,
+      peso_por_metro_lineal_38: peso38,
+      costo_por_kilo_38: costo38,
+      peso_por_metro_lineal_55: peso55,
+      costo_por_kilo_55: costo55,
       medidas: medidasValidas.map(m => ({
         medida_nombre: m.medida_nombre,
         metros_por_unidad: parseFloat(m.metros_por_unidad),
-        product_id: m.product_id
+        product_id: m.product_id,
+        diametro_real: m.diametro_real,
       }))
     });
   };
@@ -384,23 +419,30 @@ const AdminCostos = () => {
       return;
     }
 
-    // Llenar el formulario
+    // Llenar el formulario (fallback a campo legacy si los nuevos no están)
     setEditingBatchId(batchId);
     setNombre(batch.nombre);
     setDescripcion(batch.descripcion || "");
-    setPesoMetroLineal(batch.peso_por_metro_lineal.toString());
-    setCostoPorKilo(batch.costo_por_kilo.toString());
-    
+    setPesoMetroLineal38((batch.peso_por_metro_lineal_38 ?? batch.peso_por_metro_lineal).toString());
+    setCostoPorKilo38((batch.costo_por_kilo_38 ?? batch.costo_por_kilo).toString());
+    setPesoMetroLineal55((batch.peso_por_metro_lineal_55 ?? batch.peso_por_metro_lineal).toString());
+    setCostoPorKilo55((batch.costo_por_kilo_55 ?? batch.costo_por_kilo).toString());
+
     if (calcs && calcs.length > 0) {
       setMedidas(calcs.map((calc: any) => {
         const matched = estribosDisponibles.find(e => {
           const withDiam = `${e.name} - ${e.size}${e.diameter ? ` - Ø${e.diameter}mm` : ''}`;
           return withDiam === calc.medida_nombre || `${e.name} - ${e.size}` === calc.medida_nombre;
         });
+        const diametro_real: DiametroReal =
+          calc.diametro_real === 5.5 ? 5.5
+          : calc.diametro_real === 3.8 ? 3.8
+          : inferDiametroReal(matched?.diameter);
         return {
           medida_nombre: calc.medida_nombre,
           metros_por_unidad: calc.metros_por_unidad.toString(),
-          product_id: matched?.id
+          product_id: matched?.id,
+          diametro_real,
         };
       }));
     }
