@@ -167,6 +167,29 @@ const AdminCostos = () => {
     cargarEstribos();
   }, []);
 
+  // Autollenar todas las medidas cuando se cargan los estribos por primera vez
+  // (solo si no se está editando una tanda y la lista está vacía/inicial)
+  useEffect(() => {
+    if (editingBatchId) return;
+    if (estribosDisponibles.length === 0) return;
+    const isInitialEmpty = medidas.length === 1 && !medidas[0].medida_nombre && !medidas[0].metros_por_unidad;
+    if (!isInitialEmpty) return;
+    setMedidas(estribosDisponibles.map(buildMedidaFromEstribo));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [estribosDisponibles, editingBatchId]);
+
+  // Recalcular metros cuando cambia la medida del doblez (afecta a todas las filas autollenas)
+  useEffect(() => {
+    if (estribosDisponibles.length === 0) return;
+    setMedidas(prev => prev.map(m => {
+      if (!m.product_id) return m; // no recalcular medidas manuales
+      const estribo = estribosDisponibles.find(e => e.id === m.product_id);
+      if (!estribo) return m;
+      return { ...m, metros_por_unidad: calcularMetrosLineales(estribo.size, estribo.shape).toFixed(4) };
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [medidaDoblez]);
+
   // Fetch tandas históricas
   const { data: batches = [], isLoading } = useQuery({
     queryKey: ['cost-batches'],
