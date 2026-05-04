@@ -692,19 +692,18 @@ const AdminCostos = () => {
                     <div className="space-y-3">
                       {medidas.map((medida, index) => {
                         const metros = parseFloat(medida.metros_por_unidad) || 0;
-                        const costoCalculado = calcularCostoPorUnidad(metros);
-                        
+                        const costoCalculado = calcularCostoPorUnidad(metros, medida.diametro_real);
+
                         return (
                           <Card key={index}>
                             <CardContent className="pt-4">
-                              <div className="grid gap-4 md:grid-cols-5 items-end">
+                              <div className="grid gap-4 md:grid-cols-6 items-end">
                                  <div className="space-y-2">
                                    <Label>Seleccionar Medida</Label>
                                    <Select onValueChange={(value) => {
                                      if (value === "manual") {
-                                       // Si selecciona manual, limpiar los campos para ingreso libre
                                        const nuevasMedidas = [...medidas];
-                                       nuevasMedidas[index] = { medida_nombre: "", metros_por_unidad: "" };
+                                       nuevasMedidas[index] = { medida_nombre: "", metros_por_unidad: "", diametro_real: medida.diametro_real };
                                        setMedidas(nuevasMedidas);
                                      } else {
                                        seleccionarEstribo(index, value);
@@ -732,6 +731,21 @@ const AdminCostos = () => {
                                     value={medida.medida_nombre}
                                     onChange={(e) => actualizarMedida(index, 'medida_nombre', e.target.value)}
                                   />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label>Diámetro Hierro</Label>
+                                  <Select
+                                    value={String(medida.diametro_real)}
+                                    onValueChange={(v) => cambiarDiametroMedida(index, parseFloat(v) as DiametroReal)}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-background z-50">
+                                      <SelectItem value="3.8">Ø3.8mm (com. 4.2)</SelectItem>
+                                      <SelectItem value="5.5">Ø5.5mm (com. 6)</SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                 </div>
                                 <div className="space-y-2">
                                   <Label>Metros por Unidad</Label>
