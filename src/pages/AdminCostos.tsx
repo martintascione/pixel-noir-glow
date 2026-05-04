@@ -597,31 +597,69 @@ const AdminCostos = () => {
                     </div>
                   </div>
 
-                  {/* Datos de materia prima */}
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="peso">Peso por Metro Lineal (kg/m) *</Label>
-                      <Input
-                        id="peso"
-                        type="number"
-                        step="0.0001"
-                        placeholder="Ej: 0.395"
-                        value={pesoMetroLineal}
-                        onChange={(e) => setPesoMetroLineal(e.target.value)}
-                        required
-                      />
+                  {/* Datos de materia prima – Hierro 3.8mm (comercial 4.2mm) */}
+                  <div className="rounded-lg border p-4 space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <h3 className="font-semibold text-sm">Hierro Ø3.8mm <span className="text-muted-foreground font-normal">(comercial 4.2mm)</span></h3>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="costo">Costo por Kilo ($/kg) *</Label>
-                      <Input
-                        id="costo"
-                        type="number"
-                        step="0.01"
-                        placeholder="Ej: 1500.00"
-                        value={costoPorKilo}
-                        onChange={(e) => setCostoPorKilo(e.target.value)}
-                        required
-                      />
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="peso-38">Peso por Metro Lineal (kg/m) *</Label>
+                        <Input
+                          id="peso-38"
+                          type="number"
+                          step="0.0001"
+                          placeholder="Ej: 0.088"
+                          value={pesoMetroLineal38}
+                          onChange={(e) => setPesoMetroLineal38(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="costo-38">Costo por Kilo ($/kg) *</Label>
+                        <Input
+                          id="costo-38"
+                          type="number"
+                          step="0.01"
+                          placeholder="Ej: 1500.00"
+                          value={costoPorKilo38}
+                          onChange={(e) => setCostoPorKilo38(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Datos de materia prima – Hierro 5.5mm (comercial 6mm) */}
+                  <div className="rounded-lg border p-4 space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <h3 className="font-semibold text-sm">Hierro Ø5.5mm <span className="text-muted-foreground font-normal">(comercial 6mm)</span></h3>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor="peso-55">Peso por Metro Lineal (kg/m) *</Label>
+                        <Input
+                          id="peso-55"
+                          type="number"
+                          step="0.0001"
+                          placeholder="Ej: 0.187"
+                          value={pesoMetroLineal55}
+                          onChange={(e) => setPesoMetroLineal55(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="costo-55">Costo por Kilo ($/kg) *</Label>
+                        <Input
+                          id="costo-55"
+                          type="number"
+                          step="0.01"
+                          placeholder="Ej: 1500.00"
+                          value={costoPorKilo55}
+                          onChange={(e) => setCostoPorKilo55(e.target.value)}
+                          required
+                        />
+                      </div>
                     </div>
                   </div>
 
