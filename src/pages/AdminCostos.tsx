@@ -492,20 +492,23 @@ const AdminCostos = () => {
 
       if (error) throw error;
 
-      // Resolver product_id a partir del nombre de la medida
+      // Resolver product_id: prioridad al guardado en cost_calculations.product_id, fallback al match por nombre
       const mapped = (calcs || []).map((calc: any) => {
-        const matched = matchEstribo(calc.medida_nombre, estribosDisponibles);
-        return { calc, matched };
+        const directId: string | null = calc.product_id ?? null;
+        const matched = directId
+          ? estribosDisponibles.find(e => e.id === directId) ?? null
+          : matchEstribo(calc.medida_nombre, estribosDisponibles) ?? null;
+        return { calc, matched, productId: directId ?? matched?.id ?? null };
       });
-      const unmatched = mapped.filter(m => !m.matched).map(m => m.calc.medida_nombre);
+      const unmatched = mapped.filter(m => !m.productId).map(m => m.calc.medida_nombre);
       if (unmatched.length > 0) {
         console.warn('[activarTanda] Medidas sin match con productos:', unmatched);
       }
       const updates = dedupeProductCostUpdates(
         mapped
-          .filter(m => m.matched)
+          .filter(m => m.productId)
           .map(m => ({
-            product_id: m.matched!.id,
+            product_id: m.productId as string,
             production_cost: m.calc.costo_por_unidad,
           }))
       );
