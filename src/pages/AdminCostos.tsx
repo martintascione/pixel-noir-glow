@@ -499,21 +499,42 @@ const AdminCostos = () => {
     setPesoMetroLineal55((batch.peso_por_metro_lineal_55 ?? batch.peso_por_metro_lineal).toString());
     setCostoPorKilo55((batch.costo_por_kilo_55 ?? batch.costo_por_kilo).toString());
 
-    if (calcs && calcs.length > 0) {
-      setMedidas(calcs.map((calc: any) => {
-        const matched = matchEstribo(calc.medida_nombre, estribosDisponibles);
-        const diametro_real: DiametroReal =
-          calc.diametro_real === 5.5 ? 5.5
-          : calc.diametro_real === 3.8 ? 3.8
-          : inferDiametroReal(matched?.diameter);
-        return {
-          medida_nombre: calc.medida_nombre,
-          metros_por_unidad: calc.metros_por_unidad.toString(),
-          product_id: matched?.id,
-          diametro_real,
-        };
-      }));
+    // 1) Mapear cálculos existentes a medidas, resolviendo product_id (directo o por nombre)
+    const medidasFromCalcs: MedidaInput[] = (calcs || []).map((calc: any) => {
+      const directId: string | null = calc.product_id ?? null;
+      const matched = directId
+        ? estribosDisponibles.find(e => e.id === directId)
+        : matchEstribo(calc.medida_nombre, estribosDisponibles);
+      const diametro_real: DiametroReal =
+        calc.diametro_real === 5.5 ? 5.5
+        : calc.diametro_real === 3.8 ? 3.8
+        : inferDiametroReal(matched?.diameter);
+      return {
+        medida_nombre: calc.medida_nombre,
+        metros_por_unidad: calc.metros_por_unidad.toString(),
+        product_id: matched?.id,
+        diametro_real,
+      };
+    });
+
+    // 2) Deduplicar por product_id (las medidas manuales sin product_id se conservan tal cual)
+    const seenIds = new Set<string>();
+    const dedup: MedidaInput[] = [];
+    for (const m of medidasFromCalcs) {
+      if (m.product_id) {
+        if (seenIds.has(m.product_id)) continue;
+        seenIds.add(m.product_id);
+      }
+      dedup.push(m);
     }
+
+    // 3) Completar con los estribos del catálogo que aún no estén en la lista
+    const faltantes = estribosDisponibles
+      .filter(e => !seenIds.has(e.id))
+      .map(buildMedidaFromEstribo);
+
+    const medidasFinales = [...dedup, ...faltantes];
+    setMedidas(medidasFinales.length > 0 ? medidasFinales : [{ medida_nombre: "", metros_por_unidad: "", diametro_real: 3.8 }]);
 
     setActiveTab("nueva-tanda");
     toast.success("Tanda cargada para edición");
