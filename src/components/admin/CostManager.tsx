@@ -5,10 +5,27 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Calculator, DollarSign, Percent, Save } from 'lucide-react';
+import { Calculator, DollarSign, Percent, Save, CheckCircle2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/utils/formatters';
+
+const ACTIVE_BATCH_KEY = 'active_cost_batch_id';
+
+interface CostBatch {
+  id: string;
+  nombre: string;
+  descripcion: string | null;
+  created_at: string;
+}
+
+interface CostCalculation {
+  id: string;
+  batch_id: string;
+  medida_nombre: string;
+  costo_por_unidad: number;
+}
 
 interface Product {
   id: string;
