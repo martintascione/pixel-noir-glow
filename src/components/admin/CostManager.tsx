@@ -360,12 +360,19 @@ export const CostManager = ({ products }: Props) => {
     setSwitchingBatch(true);
     try {
       const calcs = batchCalcs[batchId] || [];
-      const updates = dedupeProductCostUpdates(calcs
-        .map(calc => {
-          const pid = resolveProductId(calc.medida_nombre, products);
-          return pid ? { product_id: pid, production_cost: calc.costo_por_unidad } : null;
-        })
-        .filter(Boolean) as { product_id: string; production_cost: number }[]);
+      const mapped = calcs.map(calc => {
+        const pid = resolveProductId(calc.medida_nombre, products);
+        return { calc, pid };
+      });
+      const unmatched = mapped.filter(m => !m.pid).map(m => m.calc.medida_nombre);
+      if (unmatched.length > 0) {
+        console.warn('[cambiarTandaActiva] Medidas sin match con productos:', unmatched);
+      }
+      const updates = dedupeProductCostUpdates(
+        mapped
+          .filter(m => m.pid)
+          .map(m => ({ product_id: m.pid as string, production_cost: m.calc.costo_por_unidad }))
+      );
 
       if (updates.length > 0) {
         const productIds = updates.map(u => u.product_id);
