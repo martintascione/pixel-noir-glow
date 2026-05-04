@@ -66,6 +66,28 @@ const ACTIVE_BATCH_KEY = 'active_cost_batch_id';
 const dedupeProductCostUpdates = <T extends { product_id: string }>(updates: T[]): T[] =>
   Array.from(new Map(updates.map(update => [update.product_id, update])).values());
 
+const normalizeMedida = (s: string) =>
+  (s || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s*-\s*/g, ' - ')
+    .trim();
+
+const matchEstribo = (medidaNombre: string, estribos: { id: string; name: string; size: string; diameter?: string }[]) => {
+  const target = normalizeMedida(medidaNombre);
+  return estribos.find(e => {
+    const diamStr = e.diameter ? String(e.diameter).replace(/mm/i, '').trim() : '';
+    const candidates = [
+      `${e.name} - ${e.size}${diamStr ? ` - Ø${diamStr}mm` : ''}`,
+      `${e.name} - ${e.size}`,
+    ].map(normalizeMedida);
+    return candidates.includes(target);
+  });
+};
+
+
 const AdminCostos = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("nueva-tanda");
@@ -433,10 +455,7 @@ const AdminCostos = () => {
 
     if (calcs && calcs.length > 0) {
       setMedidas(calcs.map((calc: any) => {
-        const matched = estribosDisponibles.find(e => {
-          const withDiam = `${e.name} - ${e.size}${e.diameter ? ` - Ø${e.diameter}mm` : ''}`;
-          return withDiam === calc.medida_nombre || `${e.name} - ${e.size}` === calc.medida_nombre;
-        });
+        const matched = matchEstribo(calc.medida_nombre, estribosDisponibles);
         const diametro_real: DiametroReal =
           calc.diametro_real === 5.5 ? 5.5
           : calc.diametro_real === 3.8 ? 3.8
@@ -473,18 +492,22 @@ const AdminCostos = () => {
       if (error) throw error;
 
       // Resolver product_id a partir del nombre de la medida
-      const updates = dedupeProductCostUpdates((calcs || [])
-        .map((calc: any) => {
-          const matched = estribosDisponibles.find(e => {
-            const withDiam = `${e.name} - ${e.size}${e.diameter ? ` - Ø${e.diameter}mm` : ''}`;
-            return withDiam === calc.medida_nombre || `${e.name} - ${e.size}` === calc.medida_nombre;
-          });
-          return matched ? {
-            product_id: matched.id,
-            production_cost: calc.costo_por_unidad,
-          } : null;
-        })
-        .filter(Boolean) as { product_id: string; production_cost: number }[]);
+      const mapped = (calcs || []).map((calc: any) => {
+        const matched = matchEstribo(calc.medida_nombre, estribosDisponibles);
+        return { calc, matched };
+      });
+      const unmatched = mapped.filter(m => !m.matched).map(m => m.calc.medida_nombre);
+      if (unmatched.length > 0) {
+        console.warn('[activarTanda] Medidas sin match con productos:', unmatched);
+      }
+      const updates = dedupeProductCostUpdates(
+        mapped
+          .filter(m => m.matched)
+          .map(m => ({
+            product_id: m.matched!.id,
+            production_cost: m.calc.costo_por_unidad,
+          }))
+      );
 
       let syncedCount = 0;
       if (updates.length > 0) {
@@ -506,6 +529,11 @@ const AdminCostos = () => {
           .upsert(finalUpdates, { onConflict: 'product_id' });
         if (upsertError) throw upsertError;
         syncedCount = finalUpdates.length;
+        if (unmatched.length > 0) {
+          toast.warning(`${unmatched.length} medida(s) sin producto asociado`, {
+            description: unmatched.slice(0, 3).join(', ') + (unmatched.length > 3 ? '…' : ''),
+          });
+        }
       }
 
       localStorage.setItem(ACTIVE_BATCH_KEY, batchId);
