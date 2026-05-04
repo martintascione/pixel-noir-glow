@@ -5,10 +5,27 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Calculator, DollarSign, Percent, Save } from 'lucide-react';
+import { Calculator, DollarSign, Percent, Save, CheckCircle2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/utils/formatters';
+
+const ACTIVE_BATCH_KEY = 'active_cost_batch_id';
+
+interface CostBatch {
+  id: string;
+  nombre: string;
+  descripcion: string | null;
+  created_at: string;
+}
+
+interface CostCalculation {
+  id: string;
+  batch_id: string;
+  medida_nombre: string;
+  costo_por_unidad: number;
+}
 
 interface Product {
   id: string;
@@ -38,6 +55,10 @@ export const CostManager = ({ products }: Props) => {
   const [savingCosts, setSavingCosts] = useState<Set<string>>(new Set());
   const [ivaRate, setIvaRate] = useState(21);
   const [categoryMargins, setCategoryMargins] = useState<Record<string, number>>({});
+  const [batches, setBatches] = useState<CostBatch[]>([]);
+  const [batchCalcs, setBatchCalcs] = useState<Record<string, CostCalculation[]>>({});
+  const [activeBatchId, setActiveBatchId] = useState<string | null>(null);
+  const [switchingBatch, setSwitchingBatch] = useState(false);
 
   const fetchConfig = async () => {
     try {
@@ -71,9 +92,46 @@ export const CostManager = ({ products }: Props) => {
     }
   };
 
+  const fetchBatches = async () => {
+    try {
+      const { data: batchesData, error: bErr } = await supabase
+        .from('cost_batches' as any)
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (bErr) throw bErr;
+      const list = (batchesData || []) as unknown as CostBatch[];
+      setBatches(list);
+
+      if (list.length > 0) {
+        const ids = list.map(b => b.id);
+        const { data: calcsData, error: cErr } = await supabase
+          .from('cost_calculations' as any)
+          .select('*')
+          .in('batch_id', ids);
+        if (cErr) throw cErr;
+        const grouped: Record<string, CostCalculation[]> = {};
+        ((calcsData || []) as unknown as CostCalculation[]).forEach(c => {
+          if (!grouped[c.batch_id]) grouped[c.batch_id] = [];
+          grouped[c.batch_id].push(c);
+        });
+        setBatchCalcs(grouped);
+      }
+
+      const stored = localStorage.getItem(ACTIVE_BATCH_KEY);
+      if (stored && list.find(b => b.id === stored)) {
+        setActiveBatchId(stored);
+      } else if (list.length > 0) {
+        setActiveBatchId(list[0].id);
+      }
+    } catch (err) {
+      console.error('Error fetching batches:', err);
+    }
+  };
+
   useEffect(() => {
     fetchCosts();
     fetchConfig();
+    fetchBatches();
   }, []);
 
   const fetchCosts = async () => {
@@ -251,6 +309,81 @@ export const CostManager = ({ products }: Props) => {
     if (b.toLowerCase().includes('estribo')) return 1;
     return a.localeCompare(b);
   });
+
+  // Resolver product_id desde el nombre de medida de un cálculo
+  const resolveProductId = (medidaNombre: string, categoryProducts: Product[]): string | null => {
+    const matched = categoryProducts.find(p => {
+      const withDiam = `${p.name} - ${p.size}${p.diameter ? ` - Ø${p.diameter}mm` : ''}`;
+      return withDiam === medidaNombre || `${p.name} - ${p.size}` === medidaNombre;
+    });
+    return matched?.id ?? null;
+  };
+
+  // Calcular el margen promedio para una tanda dada vs los precios públicos actuales
+  const calcularMargenTanda = (batchId: string, categoryProducts: Product[]): { margen: number; cantidad: number } => {
+    const calcs = batchCalcs[batchId] || [];
+    let total = 0;
+    let count = 0;
+    calcs.forEach(calc => {
+      const productId = resolveProductId(calc.medida_nombre, categoryProducts);
+      if (!productId) return;
+      const product = categoryProducts.find(p => p.id === productId);
+      if (!product || product.price <= 0 || calc.costo_por_unidad <= 0) return;
+      const margen = ((product.price - calc.costo_por_unidad) / calc.costo_por_unidad) * 100;
+      total += margen;
+      count++;
+    });
+    return { margen: count > 0 ? total / count : 0, cantidad: count };
+  };
+
+  // Cambiar tanda activa: sincroniza los costos a product_costs
+  const cambiarTandaActiva = async (batchId: string) => {
+    const batch = batches.find(b => b.id === batchId);
+    if (!batch) return;
+    setSwitchingBatch(true);
+    try {
+      const calcs = batchCalcs[batchId] || [];
+      const updates = calcs
+        .map(calc => {
+          const pid = resolveProductId(calc.medida_nombre, products);
+          return pid ? { product_id: pid, production_cost: calc.costo_por_unidad } : null;
+        })
+        .filter(Boolean) as { product_id: string; production_cost: number }[];
+
+      if (updates.length > 0) {
+        const productIds = updates.map(u => u.product_id);
+        const { data: existing } = await supabase
+          .from('product_costs')
+          .select('product_id, profit_margin')
+          .in('product_id', productIds);
+        const marginMap = new Map((existing || []).map((e: any) => [e.product_id, e.profit_margin]));
+        const finalUpdates = updates.map(u => ({
+          ...u,
+          profit_margin: marginMap.get(u.product_id) ?? 0,
+        }));
+        const { error: upErr } = await supabase
+          .from('product_costs')
+          .upsert(finalUpdates, { onConflict: 'product_id' });
+        if (upErr) throw upErr;
+      }
+
+      localStorage.setItem(ACTIVE_BATCH_KEY, batchId);
+      setActiveBatchId(batchId);
+      await fetchCosts();
+      toast({
+        title: 'Lista activada',
+        description: `Tanda "${batch.nombre}" · ${updates.length} costo(s) sincronizado(s)`,
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: 'No se pudo cambiar la tanda activa: ' + err.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setSwitchingBatch(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -442,11 +575,11 @@ export const CostManager = ({ products }: Props) => {
                       Este margen se aplicará al costo de cada producto de la categoría {categoryName} para calcular el precio de venta público.
                     </p>
                     {categoryName.toLowerCase().includes('estribo') && (() => {
-                      // Calcular margen real promedio para estribos
                       const estribosData = groupedProducts[categoryName];
+
+                      // Margen actual real (con costos guardados en product_costs)
                       let totalMarginReal = 0;
                       let productosConDatos = 0;
-                      
                       estribosData.forEach(product => {
                         const cost = getCostForProduct(product.id, categoryName);
                         if (cost.production_cost > 0 && product.price > 0) {
@@ -455,16 +588,82 @@ export const CostManager = ({ products }: Props) => {
                           productosConDatos++;
                         }
                       });
-                      
                       const margenPromedio = productosConDatos > 0 ? totalMarginReal / productosConDatos : 0;
-                      
+
                       return (
-                        <p className="text-sm text-primary font-medium mt-2">
-                          Su margen actual entre el valor de venta y el costo, es de {margenPromedio.toFixed(1)}% de ganancia
-                          <span className="text-xs text-muted-foreground ml-2">
-                            (Promedio de {productosConDatos} productos con datos)
-                          </span>
-                        </p>
+                        <div className="mt-3 space-y-3">
+                          <p className="text-sm text-primary font-medium">
+                            Su margen actual entre el valor de venta y el costo, es de {margenPromedio.toFixed(1)}% de ganancia
+                            <span className="text-xs text-muted-foreground ml-2">
+                              (Promedio de {productosConDatos} productos con datos)
+                            </span>
+                          </p>
+
+                          {batches.length > 0 && (
+                            <div className="rounded-md border border-primary/20 bg-background p-3 space-y-3">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium">
+                                  Lista de precios del proveedor (tanda activa)
+                                </Label>
+                                <Select
+                                  value={activeBatchId ?? undefined}
+                                  onValueChange={(val) => cambiarTandaActiva(val)}
+                                  disabled={switchingBatch}
+                                >
+                                  <SelectTrigger className="w-full md:w-[420px]">
+                                    <SelectValue placeholder="Seleccionar tanda / proveedor" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {batches.map(b => (
+                                      <SelectItem key={b.id} value={b.id}>
+                                        {b.nombre}{b.id === activeBatchId ? ' · activa' : ''}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <p className="text-xs text-muted-foreground">
+                                  Al cambiar la tanda activa se sincronizan los costos de producción de los estribos con esa lista del proveedor.
+                                </p>
+                              </div>
+
+                              <Separator />
+
+                              <div className="space-y-1.5">
+                                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                                  Margen estimado por lista de precios
+                                </p>
+                                {batches.map(b => {
+                                  const { margen, cantidad } = calcularMargenTanda(b.id, estribosData);
+                                  const isActive = b.id === activeBatchId;
+                                  return (
+                                    <div
+                                      key={b.id}
+                                      className={`flex items-center justify-between gap-3 text-sm p-2 rounded ${isActive ? 'bg-primary/10' : ''}`}
+                                    >
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        {isActive && <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />}
+                                        <span className="truncate">{b.nombre}</span>
+                                      </div>
+                                      <div className="text-right shrink-0">
+                                        {cantidad > 0 ? (
+                                          <>
+                                            <span className="font-semibold text-primary">{margen.toFixed(1)}%</span>
+                                            <span className="text-xs text-muted-foreground ml-2">({cantidad} prod.)</span>
+                                          </>
+                                        ) : (
+                                          <span className="text-xs text-muted-foreground">sin datos comparables</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                                <p className="text-xs text-muted-foreground pt-1">
+                                  Cada % indica la ganancia que tendrías sobre el precio de venta público actual si usaras esa lista de precios del proveedor.
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       );
                     })()}
                   </div>
