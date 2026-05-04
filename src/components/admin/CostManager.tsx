@@ -310,6 +310,81 @@ export const CostManager = ({ products }: Props) => {
     return a.localeCompare(b);
   });
 
+  // Resolver product_id desde el nombre de medida de un cálculo
+  const resolveProductId = (medidaNombre: string, categoryProducts: Product[]): string | null => {
+    const matched = categoryProducts.find(p => {
+      const withDiam = `${p.name} - ${p.size}${p.diameter ? ` - Ø${p.diameter}mm` : ''}`;
+      return withDiam === medidaNombre || `${p.name} - ${p.size}` === medidaNombre;
+    });
+    return matched?.id ?? null;
+  };
+
+  // Calcular el margen promedio para una tanda dada vs los precios públicos actuales
+  const calcularMargenTanda = (batchId: string, categoryProducts: Product[]): { margen: number; cantidad: number } => {
+    const calcs = batchCalcs[batchId] || [];
+    let total = 0;
+    let count = 0;
+    calcs.forEach(calc => {
+      const productId = resolveProductId(calc.medida_nombre, categoryProducts);
+      if (!productId) return;
+      const product = categoryProducts.find(p => p.id === productId);
+      if (!product || product.price <= 0 || calc.costo_por_unidad <= 0) return;
+      const margen = ((product.price - calc.costo_por_unidad) / calc.costo_por_unidad) * 100;
+      total += margen;
+      count++;
+    });
+    return { margen: count > 0 ? total / count : 0, cantidad: count };
+  };
+
+  // Cambiar tanda activa: sincroniza los costos a product_costs
+  const cambiarTandaActiva = async (batchId: string) => {
+    const batch = batches.find(b => b.id === batchId);
+    if (!batch) return;
+    setSwitchingBatch(true);
+    try {
+      const calcs = batchCalcs[batchId] || [];
+      const updates = calcs
+        .map(calc => {
+          const pid = resolveProductId(calc.medida_nombre, products);
+          return pid ? { product_id: pid, production_cost: calc.costo_por_unidad } : null;
+        })
+        .filter(Boolean) as { product_id: string; production_cost: number }[];
+
+      if (updates.length > 0) {
+        const productIds = updates.map(u => u.product_id);
+        const { data: existing } = await supabase
+          .from('product_costs')
+          .select('product_id, profit_margin')
+          .in('product_id', productIds);
+        const marginMap = new Map((existing || []).map((e: any) => [e.product_id, e.profit_margin]));
+        const finalUpdates = updates.map(u => ({
+          ...u,
+          profit_margin: marginMap.get(u.product_id) ?? 0,
+        }));
+        const { error: upErr } = await supabase
+          .from('product_costs')
+          .upsert(finalUpdates, { onConflict: 'product_id' });
+        if (upErr) throw upErr;
+      }
+
+      localStorage.setItem(ACTIVE_BATCH_KEY, batchId);
+      setActiveBatchId(batchId);
+      await fetchCosts();
+      toast({
+        title: 'Lista activada',
+        description: `Tanda "${batch.nombre}" · ${updates.length} costo(s) sincronizado(s)`,
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: 'No se pudo cambiar la tanda activa: ' + err.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setSwitchingBatch(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
