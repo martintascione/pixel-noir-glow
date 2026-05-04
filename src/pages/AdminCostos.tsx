@@ -356,6 +356,28 @@ const AdminCostos = () => {
     setMedidas([...medidas, { medida_nombre: "", metros_por_unidad: "", diametro_real: 3.8 }]);
   };
 
+  // Genera una fila de medida a partir de un estribo del catálogo
+  const buildMedidaFromEstribo = (estribo: EstribosProduct): MedidaInput => {
+    const metrosLineales = calcularMetrosLineales(estribo.size, estribo.shape);
+    const diamSuffix = estribo.diameter ? ` - Ø${estribo.diameter}mm` : '';
+    return {
+      medida_nombre: `${estribo.name} - ${estribo.size}${diamSuffix}`,
+      metros_por_unidad: metrosLineales.toFixed(4),
+      product_id: estribo.id,
+      diametro_real: inferDiametroReal(estribo.diameter),
+    };
+  };
+
+  // Autollena todas las medidas con todos los estribos del catálogo
+  const autollenarTodasMedidas = () => {
+    if (estribosDisponibles.length === 0) {
+      toast.error("No hay estribos cargados en el catálogo de productos");
+      return;
+    }
+    setMedidas(estribosDisponibles.map(buildMedidaFromEstribo));
+    toast.success(`${estribosDisponibles.length} medida(s) cargadas automáticamente`);
+  };
+
   const seleccionarEstribo = (index: number, estribosId: string) => {
     const estribo = estribosDisponibles.find(e => e.id === estribosId);
     if (estribo) {
