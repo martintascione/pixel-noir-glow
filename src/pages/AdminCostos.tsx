@@ -374,6 +374,10 @@ const AdminCostos = () => {
           .upsert(finalUpdates, { onConflict: 'product_id' });
         if (upsertError) throw upsertError;
         syncedCount = finalUpdates.length;
+
+        // Actualizar precio público (products.price) usando margen guardado + IVA
+        const ivaRate = await fetchIvaRate();
+        await syncPublicPricesFromCosts(finalUpdates, ivaRate);
       }
 
       return { id: batchId, syncedCount, willBeActive };
