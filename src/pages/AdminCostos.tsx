@@ -1046,10 +1046,11 @@ const AdminCostos = () => {
                             <span>Usar esta lista de precios para los cálculos</span>
                           </label>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 w-full md:w-auto">
                           <Button
-                            variant="outline"
+                            variant="default"
                             size="sm"
+                            className="flex-1 md:flex-none h-10"
                             onClick={() => cargarTandaParaEditar(batch.id)}
                           >
                             Editar
@@ -1057,11 +1058,13 @@ const AdminCostos = () => {
                           <Button
                             variant="outline"
                             size="sm"
+                            className="flex-1 md:flex-none h-10"
                             onClick={() => verDetalles(batch.id)}
                           >
                             Ver Detalles
                           </Button>
                         </div>
+
                       </div>
                     </CardHeader>
                     <CardContent>
