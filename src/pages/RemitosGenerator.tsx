@@ -464,8 +464,11 @@ const RemitosGenerator = () => {
     const monthlyData: { [key: string]: { total: number; count: number; clients: { [clientName: string]: number } } } = {};
 
     remitosData.forEach(remito => {
-      const remitoDate = new Date(remito.fecha);
-      const monthKey = `${remitoDate.getFullYear()}-${(remitoDate.getMonth() + 1).toString().padStart(2, '0')}`;
+      // BUG FIX: remito.fecha viene como "YYYY-MM-DD" desde la DB. Si usamos new Date(str),
+      // JS lo parsea como UTC y en Argentina (UTC-3) se corre al día anterior → cae en el mes previo.
+      // Parseamos los componentes directamente para evitar el desfasaje de zona horaria.
+      const [yearStr, monthStr] = (remito.fecha || '').split('-');
+      const monthKey = `${yearStr}-${monthStr}`;
       const clientName = remito.clients?.name || 'Cliente Sin Nombre';
 
       if (!monthlyData[monthKey]) {
