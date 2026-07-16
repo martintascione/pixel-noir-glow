@@ -66,6 +66,37 @@ const ACTIVE_BATCH_KEY = 'active_cost_batch_id';
 const dedupeProductCostUpdates = <T extends { product_id: string }>(updates: T[]): T[] =>
   Array.from(new Map(updates.map(update => [update.product_id, update])).values());
 
+// Obtiene la tasa de IVA configurada (default 21)
+const fetchIvaRate = async (): Promise<number> => {
+  const { data } = await supabase
+    .from('general_config')
+    .select('iva_rate')
+    .limit(1)
+    .single();
+  return data?.iva_rate ?? 21;
+};
+
+// Sincroniza el precio público (products.price) a partir del costo de producción y el margen.
+// Fórmula (idéntica a CostManager): netCost = cost / (1+iva); final = netCost * (1+margen) * (1+iva)
+const syncPublicPricesFromCosts = async (
+  items: { product_id: string; production_cost: number; profit_margin: number }[],
+  ivaRate: number
+): Promise<number> => {
+  let updated = 0;
+  await Promise.all(items.map(async (u) => {
+    if (!u.production_cost || u.production_cost <= 0) return;
+    const netCost = u.production_cost / (1 + ivaRate / 100);
+    const costWithMargin = netCost * (1 + (u.profit_margin || 0) / 100);
+    const finalPrice = costWithMargin * (1 + ivaRate / 100);
+    const { error } = await supabase
+      .from('products')
+      .update({ price: Math.round(finalPrice * 100) / 100 })
+      .eq('id', u.product_id);
+    if (!error) updated++;
+  }));
+  return updated;
+};
+
 const normalizeMedida = (s: string) =>
   (s || '')
     .toLowerCase()
@@ -343,16 +374,21 @@ const AdminCostos = () => {
           .upsert(finalUpdates, { onConflict: 'product_id' });
         if (upsertError) throw upsertError;
         syncedCount = finalUpdates.length;
+
+        // Actualizar precio público (products.price) usando margen guardado + IVA
+        const ivaRate = await fetchIvaRate();
+        await syncPublicPricesFromCosts(finalUpdates, ivaRate);
       }
 
       return { id: batchId, syncedCount, willBeActive };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['cost-batches'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       setActiveBatchId(localStorage.getItem(ACTIVE_BATCH_KEY));
       const baseMsg = editingBatchId ? "Tanda actualizada exitosamente" : "Tanda guardada exitosamente";
       const syncMsg = result.syncedCount > 0
-        ? ` · ${result.syncedCount} costo(s) sincronizado(s) con Productos`
+        ? ` · ${result.syncedCount} costo(s) sincronizado(s) · precios públicos actualizados`
         : (!result.willBeActive ? ' · (no es la tanda activa, no se sincronizó)' : '');
       toast.success(baseMsg + syncMsg);
       resetForm();
@@ -599,6 +635,12 @@ const AdminCostos = () => {
           .upsert(finalUpdates, { onConflict: 'product_id' });
         if (upsertError) throw upsertError;
         syncedCount = finalUpdates.length;
+
+        // Actualizar precio público (products.price) usando margen guardado + IVA
+        const ivaRate = await fetchIvaRate();
+        await syncPublicPricesFromCosts(finalUpdates, ivaRate);
+        queryClient.invalidateQueries({ queryKey: ['products'] });
+
         if (unmatched.length > 0) {
           toast.warning(`${unmatched.length} medida(s) sin producto asociado`, {
             description: unmatched.slice(0, 3).join(', ') + (unmatched.length > 3 ? '…' : ''),
@@ -608,7 +650,7 @@ const AdminCostos = () => {
 
       localStorage.setItem(ACTIVE_BATCH_KEY, batchId);
       setActiveBatchId(batchId);
-      toast.success(`Tanda "${batch.nombre}" activada · ${syncedCount} costo(s) sincronizado(s)`);
+      toast.success(`Tanda "${batch.nombre}" activada · ${syncedCount} costo(s) sincronizado(s) · precios públicos actualizados`);
     } catch (err: any) {
       toast.error("Error al activar la tanda: " + err.message);
     }
