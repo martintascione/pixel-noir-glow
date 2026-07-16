@@ -384,10 +384,11 @@ const AdminCostos = () => {
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['cost-batches'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       setActiveBatchId(localStorage.getItem(ACTIVE_BATCH_KEY));
       const baseMsg = editingBatchId ? "Tanda actualizada exitosamente" : "Tanda guardada exitosamente";
       const syncMsg = result.syncedCount > 0
-        ? ` · ${result.syncedCount} costo(s) sincronizado(s) con Productos`
+        ? ` · ${result.syncedCount} costo(s) sincronizado(s) · precios públicos actualizados`
         : (!result.willBeActive ? ' · (no es la tanda activa, no se sincronizó)' : '');
       toast.success(baseMsg + syncMsg);
       resetForm();
