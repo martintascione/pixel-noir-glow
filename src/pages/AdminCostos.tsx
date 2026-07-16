@@ -715,7 +715,52 @@ const AdminCostos = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6 pb-24 md:pb-6">
+                  {/* Al editar, mostrar primero los precios por kilo (lo más importante) */}
+                  {editingBatchId && (
+                    <div className="rounded-lg border-2 border-primary/40 bg-primary/5 p-4 space-y-4">
+                      <div>
+                        <h3 className="font-semibold text-base">💰 Precio por Kilo</h3>
+                        <p className="text-xs text-muted-foreground">Actualiza el costo del proveedor. Al guardar se recalculan los precios al cliente.</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="costo-38-top" className="text-sm">Ø3.8mm (comercial 4.2) — Costo por Kilo *</Label>
+                        <Input
+                          id="costo-38-top"
+                          type="number"
+                          inputMode="decimal"
+                          step="0.01"
+                          placeholder="Ej: 1500.00"
+                          value={costoPorKilo38}
+                          onChange={(e) => setCostoPorKilo38(e.target.value)}
+                          className="text-lg h-12"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="costo-55-top" className="text-sm">Ø5.5mm (comercial 6) — Costo por Kilo *</Label>
+                        <Input
+                          id="costo-55-top"
+                          type="number"
+                          inputMode="decimal"
+                          step="0.01"
+                          placeholder="Ej: 1500.00"
+                          value={costoPorKilo55}
+                          onChange={(e) => setCostoPorKilo55(e.target.value)}
+                          className="text-lg h-12"
+                          required
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        className="w-full h-12 text-base"
+                        disabled={saveBatchMutation.isPending}
+                      >
+                        {saveBatchMutation.isPending ? "Guardando..." : "Guardar cambios"}
+                      </Button>
+                    </div>
+                  )}
+
                   {/* Información general */}
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
@@ -739,6 +784,7 @@ const AdminCostos = () => {
                       />
                     </div>
                   </div>
+
 
                   {/* Datos de materia prima – Hierro 3.8mm (comercial 4.2mm) */}
                   <div className="rounded-lg border p-4 space-y-3">
