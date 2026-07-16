@@ -318,7 +318,11 @@ export const ClientRemitoHistory = () => {
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <Calendar className="h-3 w-3 flex-shrink-0" />
                           <span className="truncate">
-                            {new Date(remito.fecha).toLocaleDateString('es-AR')}
+                            {(() => {
+                              // Evitar desfasaje UTC: parseamos YYYY-MM-DD manualmente
+                              const [y, m, d] = (remito.fecha || '').split('-');
+                              return y && m && d ? `${d}/${m}/${y}` : remito.fecha;
+                            })()}
                           </span>
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0">
