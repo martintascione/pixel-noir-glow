@@ -634,6 +634,12 @@ const AdminCostos = () => {
           .upsert(finalUpdates, { onConflict: 'product_id' });
         if (upsertError) throw upsertError;
         syncedCount = finalUpdates.length;
+
+        // Actualizar precio público (products.price) usando margen guardado + IVA
+        const ivaRate = await fetchIvaRate();
+        await syncPublicPricesFromCosts(finalUpdates, ivaRate);
+        queryClient.invalidateQueries({ queryKey: ['products'] });
+
         if (unmatched.length > 0) {
           toast.warning(`${unmatched.length} medida(s) sin producto asociado`, {
             description: unmatched.slice(0, 3).join(', ') + (unmatched.length > 3 ? '…' : ''),
@@ -643,7 +649,7 @@ const AdminCostos = () => {
 
       localStorage.setItem(ACTIVE_BATCH_KEY, batchId);
       setActiveBatchId(batchId);
-      toast.success(`Tanda "${batch.nombre}" activada · ${syncedCount} costo(s) sincronizado(s)`);
+      toast.success(`Tanda "${batch.nombre}" activada · ${syncedCount} costo(s) sincronizado(s) · precios públicos actualizados`);
     } catch (err: any) {
       toast.error("Error al activar la tanda: " + err.message);
     }
