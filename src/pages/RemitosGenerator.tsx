@@ -1252,7 +1252,9 @@ const RemitosGenerator = () => {
               {monthlyBillingData.map((monthData, index) => {
                 const isCurrentMonth = index === 0;
                 const isExpanded = expandedMonths.has(monthData.month);
-                const monthName = new Date(monthData.month + '-01').toLocaleDateString('es-AR', { 
+                // Construimos la fecha con componentes locales para evitar el desfasaje UTC
+                const [my, mm] = monthData.month.split('-');
+                const monthName = new Date(Number(my), Number(mm) - 1, 1).toLocaleDateString('es-AR', { 
                   year: 'numeric', 
                   month: 'long' 
                 });
