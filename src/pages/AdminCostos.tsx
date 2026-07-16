@@ -66,6 +66,37 @@ const ACTIVE_BATCH_KEY = 'active_cost_batch_id';
 const dedupeProductCostUpdates = <T extends { product_id: string }>(updates: T[]): T[] =>
   Array.from(new Map(updates.map(update => [update.product_id, update])).values());
 
+// Obtiene la tasa de IVA configurada (default 21)
+const fetchIvaRate = async (): Promise<number> => {
+  const { data } = await supabase
+    .from('general_config')
+    .select('iva_rate')
+    .limit(1)
+    .single();
+  return data?.iva_rate ?? 21;
+};
+
+// Sincroniza el precio público (products.price) a partir del costo de producción y el margen.
+// Fórmula (idéntica a CostManager): netCost = cost / (1+iva); final = netCost * (1+margen) * (1+iva)
+const syncPublicPricesFromCosts = async (
+  items: { product_id: string; production_cost: number; profit_margin: number }[],
+  ivaRate: number
+): Promise<number> => {
+  let updated = 0;
+  await Promise.all(items.map(async (u) => {
+    if (!u.production_cost || u.production_cost <= 0) return;
+    const netCost = u.production_cost / (1 + ivaRate / 100);
+    const costWithMargin = netCost * (1 + (u.profit_margin || 0) / 100);
+    const finalPrice = costWithMargin * (1 + ivaRate / 100);
+    const { error } = await supabase
+      .from('products')
+      .update({ price: Math.round(finalPrice * 100) / 100 })
+      .eq('id', u.product_id);
+    if (!error) updated++;
+  }));
+  return updated;
+};
+
 const normalizeMedida = (s: string) =>
   (s || '')
     .toLowerCase()
