@@ -121,7 +121,7 @@ const matchEstribo = (medidaNombre: string, estribos: { id: string; name: string
 
 const AdminCostos = () => {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("nueva-tanda");
+  const [activeTab, setActiveTab] = useState("historial");
   const [estribosDisponibles, setEstribosDisponibles] = useState<EstribosProduct[]>([]);
   const [editingBatchId, setEditingBatchId] = useState<string | null>(null);
   const [activeBatchId, setActiveBatchId] = useState<string | null>(
