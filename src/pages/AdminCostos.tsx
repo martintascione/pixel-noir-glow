@@ -978,15 +978,27 @@ const AdminCostos = () => {
 
                   <Button 
                     type="submit" 
-                    className="w-full" 
+                    className="w-full hidden md:inline-flex" 
                     disabled={saveBatchMutation.isPending}
                   >
                     {saveBatchMutation.isPending ? "Guardando..." : (editingBatchId ? "Actualizar Tanda" : "Guardar Tanda")}
                   </Button>
+
+                  {/* Botón flotante mobile: siempre visible sin scrollear */}
+                  <div className="fixed bottom-0 left-0 right-0 z-40 p-3 bg-background/95 backdrop-blur border-t md:hidden">
+                    <Button
+                      type="submit"
+                      className="w-full h-12 text-base"
+                      disabled={saveBatchMutation.isPending}
+                    >
+                      {saveBatchMutation.isPending ? "Guardando..." : (editingBatchId ? "Guardar cambios" : "Guardar Tanda")}
+                    </Button>
+                  </div>
                 </form>
               </CardContent>
             </Card>
           </TabsContent>
+
 
           {/* Historial */}
           <TabsContent value="historial" className="space-y-6">
